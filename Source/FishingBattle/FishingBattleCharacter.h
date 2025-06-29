@@ -59,8 +59,27 @@ class AFishingBattleCharacter : public ACharacter
 	UPROPERTY(EditDefaultsOnly, Category = "Anim")
 	UAnimMontage* RollMontage;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Anim")
+	UAnimMontage* DeadMontage;
+
 public:
 	AFishingBattleCharacter();
+
+
+	/// <summary>
+    /// ダメージの受け取り
+    /// </summary>
+    /// <param name="DamageAmount"></param>
+    /// <param name="DamageEvent"></param>
+    /// <param name="EventInstigator"></param>
+    /// <param name="DamageCauser"></param>
+    /// <returns></returns>
+	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent,
+		AController* EventInstigator, AActor* DamageCauser) override;
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HP")
+	float Health = 100;
 
 	
 
@@ -81,7 +100,7 @@ protected:
 	/// <summary>
 	/// 攻撃モーションを終了
 	/// </summary>
-	void OnMontageEnded(UAnimMontage* Montage, bool in);
+	void OnAttackEnded(UAnimMontage* Montage, bool in);
 
 	/// <summary>
 	/// 回避モーション開始
@@ -96,7 +115,27 @@ protected:
 	/// <param name="in"></param>
 	void OnRollEnded(UAnimMontage* Montage, bool in);
 
+	/// <summary>
+	/// ジャンプをさせないために上書き
+	/// </summary>
 	virtual void Jump() override;
+
+	/// <summary>
+	/// 死亡用
+	/// </summary>
+	void Die();
+	bool IsDead = false;
+
+	/// <summary>
+	/// キャラクター消滅
+	/// </summary>
+	void OnDeadEnded(UAnimMontage* Montage, bool in);
+
+
+
+
+
+
 
 			
 

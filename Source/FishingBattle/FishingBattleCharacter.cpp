@@ -54,6 +54,19 @@ AFishingBattleCharacter::AFishingBattleCharacter()
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 }
 
+float AFishingBattleCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	if (IsRoll)return 0.0f;
+	if (IsDead)return 0.0f;
+	this->Health -= DamageAmount;
+	if (Health <= 0.0f) {
+		Die();
+	}
+
+
+	return DamageAmount;
+}
+
 //////////////////////////////////////////////////////////////////////////
 // Input
 
@@ -99,7 +112,6 @@ void AFishingBattleCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 
 void AFishingBattleCharacter::Move(const FInputActionValue& Value)
 {
-	if (IsPlayAttack1)return;
 	// input is a Vector2D
 	FVector2D MovementVector = Value.Get<FVector2D>();
 
@@ -136,29 +148,27 @@ void AFishingBattleCharacter::Look(const FInputActionValue& Value)
 
 void AFishingBattleCharacter::Attack1()
 {
+	if (IsPlayAttack1 || !AttackMontage || IsRoll || !GetCharacterMovement()->IsMovingOnGround()) return;
 	UE_LOG(LogTemp, Warning, TEXT("attack!"));
-	if (IsPlayAttack1 || !AttackMontage) return;
 
 	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
 	if (!animInstance)return;
 	UMyAnimInstance* mAnim = Cast<UMyAnimInstance>(animInstance);
 	if (animInstance && mAnim) {
 		if (mAnim->Isjump) return;
-		GetCharacterMovement()->DisableMovement();
-		animInstance->Montage_Play(AttackMontage);
+		animInstance->Montage_Play(AttackMontage,2.0f);
 		mAnim->attack1 = true;
 		IsPlayAttack1 = true;
 
 		FOnMontageEnded Delegate;
-		Delegate.BindUObject(this, &AFishingBattleCharacter::OnMontageEnded);
+		Delegate.BindUObject(this, &AFishingBattleCharacter::OnAttackEnded);
 		animInstance->Montage_SetEndDelegate(Delegate, AttackMontage);
 	}
 
 }
 
-void AFishingBattleCharacter::OnMontageEnded(UAnimMontage* Montage, bool in) {
+void AFishingBattleCharacter::OnAttackEnded(UAnimMontage* Montage, bool in) {
 	UE_LOG(LogTemp, Warning, TEXT("attack!end"));
-	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
 	if (!animInstance)return;
 	UMyAnimInstance* mAnim = Cast<UMyAnimInstance>(animInstance);
@@ -172,8 +182,8 @@ void AFishingBattleCharacter::OnMontageEnded(UAnimMontage* Montage, bool in) {
 
 void AFishingBattleCharacter::Roll()
 {
+	if (IsRoll || !RollMontage || IsPlayAttack1 || !GetCharacterMovement()->IsMovingOnGround()) return;
 	UE_LOG(LogTemp, Warning, TEXT("Roll!"));
-	if (IsRoll || !RollMontage) return;
 
 	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
 	if (!animInstance)return;
@@ -192,7 +202,7 @@ void AFishingBattleCharacter::Roll()
 
 void AFishingBattleCharacter::OnRollEnded(UAnimMontage* Montage, bool in)
 {
-	UE_LOG(LogTemp, Warning, TEXT("attack!end"));
+	UE_LOG(LogTemp, Warning, TEXT("Roll!end"));
 	//GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 	IsRoll = false;
 }
@@ -202,4 +212,29 @@ void AFishingBattleCharacter::Jump()
 	if (IsRoll)return;
 
 	Super::Jump();
+}
+
+void AFishingBattleCharacter::Die()
+{
+	if (IsDead)return;
+	UE_LOG(LogTemp, Warning, TEXT("dead!start"));
+	GetCharacterMovement()->DisableMovement();
+	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
+	if (animInstance) {
+		animInstance->Montage_Play(DeadMontage);
+		IsDead = true;
+	}
+
+	FOnMontageEnded Delegate;
+	Delegate.BindUObject(this, &AFishingBattleCharacter::OnDeadEnded);
+	animInstance->Montage_SetEndDelegate(Delegate, DeadMontage);
+
+	//FTimerHandle TimerHandle;
+	//GetWorldTimerManager().SetTimer(TimerHandle, this, &AFishingBattleCharacter::canDestroy, 5.0f, false);
+}
+
+void AFishingBattleCharacter::OnDeadEnded(UAnimMontage* Montage, bool in)
+{
+	UE_LOG(LogTemp, Warning, TEXT("dead!end"));
+	Destroy();
 }
