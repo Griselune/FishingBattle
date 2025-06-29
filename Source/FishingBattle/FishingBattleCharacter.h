@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Tokumaru/MyAnimInstance.h"
 #include "Logging/LogMacros.h"
 #include "FishingBattleCharacter.generated.h"
 
@@ -11,6 +12,7 @@ class USpringArmComponent;
 class UCameraComponent;
 class UInputMappingContext;
 class UInputAction;
+class UMyAnimInstance;
 struct FInputActionValue;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
@@ -44,8 +46,22 @@ class AFishingBattleCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* LookAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* AttackAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* RollAction;
+
+
+	UPROPERTY(EditDefaultsOnly,Category = "Anim")
+	UAnimMontage* AttackMontage;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Anim")
+	UAnimMontage* RollMontage;
+
 public:
 	AFishingBattleCharacter();
+
 	
 
 protected:
@@ -55,6 +71,33 @@ protected:
 
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
+
+	/// <summary>
+	/// 攻撃モーション開始
+	/// </summary>
+	void Attack1();
+	bool IsPlayAttack1 = false;
+
+	/// <summary>
+	/// 攻撃モーションを終了
+	/// </summary>
+	void OnMontageEnded(UAnimMontage* Montage, bool in);
+
+	/// <summary>
+	/// 回避モーション開始
+	/// </summary>
+	void Roll();
+	bool IsRoll = false;
+
+	/// <summary>
+	/// 攻撃モーションを終了
+	/// </summary>
+	/// <param name="Montage"></param>
+	/// <param name="in"></param>
+	void OnRollEnded(UAnimMontage* Montage, bool in);
+
+	virtual void Jump() override;
+
 			
 
 protected:
@@ -68,5 +111,6 @@ public:
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+	
 };
 

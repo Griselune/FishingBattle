@@ -85,6 +85,11 @@ void AFishingBattleCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AFishingBattleCharacter::Look);
+
+		//Attack
+		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &AFishingBattleCharacter::Attack1);
+
+		EnhancedInputComponent->BindAction(RollAction, ETriggerEvent::Started, this, &AFishingBattleCharacter::Roll);
 	}
 	else
 	{
@@ -94,6 +99,7 @@ void AFishingBattleCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 
 void AFishingBattleCharacter::Move(const FInputActionValue& Value)
 {
+	if (IsPlayAttack1)return;
 	// input is a Vector2D
 	FVector2D MovementVector = Value.Get<FVector2D>();
 
@@ -126,4 +132,74 @@ void AFishingBattleCharacter::Look(const FInputActionValue& Value)
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
 	}
+}
+
+void AFishingBattleCharacter::Attack1()
+{
+	UE_LOG(LogTemp, Warning, TEXT("attack!"));
+	if (IsPlayAttack1 || !AttackMontage) return;
+
+	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
+	if (!animInstance)return;
+	UMyAnimInstance* mAnim = Cast<UMyAnimInstance>(animInstance);
+	if (animInstance && mAnim) {
+		if (mAnim->Isjump) return;
+		GetCharacterMovement()->DisableMovement();
+		animInstance->Montage_Play(AttackMontage);
+		mAnim->attack1 = true;
+		IsPlayAttack1 = true;
+
+		FOnMontageEnded Delegate;
+		Delegate.BindUObject(this, &AFishingBattleCharacter::OnMontageEnded);
+		animInstance->Montage_SetEndDelegate(Delegate, AttackMontage);
+	}
+
+}
+
+void AFishingBattleCharacter::OnMontageEnded(UAnimMontage* Montage, bool in) {
+	UE_LOG(LogTemp, Warning, TEXT("attack!end"));
+	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
+	if (!animInstance)return;
+	UMyAnimInstance* mAnim = Cast<UMyAnimInstance>(animInstance);
+	if (!mAnim)return;
+
+
+
+	IsPlayAttack1 = false;
+	mAnim->attack1 = false;
+}
+
+void AFishingBattleCharacter::Roll()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Roll!"));
+	if (IsRoll || !RollMontage) return;
+
+	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
+	if (!animInstance)return;
+	UMyAnimInstance* mAnim = Cast<UMyAnimInstance>(animInstance);
+	if (animInstance && mAnim) {
+		if (mAnim->Isjump) return;
+		//GetCharacterMovement()->DisableMovement();
+		animInstance->Montage_Play(RollMontage);
+		IsRoll = true;
+
+		FOnMontageEnded Delegate;
+		Delegate.BindUObject(this, &AFishingBattleCharacter::OnRollEnded);
+		animInstance->Montage_SetEndDelegate(Delegate, RollMontage);
+	}
+}
+
+void AFishingBattleCharacter::OnRollEnded(UAnimMontage* Montage, bool in)
+{
+	UE_LOG(LogTemp, Warning, TEXT("attack!end"));
+	//GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+	IsRoll = false;
+}
+
+void AFishingBattleCharacter::Jump()
+{
+	if (IsRoll)return;
+
+	Super::Jump();
 }
