@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "FishingBattleGameMode.h"
 #include "GameFramework/Character.h"
 #include "Tokumaru/MyAnimInstance.h"
 #include "Logging/LogMacros.h"
@@ -52,6 +53,8 @@ class AFishingBattleCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* RollAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* FishingAction;
 
 	UPROPERTY(EditDefaultsOnly,Category = "Anim")
 	UAnimMontage* AttackMontage;
@@ -61,6 +64,9 @@ class AFishingBattleCharacter : public ACharacter
 
 	UPROPERTY(EditDefaultsOnly, Category = "Anim")
 	UAnimMontage* DeadMontage;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Anim")
+	UAnimMontage* FishingMontage;
 
 public:
 	AFishingBattleCharacter();
@@ -97,7 +103,7 @@ public:
 	void ExitSpot();
 
 	//魚もらう
-	int fish;
+	int fish = 0;
 	bool canFishing = false;
 	AActor* fishingSpot = NULL;
 
@@ -159,9 +165,22 @@ protected:
 	/// <summary>
 	/// 釣り開始。
 	/// </summary>
-	void LetsFishing();
+	void Fishing();
+	bool IsFishing = false;
 
+	/// <summary>
+	/// 釣り終了
+	/// </summary>
+	void OnFishingEnded(UAnimMontage* Montage, bool in);
 
+	UFUNCTION(Server, Reliable)
+	void Server_Die();  // クライアント用
+
+	void HandleDeath(); // サーバー内部用
+
+	void RequestRespawn(); // タイマーで呼ぶ
+
+	FTimerHandle RespawnTimerHandle;
 
 
 
