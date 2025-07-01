@@ -3,6 +3,7 @@
 
 #include "WuBranch/Actor/Component/FishableComponent.h"
 #include "Components/MeshComponent.h"
+#include "TakimotoBranch/CPPBaseWeapon.h"
 
 // Sets default values for this component's properties
 UFishableComponent::UFishableComponent()
@@ -35,7 +36,7 @@ void UFishableComponent::BeginPlay()
 //	// ...
 //}
 
-int UFishableComponent::GetFish()
+ACPPBaseWeapon* UFishableComponent::GetFish()
 {
 	// １から合計確率までランダムで数値をゲット
 	int Target = FMath::RandRange(1, TotalProbility);
@@ -46,9 +47,13 @@ int UFishableComponent::GetFish()
 	{
 		Sum += FishType.Value;
 		if (Sum >= Target)
-			return 1;
+		{
+			ACPPBaseWeapon* Weapon = NewObject<ACPPBaseWeapon>(GetWorld(), FishType.Key.Get());
+			return Weapon;
+		}
+			
 	}
-	return 0;
+	return nullptr;
 }
 
 void UFishableComponent::CaculateTotalProbility()
