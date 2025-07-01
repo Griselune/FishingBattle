@@ -10,6 +10,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
+#include <Kismet/GameplayStatics.h>
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -20,7 +21,7 @@ AFishingBattleCharacter::AFishingBattleCharacter()
 {
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
-		
+
 	// Don't rotate when the controller rotates. Let that just affect the camera.
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
@@ -100,7 +101,7 @@ void AFishingBattleCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 {
 	// Set up action bindings
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent)) {
-		
+
 		// Jumping
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
@@ -115,6 +116,8 @@ void AFishingBattleCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &AFishingBattleCharacter::Attack1);
 
 		EnhancedInputComponent->BindAction(RollAction, ETriggerEvent::Started, this, &AFishingBattleCharacter::Roll);
+
+		EnhancedInputComponent->BindAction(FishingAction, ETriggerEvent::Started, this, &AFishingBattleCharacter::Fishing);
 	}
 	else
 	{
@@ -124,6 +127,7 @@ void AFishingBattleCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 
 void AFishingBattleCharacter::Move(const FInputActionValue& Value)
 {
+	if (IsFishing)return;
 	// input is a Vector2D
 	FVector2D MovementVector = Value.Get<FVector2D>();
 
@@ -135,7 +139,7 @@ void AFishingBattleCharacter::Move(const FInputActionValue& Value)
 
 		// get forward vector
 		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-	
+
 		// get right vector 
 		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
@@ -168,7 +172,7 @@ void AFishingBattleCharacter::Attack1()
 	UMyAnimInstance* mAnim = Cast<UMyAnimInstance>(animInstance);
 	if (animInstance && mAnim) {
 		if (mAnim->Isjump) return;
-		animInstance->Montage_Play(AttackMontage,2.0f);
+		animInstance->Montage_Play(AttackMontage, 2.0f);
 		mAnim->attack1 = true;
 		IsPlayAttack1 = true;
 
@@ -222,6 +226,7 @@ void AFishingBattleCharacter::OnRollEnded(UAnimMontage* Montage, bool in)
 void AFishingBattleCharacter::Jump()
 {
 	if (IsRoll)return;
+	if (IsFishing)return;
 
 	Super::Jump();
 }
@@ -248,10 +253,77 @@ void AFishingBattleCharacter::Die()
 void AFishingBattleCharacter::OnDeadEnded(UAnimMontage* Montage, bool in)
 {
 	UE_LOG(LogTemp, Warning, TEXT("dead!end"));
-	Destroy();
+	SetActorHiddenInGame(true);
+	if (!HasAuthority())
+	{
+		Server_Die();  // クライアントならサーバーに死亡通知
+		return;
+	}
+
+	HandleDeath(); // サーバーなら直接処理
 }
 
-void AFishingBattleCharacter::LetsFishing()
+void AFishingBattleCharacter::Server_Die_Implementation()
 {
-	//釣るときのアニメーション
+	HandleDeath();
+}
+
+void AFishingBattleCharacter::HandleDeath()
+{
+	// 5秒後にリスポーン
+	GetWorld()->GetTimerManager().SetTimer(
+		RespawnTimerHandle,
+		this,
+		&AFishingBattleCharacter::RequestRespawn,
+		2.0f,
+		false
+	);
+}
+
+void AFishingBattleCharacter::RequestRespawn()
+{
+
+	AController* MyController = GetController();
+	if (MyController)
+	{
+		if (AFishingBattleGameMode* GM = Cast<AFishingBattleGameMode>(UGameplayStatics::GetGameMode(this)))
+		{
+			GM->RespawnPlayer(MyController);
+		}
+	}
+
+	Destroy(); // 死体を削除
+}
+
+void AFishingBattleCharacter::Fishing()
+{
+	//if (!canFishing)return;
+	if (IsRoll || !FishingMontage || IsPlayAttack1 || !GetCharacterMovement()->IsMovingOnGround())return;
+	UE_LOG(LogTemp, Warning, TEXT("Fishing!"));
+	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
+	if (!animInstance)return;
+	UMyAnimInstance* mAnim = Cast<UMyAnimInstance>(animInstance);
+	if (!mAnim)return;
+	if (!IsFishing) {
+		if (mAnim->Isjump) return;
+		animInstance->Montage_Play(FishingMontage);
+		UE_LOG(LogTemp, Warning, TEXT("Fishing!Play"));
+		IsFishing = true;
+
+		FOnMontageEnded Delegate;
+		Delegate.BindUObject(this, &AFishingBattleCharacter::OnFishingEnded);
+		animInstance->Montage_SetEndDelegate(Delegate, FishingMontage);
+
+	}
+	else if(IsFishing){
+		UE_LOG(LogTemp, Warning, TEXT("Fishing!end"));
+		animInstance->Montage_Stop(0.2f,FishingMontage);
+		IsFishing = false;
+	}
+}
+
+void AFishingBattleCharacter::OnFishingEnded(UAnimMontage* Montage, bool in)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Fishing!deligate"));
+	IsFishing = false;
 }

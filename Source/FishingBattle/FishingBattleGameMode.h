@@ -13,6 +13,12 @@ class AFishingBattleGameMode : public AGameModeBase
 
 public:
 	AFishingBattleGameMode();
+
+	/// <summary>
+	/// プレイヤーリスポーン
+	/// </summary>
+	/// <param name="Controller"></param>
+	void RespawnPlayer(AController* Controller);
 };
 
 
