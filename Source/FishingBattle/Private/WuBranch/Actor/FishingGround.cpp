@@ -6,6 +6,7 @@
 #include "Components/WidgetComponent.h"
 #include "WuBranch/Actor/Component/FishableComponent.h"
 
+#include "TakimotoBranch/CPPBaseWeapon.h"
 
 // Sets default values
 AFishingGround::AFishingGround()
@@ -40,7 +41,7 @@ void AFishingGround::Tick(float DeltaTime)
 
 }
 
-int AFishingGround::GetFish()
+ACPPBaseWeapon* AFishingGround::GetFish()
 {
 	return Fishable->GetFish();
 }

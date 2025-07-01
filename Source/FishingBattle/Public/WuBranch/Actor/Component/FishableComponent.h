@@ -7,6 +7,7 @@
 #include "FishableComponent.generated.h"
 
 class UMeshComponent;
+class ACPPBaseWeapon;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class FISHINGBATTLE_API UFishableComponent : public UActorComponent
@@ -29,7 +30,7 @@ public:
 	/// 魚をゲット
 	/// </summary>
 	/// <returns>魚</returns>
-	int GetFish();
+	ACPPBaseWeapon* GetFish();
 
 private:
 
@@ -43,7 +44,7 @@ private:
 	/// </summary>
 	/// 魚のクラスができたら、ここを変更する
 	UPROPERTY(EditAnywhere)
-	TMap<TObjectPtr<UStaticMesh>, int> FishTypes;
+	TMap<TSubclassOf<ACPPBaseWeapon>, int> FishTypes;
 
 	/// <summary>
 	/// 確率の合計

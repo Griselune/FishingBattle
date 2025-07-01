@@ -31,7 +31,7 @@ public:
 	/// 魚を手に入れ
 	/// </summary>
 	/// <returns>魚</returns>
-	int GetFish();
+	ACPPBaseWeapon* GetFish();
 
 private:
 	
