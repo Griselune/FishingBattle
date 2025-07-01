@@ -5,7 +5,7 @@
 #include "Components/BoxComponent.h"
 #include "Components/WidgetComponent.h"
 #include "WuBranch/Actor/Component/FishableComponent.h"
-
+#include <FishingBattle/FishingBattleCharacter.h>
 #include "TakimotoBranch/CPPBaseWeapon.h"
 
 // Sets default values
@@ -16,8 +16,11 @@ AFishingGround::AFishingGround()
 
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root Component"));
 
-	FishableAreaOnGround = CreateDefaultSubobject<UBoxComponent>(TEXT("Fishable Area"));
+	FishableAreaOnGround = CreateDefaultSubobject<UBoxComponent>(TEXT("Fishable Area On Ground"));
 	FishableAreaOnGround->SetupAttachment(RootComponent);
+
+	FishableAreaOnSea = CreateDefaultSubobject<UBoxComponent>(TEXT("Fishable Area On Sea"));
+	FishableAreaOnSea->SetupAttachment(RootComponent);
 
 	InteractionUI = CreateDefaultSubobject<UWidgetComponent>(TEXT("Interaction UI"));
 	InteractionUI->SetupAttachment(RootComponent);
@@ -32,6 +35,8 @@ void AFishingGround::BeginPlay()
 	
 	FishableAreaOnGround->OnComponentBeginOverlap.AddDynamic(this, &AFishingGround::OnGroundAreaBeginOverlap);
 	FishableAreaOnGround->OnComponentEndOverlap.AddDynamic(this, &AFishingGround::OnGroundAreaEndOverlap);
+	FishableAreaOnSea->OnComponentBeginOverlap.AddDynamic(this, &AFishingGround::OnSeaAreaBeginOverlap);
+	FishableAreaOnSea->OnComponentEndOverlap.AddDynamic(this, &AFishingGround::OnSeaAreaEndOverlap);
 }
 
 // Called every frame
@@ -50,11 +55,35 @@ void AFishingGround::OnGroundAreaBeginOverlap(UPrimitiveComponent* OverlappedCom
 {
 	// プレイヤーの釣れるフラグを変更
 	//　自分自身もプレイヤーに渡す
-
+	if (AFishingBattleCharacter* Player = Cast<AFishingBattleCharacter>(OtherActor))
+	{
+		Player->EnterSpot(this);
+	}
 }
 
 void AFishingGround::OnGroundAreaEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	// プレイヤーの釣れるフラグを変更
+	if (AFishingBattleCharacter* Player = Cast<AFishingBattleCharacter>(OtherActor))
+	{
+		Player->ExitSpot();
+	}
+}
 
+void AFishingGround::OnSeaAreaBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	// 釣り竿が入ったら
+	if (false)
+	{
+
+	}
+}
+
+void AFishingGround::OnSeaAreaEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	// 釣り竿が出たら
+	if (false)
+	{
+
+	}
 }

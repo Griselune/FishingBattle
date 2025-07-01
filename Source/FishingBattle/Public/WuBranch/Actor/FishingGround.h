@@ -9,6 +9,7 @@
 class UBoxComponent;
 class UFishableComponent;
 class UWidgetComponent;
+class ACPPBaseWeapon;
 
 UCLASS()
 class FISHINGBATTLE_API AFishingGround : public AActor
@@ -36,22 +37,40 @@ public:
 private:
 	
 	/// <summary>
-	/// 地面にいる釣れる範囲に入ったら
+	/// 地面にいる釣り範囲に入ったら
 	/// </summary>
 	UFUNCTION()
 	void OnGroundAreaBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	/// <summary>
-	/// 地面にいる釣れる範囲を出たら
+	/// 地面にいる釣り範囲を出たら
 	/// </summary>
 	UFUNCTION()
 	void OnGroundAreaEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 	/// <summary>
-	/// 地上の釣れる範囲
+	/// 水上にいる釣り範囲に入ったら
+	/// </summary>
+	UFUNCTION()
+	void OnSeaAreaBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	/// <summary>
+	/// 水上にいる釣り範囲を出たら
+	/// </summary>
+	UFUNCTION()
+	void OnSeaAreaEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	/// <summary>
+	/// 地上の釣り範囲
+	/// </summary>
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	UBoxComponent* FishableAreaOnGround;
+
+	/// <summary>
+	/// 水上の釣り範囲
 	/// </summary>
 	UPROPERTY(EditAnywhere)
-	UBoxComponent* FishableAreaOnGround;
+	UBoxComponent* FishableAreaOnSea;
 
 	/// <summary>
 	/// インタラクションUI
