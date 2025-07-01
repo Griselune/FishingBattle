@@ -81,7 +81,32 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HP")
 	float Health = 100;
 
+
+	/// <summary>
+	/// 釣り場侵入時
+	/// </summary>
+	/// <param name="spot"></param>
+	UFUNCTION(BlueprintCallable)
+	void EnterSpot(AActor* spot);
+
+
+	/// <summary>
+	/// 釣り場離脱時
+	/// </summary>
+	UFUNCTION(BlueprintCallable)
+	void ExitSpot();
+
+	//魚もらう
+	int fish;
+	bool canFishing = false;
+	AActor* fishingSpot = NULL;
+
 	
+
+
+	
+
+
 
 protected:
 
@@ -109,7 +134,7 @@ protected:
 	bool IsRoll = false;
 
 	/// <summary>
-	/// 攻撃モーションを終了
+	/// 回避モーションを終了
 	/// </summary>
 	/// <param name="Montage"></param>
 	/// <param name="in"></param>
@@ -130,6 +155,11 @@ protected:
 	/// キャラクター消滅
 	/// </summary>
 	void OnDeadEnded(UAnimMontage* Montage, bool in);
+
+	/// <summary>
+	/// 釣り開始。
+	/// </summary>
+	void LetsFishing();
 
 
 
