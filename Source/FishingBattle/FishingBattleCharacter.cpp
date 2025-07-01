@@ -67,6 +67,18 @@ float AFishingBattleCharacter::TakeDamage(float DamageAmount, FDamageEvent const
 	return DamageAmount;
 }
 
+void AFishingBattleCharacter::EnterSpot(AActor* spot)
+{
+	canFishing = true;
+	fishingSpot = spot;
+}
+
+void AFishingBattleCharacter::ExitSpot()
+{
+	canFishing = false;
+	fishingSpot = NULL;
+}
+
 //////////////////////////////////////////////////////////////////////////
 // Input
 
@@ -237,4 +249,9 @@ void AFishingBattleCharacter::OnDeadEnded(UAnimMontage* Montage, bool in)
 {
 	UE_LOG(LogTemp, Warning, TEXT("dead!end"));
 	Destroy();
+}
+
+void AFishingBattleCharacter::LetsFishing()
+{
+	//釣るときのアニメーション
 }
