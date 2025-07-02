@@ -252,6 +252,15 @@ void AFishingBattleCharacter::Jump()
 
 void AFishingBattleCharacter::Die()
 {
+	if (!HasAuthority())
+	{
+		Server_DeadM();
+		return;
+	}
+	else {
+		Multi_DeadM();
+		return;
+	}
 	if (IsDead)return;
 	UE_LOG(LogTemp, Warning, TEXT("dead!start"));
 	GetCharacterMovement()->DisableMovement();
@@ -278,16 +287,17 @@ void AFishingBattleCharacter::OnDeadEnded(UAnimMontage* Montage, bool in)
 		Server_Die();  // クライアントならサーバーに死亡通知
 		return;
 	}
-
-	HandleDeath(); // サーバーなら直接処理
+	else {
+		Multi_Dead(); // オーナーなら直接処理
+	}
 }
 
 void AFishingBattleCharacter::Server_Die_Implementation()
 {
-	HandleDeath();
+	Multi_Dead();
 }
 
-void AFishingBattleCharacter::HandleDeath()
+void AFishingBattleCharacter::Multi_Dead_Implementation()
 {
 	// 5秒後にリスポーン
 	GetWorld()->GetTimerManager().SetTimer(
@@ -297,6 +307,30 @@ void AFishingBattleCharacter::HandleDeath()
 		2.0f,
 		false
 	);
+}
+
+void AFishingBattleCharacter::Server_DeadM_Implementation()
+{
+	Multi_Dead();
+}
+
+void AFishingBattleCharacter::Multi_DeadM_Implementation()
+{
+	if (IsDead)return;
+	UE_LOG(LogTemp, Warning, TEXT("dead!start"));
+	GetCharacterMovement()->DisableMovement();
+	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
+	if (animInstance) {
+		animInstance->Montage_Play(DeadMontage);
+		IsDead = true;
+	}
+
+	FOnMontageEnded Delegate;
+	Delegate.BindUObject(this, &AFishingBattleCharacter::OnDeadEnded);
+	animInstance->Montage_SetEndDelegate(Delegate, DeadMontage);
+
+	//FTimerHandle TimerHandle;
+	//GetWorldTimerManager().SetTimer(TimerHandle, this, &AFishingBattleCharacter::canDestroy, 5.0f, false);
 }
 
 void AFishingBattleCharacter::RequestRespawn()
@@ -458,5 +492,21 @@ bool AFishingBattleCharacter::Multi_Roll_Validate() {
 }
 
 bool AFishingBattleCharacter::Multi_Fishing_Validate() {
+	return true;
+}
+
+bool AFishingBattleCharacter::Multi_Dead_Validate() {
+	return true;
+}
+
+bool AFishingBattleCharacter::Multi_DeadM_Validate() {
+	return true;
+}
+
+bool AFishingBattleCharacter::Server_DeadM_Validate() {
+	return true;
+}
+
+bool AFishingBattleCharacter::Server_Die_Validate() {
 	return true;
 }

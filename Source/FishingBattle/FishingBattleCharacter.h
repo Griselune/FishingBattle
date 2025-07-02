@@ -173,7 +173,7 @@ protected:
 	/// </summary>
 	void OnFishingEnded(UAnimMontage* Montage, bool in);
 
-	UFUNCTION(Server, Reliable)
+	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_Die();  // クライアント用
 
 	void HandleDeath(); // サーバー内部用
@@ -201,6 +201,16 @@ protected:
 
 	UFUNCTION(NetMulticast, Reliable, WithValidation)
 	void Multi_Fishing();  // サーバー用
+
+
+	UFUNCTION(NetMulticast, Reliable, WithValidation)
+	void Multi_Dead();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_DeadM();  // クライアント用
+
+	UFUNCTION(NetMulticast, Reliable, WithValidation)
+	void Multi_DeadM();
 
 
 
