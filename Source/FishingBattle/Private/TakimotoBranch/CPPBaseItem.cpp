@@ -15,7 +15,7 @@ ACPPBaseItem::ACPPBaseItem()
 	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMesh"));
 	StaticMesh->SetupAttachment(RootComponent);
 
-	BoxCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxCollision"));
-	BoxCollision->SetupAttachment(RootComponent);
+	SphereCollision = CreateDefaultSubobject<USphereComponent>(TEXT("BoxCollision"));
+	SphereCollision->SetupAttachment(RootComponent);
 
 }

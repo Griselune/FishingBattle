@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "Components/BoxComponent.h"
+#include "Components/SphereComponent.h"
 #include "CPPBaseItem.generated.h"
 
 UCLASS()
@@ -25,7 +25,7 @@ protected:
 	TObjectPtr<UStaticMeshComponent> StaticMesh;
 
 	UPROPERTY(EditAnywhere)
-	TObjectPtr<UBoxComponent> BoxCollision;
+	TObjectPtr<USphereComponent> SphereCollision;
 
 public:
 
