@@ -183,6 +183,27 @@ protected:
 	FTimerHandle RespawnTimerHandle;
 
 
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_Attack();  // クライアント用
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_Roll();  // クライアント用
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_Fishing();  // クライアント用
+
+
+	UFUNCTION(NetMulticast,Reliable,WithValidation)
+	void Multi_Attack();  // サーバー用
+
+	UFUNCTION(NetMulticast, Reliable, WithValidation)
+	void Multi_Roll();  //サーバー用
+
+	UFUNCTION(NetMulticast, Reliable, WithValidation)
+	void Multi_Fishing();  // サーバー用
+
+
+
 
 
 
