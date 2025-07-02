@@ -164,6 +164,15 @@ void AFishingBattleCharacter::Look(const FInputActionValue& Value)
 
 void AFishingBattleCharacter::Attack1()
 {
+
+	if (!HasAuthority()) {
+		Server_Attack();
+		return;
+	}
+	else {
+		Multi_Attack();
+		return;
+	}
 	if (IsPlayAttack1 || !AttackMontage || IsRoll || !GetCharacterMovement()->IsMovingOnGround()) return;
 	UE_LOG(LogTemp, Warning, TEXT("attack!"));
 
@@ -198,6 +207,16 @@ void AFishingBattleCharacter::OnAttackEnded(UAnimMontage* Montage, bool in) {
 
 void AFishingBattleCharacter::Roll()
 {
+
+	if (!HasAuthority())
+	{
+		Server_Roll();
+		return;
+	}
+	else {
+		Multi_Roll();
+		return;
+	}
 	if (IsRoll || !RollMontage || IsPlayAttack1 || !GetCharacterMovement()->IsMovingOnGround()) return;
 	UE_LOG(LogTemp, Warning, TEXT("Roll!"));
 
@@ -295,9 +314,99 @@ void AFishingBattleCharacter::RequestRespawn()
 	Destroy(); // Ž€‘Ì‚ðíœ
 }
 
+void AFishingBattleCharacter::Multi_Attack_Implementation()
+{
+	if (IsPlayAttack1 || !AttackMontage || IsRoll || !GetCharacterMovement()->IsMovingOnGround()) return;
+	UE_LOG(LogTemp, Warning, TEXT("attack!"));
+
+	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
+	if (!animInstance)return;
+	UMyAnimInstance* mAnim = Cast<UMyAnimInstance>(animInstance);
+	if (animInstance && mAnim) {
+		if (mAnim->Isjump) return;
+		animInstance->Montage_Play(AttackMontage, 2.0f);
+		mAnim->attack1 = true;
+		IsPlayAttack1 = true;
+
+		FOnMontageEnded Delegate;
+		Delegate.BindUObject(this, &AFishingBattleCharacter::OnAttackEnded);
+		animInstance->Montage_SetEndDelegate(Delegate, AttackMontage);
+	}
+}
+
+void AFishingBattleCharacter::Multi_Roll_Implementation()
+{
+	if (IsRoll || !RollMontage || IsPlayAttack1 || !GetCharacterMovement()->IsMovingOnGround()) return;
+	UE_LOG(LogTemp, Warning, TEXT("Roll!"));
+
+	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
+	if (!animInstance)return;
+	UMyAnimInstance* mAnim = Cast<UMyAnimInstance>(animInstance);
+	if (animInstance && mAnim) {
+		if (mAnim->Isjump) return;
+		//GetCharacterMovement()->DisableMovement();
+		animInstance->Montage_Play(RollMontage);
+		IsRoll = true;
+
+		FOnMontageEnded Delegate;
+		Delegate.BindUObject(this, &AFishingBattleCharacter::OnRollEnded);
+		animInstance->Montage_SetEndDelegate(Delegate, RollMontage);
+	}
+}
+
+void AFishingBattleCharacter::Multi_Fishing_Implementation()
+{
+	if (IsRoll || !FishingMontage || IsPlayAttack1 || !GetCharacterMovement()->IsMovingOnGround())return;
+	UE_LOG(LogTemp, Warning, TEXT("Fishing!"));
+	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
+	if (!animInstance)return;
+	UMyAnimInstance* mAnim = Cast<UMyAnimInstance>(animInstance);
+	if (!mAnim)return;
+	if (!IsFishing) {
+		if (mAnim->Isjump) return;
+		animInstance->Montage_Play(FishingMontage);
+		UE_LOG(LogTemp, Warning, TEXT("Fishing!Play"));
+		IsFishing = true;
+
+		FOnMontageEnded Delegate;
+		Delegate.BindUObject(this, &AFishingBattleCharacter::OnFishingEnded);
+		animInstance->Montage_SetEndDelegate(Delegate, FishingMontage);
+
+	}
+	else if (IsFishing) {
+		UE_LOG(LogTemp, Warning, TEXT("Fishing!end"));
+		animInstance->Montage_Stop(0.2f, FishingMontage);
+		IsFishing = false;
+	}
+}
+
+void AFishingBattleCharacter::Server_Attack_Implementation()
+{
+	Multi_Attack();
+}
+
+void AFishingBattleCharacter::Server_Roll_Implementation()
+{
+	Multi_Roll();
+}
+
+void AFishingBattleCharacter::Server_Fishing_Implementation()
+{
+	Multi_Fishing();
+}
+
 void AFishingBattleCharacter::Fishing()
 {
 	//if (!canFishing)return;
+	if (!HasAuthority())
+	{
+		Server_Fishing();
+		return;
+	}
+	else {
+		Multi_Fishing();
+		return;
+	}
 	if (IsRoll || !FishingMontage || IsPlayAttack1 || !GetCharacterMovement()->IsMovingOnGround())return;
 	UE_LOG(LogTemp, Warning, TEXT("Fishing!"));
 	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
@@ -326,4 +435,28 @@ void AFishingBattleCharacter::OnFishingEnded(UAnimMontage* Montage, bool in)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Fishing!deligate"));
 	IsFishing = false;
+}
+
+bool AFishingBattleCharacter::Server_Attack_Validate() {
+	return true;
+}
+
+bool AFishingBattleCharacter::Server_Roll_Validate() {
+	return true;
+}
+
+bool AFishingBattleCharacter::Server_Fishing_Validate() {
+	return true;
+}
+
+bool AFishingBattleCharacter::Multi_Attack_Validate() {
+	return true;
+}
+
+bool AFishingBattleCharacter::Multi_Roll_Validate() {
+	return true;
+}
+
+bool AFishingBattleCharacter::Multi_Fishing_Validate() {
+	return true;
 }
