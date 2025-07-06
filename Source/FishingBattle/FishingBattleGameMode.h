@@ -15,7 +15,7 @@ public:
 	AFishingBattleGameMode();
 
 	/// <summary>
-	/// ƒvƒŒƒCƒ„[ƒŠƒXƒ|[ƒ“
+	/// ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½Xï¿½|ï¿½[ï¿½ï¿½
 	/// </summary>
 	/// <param name="Controller"></param>
 	void RespawnPlayer(AController* Controller);
