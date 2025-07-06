@@ -31,7 +31,7 @@ void ACPPBaseWeapon::Attack_Implementation()
 
 void ACPPBaseWeapon::OnHit_Implementation(AActor* HitActor)
 {
-	if (HitActor && HitActor != this) {
+	if (HitActor && HitActor != GetOwner()) {
 		UGameplayStatics::ApplyDamage(HitActor, Damage, GetInstigatorController(), this, UDamageType::StaticClass());
 		UE_LOG(LogTemp, Error, TEXT("Hit!"));
 	}

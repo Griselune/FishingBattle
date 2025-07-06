@@ -73,7 +73,7 @@ public:
 
 
 	/// <summary>
-    /// ƒ_ƒ[ƒW‚Ìó‚¯æ‚è
+    /// ï¿½_ï¿½ï¿½ï¿½[ï¿½Wï¿½Ìó‚¯ï¿½ï¿½
     /// </summary>
     /// <param name="DamageAmount"></param>
     /// <param name="DamageEvent"></param>
@@ -89,7 +89,7 @@ public:
 
 
 	/// <summary>
-	/// ’Ş‚èêN“ü
+	/// ï¿½Ş‚ï¿½ï¿½Nï¿½ï¿½ï¿½ï¿½
 	/// </summary>
 	/// <param name="spot"></param>
 	UFUNCTION(BlueprintCallable)
@@ -97,12 +97,12 @@ public:
 
 
 	/// <summary>
-	/// ’Ş‚èê—£’E
+	/// ï¿½Ş‚ï¿½ê—£ï¿½Eï¿½ï¿½
 	/// </summary>
 	UFUNCTION(BlueprintCallable)
 	void ExitSpot();
 
-	//‹›‚à‚ç‚¤
+	//ï¿½ï¿½ï¿½ï¿½ç‚¤
 	int fish = 0;
 	bool canFishing = false;
 	AActor* fishingSpot = NULL;
@@ -123,62 +123,62 @@ protected:
 	void Look(const FInputActionValue& Value);
 
 	/// <summary>
-	/// UŒ‚ƒ‚[ƒVƒ‡ƒ“ŠJn
+	/// ï¿½Uï¿½ï¿½ï¿½ï¿½ï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½Jï¿½n
 	/// </summary>
 	void Attack1();
 	bool IsPlayAttack1 = false;
 
 	/// <summary>
-	/// UŒ‚ƒ‚[ƒVƒ‡ƒ“‚ğI—¹
+	/// ï¿½Uï¿½ï¿½ï¿½ï¿½ï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Iï¿½ï¿½
 	/// </summary>
 	void OnAttackEnded(UAnimMontage* Montage, bool in);
 
 	/// <summary>
-	/// ‰ñ”ğƒ‚[ƒVƒ‡ƒ“ŠJn
+	/// ï¿½ï¿½ï¿½ï¿½ï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½Jï¿½n
 	/// </summary>
 	void Roll();
 	bool IsRoll = false;
 
 	/// <summary>
-	/// ‰ñ”ğƒ‚[ƒVƒ‡ƒ“‚ğI—¹
+	/// ï¿½ï¿½ï¿½ï¿½ï¿½[ï¿½Vï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Iï¿½ï¿½
 	/// </summary>
 	/// <param name="Montage"></param>
 	/// <param name="in"></param>
 	void OnRollEnded(UAnimMontage* Montage, bool in);
 
 	/// <summary>
-	/// ƒWƒƒƒ“ƒv‚ğ‚³‚¹‚È‚¢‚½‚ß‚Éã‘‚«
+	/// ï¿½Wï¿½ï¿½ï¿½ï¿½ï¿½vï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È‚ï¿½ï¿½ï¿½ï¿½ß‚Éã‘ï¿½ï¿½
 	/// </summary>
 	virtual void Jump() override;
 
 	/// <summary>
-	/// €–S—p
+	/// ï¿½ï¿½ï¿½Sï¿½p
 	/// </summary>
 	void Die();
 	bool IsDead = false;
 
 	/// <summary>
-	/// ƒLƒƒƒ‰ƒNƒ^[Á–Å
+	/// ï¿½Lï¿½ï¿½ï¿½ï¿½ï¿½Nï¿½^ï¿½[ï¿½ï¿½ï¿½ï¿½
 	/// </summary>
 	void OnDeadEnded(UAnimMontage* Montage, bool in);
 
 	/// <summary>
-	/// ’Ş‚èŠJnB
+	/// ï¿½Ş‚ï¿½Jï¿½nï¿½B
 	/// </summary>
 	void Fishing();
 	bool IsFishing = false;
 
 	/// <summary>
-	/// ’Ş‚èI—¹
+	/// ï¿½Ş‚ï¿½Iï¿½ï¿½
 	/// </summary>
 	void OnFishingEnded(UAnimMontage* Montage, bool in);
 
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_Die();  // ƒNƒ‰ƒCƒAƒ“ƒg—p
+	UFUNCTION(Server, Reliable)
+	void Server_Die();  // ï¿½Nï¿½ï¿½ï¿½Cï¿½Aï¿½ï¿½ï¿½gï¿½p
 
-	void HandleDeath(); // ƒT[ƒo[“à•”—p
+	void HandleDeath(); // ï¿½Tï¿½[ï¿½oï¿½[ï¿½ï¿½ï¿½ï¿½p
 
-	void RequestRespawn(); // ƒ^ƒCƒ}[‚ÅŒÄ‚Ô
+	void RequestRespawn(); // ï¿½^ï¿½Cï¿½}ï¿½[ï¿½ÅŒÄ‚ï¿½
 
 	FTimerHandle RespawnTimerHandle;
 
@@ -201,16 +201,6 @@ protected:
 
 	UFUNCTION(NetMulticast, Reliable, WithValidation)
 	void Multi_Fishing();  // ƒT[ƒo[—p
-
-
-	UFUNCTION(NetMulticast, Reliable, WithValidation)
-	void Multi_Dead();
-
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_DeadM();  // ƒNƒ‰ƒCƒAƒ“ƒg—p
-
-	UFUNCTION(NetMulticast, Reliable, WithValidation)
-	void Multi_DeadM();
 
 
 

@@ -7,7 +7,7 @@
 #include "Kismet/GameplayStatics.h"
 
 
-void ULANGameInstance::CreateLANSession(const FString& SessionName, const FString& Password)
+void ULANGameInstance::CreateLANSession(const FString& SessionName, const FString& Password, const int32& PlayerLimit, const int32& TimeLimit) //added playerlimit and timelimit
 {
     IOnlineSubsystem* Subsystem = IOnlineSubsystem::Get();
     if (Subsystem)
@@ -20,7 +20,10 @@ void ULANGameInstance::CreateLANSession(const FString& SessionName, const FStrin
 
             SessionSettings = MakeShareable(new FOnlineSessionSettings());
             SessionSettings->bIsLANMatch = true;
-            SessionSettings->NumPublicConnections = 4;
+        //    SessionSettings->NumPublicConnections = 4;
+            SessionSettings->Set(FName("PlayerLimit"), PlayerLimit, EOnlineDataAdvertisementType::ViaOnlineService); //added to replace line above
+            SessionSettings->Set(FName("TimeLimit"), TimeLimit, EOnlineDataAdvertisementType::ViaOnlineService); //added
+
             SessionSettings->bShouldAdvertise = true;
             SessionSettings->bUsesPresence = false;
 
@@ -39,7 +42,7 @@ void ULANGameInstance::OnCreateSessionComplete(FName SessionName, bool bWasSucce
      //   UE_LOG(LogTemp, Log, TEXT("LAN session '%s' created successfully"), *SessionName);
 
         // Open the map as listen server
-        UGameplayStatics::OpenLevel(GetWorld(), FName("ThirdPersonMap"), true, "listen");
+        UGameplayStatics::OpenLevel(GetWorld(), FName("Proto"), true, "listen");
     }
     else
     {
