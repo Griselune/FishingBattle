@@ -7,6 +7,7 @@
 #include "FishingGround.generated.h"
 
 class UBoxComponent;
+class USphereComponent;
 class UFishableComponent;
 class UWidgetComponent;
 class ACPPBaseWeapon;
@@ -33,6 +34,12 @@ public:
 	/// </summary>
 	/// <returns>魚</returns>
 	ACPPBaseWeapon* GetFish();
+
+	/// <summary>
+	/// 魚影ポイントをゲット
+	/// </summary>
+	/// <returns>魚影ポイント</returns>
+	FVector GetFishingPointOnSea();
 
 private:
 	
@@ -61,6 +68,16 @@ private:
 	void OnSeaAreaEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 	/// <summary>
+	/// インタラクションUIを表示
+	/// </summary>
+	void ShowUI();
+
+	/// <summary>
+	/// インタラクションUIを非表示
+	/// </summary>
+	void CloseUI();
+
+	/// <summary>
 	/// 地上の釣り範囲
 	/// </summary>
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
@@ -70,13 +87,13 @@ private:
 	/// 水上の釣り範囲
 	/// </summary>
 	UPROPERTY(EditAnywhere)
-	UBoxComponent* FishableAreaOnSea;
+	USphereComponent* FishableAreaOnSea;
 
 	/// <summary>
 	/// インタラクションUI
 	/// </summary>
 	UPROPERTY(VisibleAnywhere)
-	UWidgetComponent* InteractionUI;	
+	UWidgetComponent* InteractionUI;
 
 	/// <summary>
 	/// 釣れる機能

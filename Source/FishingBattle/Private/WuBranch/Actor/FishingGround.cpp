@@ -3,10 +3,12 @@
 
 #include "WuBranch/Actor/FishingGround.h"
 #include "Components/BoxComponent.h"
+#include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
 #include "WuBranch/Actor/Component/FishableComponent.h"
 #include <FishingBattle/FishingBattleCharacter.h>
 #include "TakimotoBranch/CPPBaseWeapon.h"
+#include <WuBranch/UI/MyBaseWidget.h>
 
 // Sets default values
 AFishingGround::AFishingGround()
@@ -19,7 +21,7 @@ AFishingGround::AFishingGround()
 	FishableAreaOnGround = CreateDefaultSubobject<UBoxComponent>(TEXT("Fishable Area On Ground"));
 	FishableAreaOnGround->SetupAttachment(RootComponent);
 
-	FishableAreaOnSea = CreateDefaultSubobject<UBoxComponent>(TEXT("Fishable Area On Sea"));
+	FishableAreaOnSea = CreateDefaultSubobject<USphereComponent>(TEXT("Fishable Area On Sea"));
 	FishableAreaOnSea->SetupAttachment(RootComponent);
 
 	InteractionUI = CreateDefaultSubobject<UWidgetComponent>(TEXT("Interaction UI"));
@@ -37,6 +39,8 @@ void AFishingGround::BeginPlay()
 	FishableAreaOnGround->OnComponentEndOverlap.AddDynamic(this, &AFishingGround::OnGroundAreaEndOverlap);
 	FishableAreaOnSea->OnComponentBeginOverlap.AddDynamic(this, &AFishingGround::OnSeaAreaBeginOverlap);
 	FishableAreaOnSea->OnComponentEndOverlap.AddDynamic(this, &AFishingGround::OnSeaAreaEndOverlap);
+
+	CloseUI();
 }
 
 // Called every frame
@@ -51,6 +55,11 @@ ACPPBaseWeapon* AFishingGround::GetFish()
 	return Fishable->GetFish();
 }
 
+FVector AFishingGround::GetFishingPointOnSea()
+{
+	return FishableAreaOnSea->GetComponentLocation();
+}
+
 void AFishingGround::OnGroundAreaBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	// プレイヤーの釣れるフラグを変更
@@ -58,6 +67,7 @@ void AFishingGround::OnGroundAreaBeginOverlap(UPrimitiveComponent* OverlappedCom
 	if (AFishingBattleCharacter* Player = Cast<AFishingBattleCharacter>(OtherActor))
 	{
 		Player->EnterSpot(this);
+		ShowUI();
 	}
 }
 
@@ -67,6 +77,7 @@ void AFishingGround::OnGroundAreaEndOverlap(UPrimitiveComponent* OverlappedComp,
 	if (AFishingBattleCharacter* Player = Cast<AFishingBattleCharacter>(OtherActor))
 	{
 		Player->ExitSpot();
+		CloseUI();
 	}
 }
 
@@ -85,5 +96,21 @@ void AFishingGround::OnSeaAreaEndOverlap(UPrimitiveComponent* OverlappedComp, AA
 	if (false)
 	{
 
+	}
+}
+
+void AFishingGround::ShowUI()
+{
+	if (UMyBaseWidget* UIWidget = Cast<UMyBaseWidget>(InteractionUI->GetWidget()))
+	{
+		UIWidget->ShowUI();
+	}
+}
+
+void AFishingGround::CloseUI()
+{
+	if (UMyBaseWidget* UIWidget = Cast<UMyBaseWidget>(InteractionUI->GetWidget()))
+	{
+		UIWidget->CloseUI();
 	}
 }
