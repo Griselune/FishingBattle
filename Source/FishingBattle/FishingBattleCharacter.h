@@ -1,12 +1,15 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
 #pragma once
 
 #include "CoreMinimal.h"
 #include "FishingBattleGameMode.h"
+#include "Tokumaru/GameMode_T.h"
 #include "GameFramework/Character.h"
 #include "Tokumaru/MyAnimInstance.h"
 #include "Logging/LogMacros.h"
+#include "tokumaru/InventoryWeapon.h"
+#include "Net/UnrealNetwork.h"
 #include "FishingBattleCharacter.generated.h"
 
 class USpringArmComponent;
@@ -19,7 +22,7 @@ struct FInputActionValue;
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
 UCLASS(config=Game)
-class AFishingBattleCharacter : public ACharacter
+class FISHINGBATTLE_API AFishingBattleCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
@@ -56,6 +59,19 @@ class AFishingBattleCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* FishingAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* SwitchWeapon1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* SwitchWeapon2;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* SwitchWeapon3;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* SwitchFishlot;
+
+
 	UPROPERTY(EditDefaultsOnly,Category = "Anim")
 	UAnimMontage* AttackMontage;
 
@@ -68,12 +84,13 @@ class AFishingBattleCharacter : public ACharacter
 	UPROPERTY(EditDefaultsOnly, Category = "Anim")
 	UAnimMontage* FishingMontage;
 
+
+
 public:
 	AFishingBattleCharacter();
 
-
 	/// <summary>
-    /// �_���[�W�̎󂯎��
+    /// すごい文字化けしてる
     /// </summary>
     /// <param name="DamageAmount"></param>
     /// <param name="DamageEvent"></param>
@@ -89,7 +106,7 @@ public:
 
 
 	/// <summary>
-	/// �ނ��N����
+	/// ・ｽﾞゑｿｽ・ｽN・ｽ・ｽ・ｽ・ｽ
 	/// </summary>
 	/// <param name="spot"></param>
 	UFUNCTION(BlueprintCallable)
@@ -97,12 +114,12 @@ public:
 
 
 	/// <summary>
-	/// �ނ�ꗣ�E��
+	/// ・ｽﾞゑｿｽ齬｣・ｽE・ｽ・ｽ
 	/// </summary>
 	UFUNCTION(BlueprintCallable)
 	void ExitSpot();
 
-	//����炤
+	//・ｽ・ｽ・ｽ・ｽ轤､
 	int fish = 0;
 	bool canFishing = false;
 	AActor* fishingSpot = NULL;
@@ -123,84 +140,89 @@ protected:
 	void Look(const FInputActionValue& Value);
 
 	/// <summary>
-	/// �U�����[�V�����J�n
+	/// 攻撃モーション再生
 	/// </summary>
 	void Attack1();
 	bool IsPlayAttack1 = false;
 
 	/// <summary>
-	/// �U�����[�V������I��
+	/// 攻撃モーション終了
 	/// </summary>
 	void OnAttackEnded(UAnimMontage* Montage, bool in);
 
 	/// <summary>
-	/// �����[�V�����J�n
+	/// 回避モーション再生
 	/// </summary>
 	void Roll();
 	bool IsRoll = false;
 
 	/// <summary>
-	/// �����[�V������I��
+	/// 回避モーション終了
 	/// </summary>
 	/// <param name="Montage"></param>
 	/// <param name="in"></param>
 	void OnRollEnded(UAnimMontage* Montage, bool in);
 
 	/// <summary>
-	/// �W�����v������Ȃ����߂ɏ㏑��
+	/// ジャンプをさせないようにするために上書き
 	/// </summary>
 	virtual void Jump() override;
 
 	/// <summary>
-	/// ���S�p
+	/// 死亡モーション
 	/// </summary>
 	void Die();
 	bool IsDead = false;
 
 	/// <summary>
-	/// �L�����N�^�[����
+	/// 死亡モーション終了
 	/// </summary>
 	void OnDeadEnded(UAnimMontage* Montage, bool in);
 
 	/// <summary>
-	/// �ނ�J�n�B
+	/// 釣りモーション再生
 	/// </summary>
 	void Fishing();
 	bool IsFishing = false;
 
 	/// <summary>
-	/// �ނ�I��
+	/// 釣りモーション終了
 	/// </summary>
 	void OnFishingEnded(UAnimMontage* Montage, bool in);
 
-	UFUNCTION(Server, Reliable)
-	void Server_Die();  // �N���C�A���g�p
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_Die();  //　クライアント用
 
-	void HandleDeath(); // �T�[�o�[����p
+	void HandleDeath(); //　サーバー用
 
-	void RequestRespawn(); // �^�C�}�[�ŌĂ�
+	void RequestRespawn(); //　リスポーンを要求
 
 	FTimerHandle RespawnTimerHandle;
 
 
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_Attack();  // �N���C�A���g�p
+	UFUNCTION(NetMulticast, Reliable, WithValidation)
+	void Multi_Die();  // サーバー用
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_Roll();  // �N���C�A���g�p
+	void Server_Attack();  // クライアント用
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_Fishing();  // �N���C�A���g�p
+	void Server_Roll();  // クライアント用
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_Fishing();  // クライアント用
 
 
 	UFUNCTION(NetMulticast,Reliable,WithValidation)
-	void Multi_Attack();  // �T�[�o�[�p
+	void Multi_Attack();  // サーバー用
 
 	UFUNCTION(NetMulticast, Reliable, WithValidation)
-	void Multi_Roll();  //�T�[�o�[�p
+	void Multi_Roll();  //サーバー用
 
 	UFUNCTION(NetMulticast, Reliable, WithValidation)
-	void Multi_Fishing();  // �T�[�o�[�p
+	void Multi_Fishing();  // サーバー用
+
+
 
 
 
@@ -215,11 +237,75 @@ protected:
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 public:
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
-	
+
+	virtual void BeginPlay() override;
+
+	//インベントリ関連
+public:
+	//武器のアクター
+	UPROPERTY(Replicated, ReplicatedUsing = OnRep_EquipWeapon)
+	AActor* weaponActor;
+
+	//UPROPERTY(EditDefaultsOnly)
+	//TMap<FName, TSubclassOf<AActor>> weaponMap;
+
+
+	UFUNCTION(Server,Reliable, WithValidation)
+	void Server_EquipWeapon(FName weaponID);
+
+	UFUNCTION(NetMulticast, Reliable, WithValidation)
+	void Multi_EquipWeapon(FName weaponID);  // サーバー用
+
+	void EquipSlotIndex(int slotIndex);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_EquipSlotIndex(int slotIndex);
+
+	UFUNCTION(NetMulticast, Reliable, WithValidation)
+	void Multi_EquipSlotIndex(int slotIndex);  // サーバー用
+
+	UFUNCTION()
+	void OnRep_EquipWeapon();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_AddWeaponInPlayer(FName WeaponID); //クライアント用
+
+	UFUNCTION(NetMulticast, Reliable, WithValidation)
+	void Multi_AddWeaponInPlayer(FName WeaponID);  // サーバー用
+
+
+
+
+protected:
+
+	/// <summary>
+    /// スロット１の武器を装備
+    /// </summary>
+	void EquipSlot1();
+
+	/// <summary>
+	/// スロット２の武器を装備
+	/// </summary>
+	void EquipSlot2();
+
+	/// <summary>
+	/// スロット３の武器を装備
+	/// </summary>
+	void EquipSlot3();
+
+	/// <summary>
+	/// 釣り竿装備
+	/// </summary>
+	void EquipFishlot();
+
+	void EquipWeapon(FName weaponID);
+
 };
 

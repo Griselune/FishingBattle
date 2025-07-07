@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "FishingBattleGameMode.h"
 #include "FishingBattleCharacter.h"
@@ -27,6 +27,12 @@ void AFishingBattleGameMode::RespawnPlayer(AController* Controller)
     APawn* NewPawn = GetWorld()->SpawnActor<APawn>(DefaultPawnClass, Location, Rotation);
     if (NewPawn)
     {
+        NewPawn->SetOwner(Controller);
         Controller->Possess(NewPawn);
     }
+    //UE_LOG(LogTemp, Warning, TEXT("[Respawn] Controller: %s (HasAuthority: %d, IsPlayerController: %d)"),
+    //    *GetNameSafe(Controller),
+    //    Controller->HasAuthority() ? 1 : 0,
+    //    Cast<APlayerController>(Controller) != nullptr ? 1 : 0
+    //);
 }
