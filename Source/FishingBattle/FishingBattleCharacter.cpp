@@ -275,11 +275,11 @@ void AFishingBattleCharacter::OnDeadEnded(UAnimMontage* Montage, bool in)
 	SetActorHiddenInGame(true);
 	if (!HasAuthority())
 	{
-		Server_Die();  // ƒNƒ‰ƒCƒAƒ“ƒg‚È‚çƒT[ƒo[‚É€–S’Ê’m
+		Server_Die();  // ï¿½Nï¿½ï¿½ï¿½Cï¿½Aï¿½ï¿½ï¿½gï¿½È‚ï¿½Tï¿½[ï¿½oï¿½[ï¿½Éï¿½ï¿½Sï¿½Ê’m
 		return;
 	}
 
-	HandleDeath(); // ƒT[ƒo[‚È‚ç’¼Úˆ—
+	HandleDeath(); // ï¿½Tï¿½[ï¿½oï¿½[ï¿½È‚ç’¼ï¿½Úï¿½ï¿½ï¿½
 }
 
 void AFishingBattleCharacter::Server_Die_Implementation()
@@ -289,7 +289,7 @@ void AFishingBattleCharacter::Server_Die_Implementation()
 
 void AFishingBattleCharacter::HandleDeath()
 {
-	// 5•bŒã‚ÉƒŠƒXƒ|[ƒ“
+	// 5ï¿½bï¿½ï¿½Éƒï¿½ï¿½Xï¿½|ï¿½[ï¿½ï¿½
 	GetWorld()->GetTimerManager().SetTimer(
 		RespawnTimerHandle,
 		this,
@@ -311,7 +311,7 @@ void AFishingBattleCharacter::RequestRespawn()
 		}
 	}
 
-	Destroy(); // €‘Ì‚ğíœ
+	Destroy(); // ï¿½ï¿½ï¿½Ì‚ï¿½íœ
 }
 
 void AFishingBattleCharacter::Multi_Attack_Implementation()
