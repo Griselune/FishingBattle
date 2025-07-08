@@ -471,28 +471,28 @@ void AFishingBattleCharacter::Fishing()
 		Multi_Fishing();
 		return;
 	}
-	if (IsRoll || !FishingMontage || IsPlayAttack1 || !GetCharacterMovement()->IsMovingOnGround())return;
-	UE_LOG(LogTemp, Warning, TEXT("Fishing!"));
-	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
-	if (!animInstance)return;
-	UMyAnimInstance* mAnim = Cast<UMyAnimInstance>(animInstance);
-	if (!mAnim)return;
-	if (!IsFishing) {
-		if (mAnim->Isjump) return;
-		animInstance->Montage_Play(FishingMontage);
-		UE_LOG(LogTemp, Warning, TEXT("Fishing!Play"));
-		IsFishing = true;
+	//if (IsRoll || !FishingMontage || IsPlayAttack1 || !GetCharacterMovement()->IsMovingOnGround())return;
+	//UE_LOG(LogTemp, Warning, TEXT("Fishing!"));
+	//UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
+	//if (!animInstance)return;
+	//UMyAnimInstance* mAnim = Cast<UMyAnimInstance>(animInstance);
+	//if (!mAnim)return;
+	//if (!IsFishing) {
+	//	if (mAnim->Isjump) return;
+	//	animInstance->Montage_Play(FishingMontage);
+	//	UE_LOG(LogTemp, Warning, TEXT("Fishing!Play"));
+	//	IsFishing = true;
 
-		FOnMontageEnded Delegate;
-		Delegate.BindUObject(this, &AFishingBattleCharacter::OnFishingEnded);
-		animInstance->Montage_SetEndDelegate(Delegate, FishingMontage);
+	//	FOnMontageEnded Delegate;
+	//	Delegate.BindUObject(this, &AFishingBattleCharacter::OnFishingEnded);
+	//	animInstance->Montage_SetEndDelegate(Delegate, FishingMontage);
 
-	}
-	else if(IsFishing){
-		UE_LOG(LogTemp, Warning, TEXT("Fishing!end"));
-		animInstance->Montage_Stop(0.2f,FishingMontage);
-		IsFishing = false;
-	}
+	//}
+	//else if(IsFishing){
+	//	UE_LOG(LogTemp, Warning, TEXT("Fishing!end"));
+	//	animInstance->Montage_Stop(0.2f,FishingMontage);
+	//	IsFishing = false;
+	//}
 }
 
 void AFishingBattleCharacter::OnFishingEnded(UAnimMontage* Montage, bool in)
@@ -501,13 +501,21 @@ void AFishingBattleCharacter::OnFishingEnded(UAnimMontage* Montage, bool in)
 	//APlayerState_T* ps = GetPlayerState<APlayerState_T>();
 	//if (!ps)return;
 	//ps->Server_AddWeapon("Weapon1");
-	if (!HasAuthority()) {
-		Server_AddWeaponInPlayer("Weapon1");
-	}
-	//else {
-	//	//Multi_AddWeaponInPlayer("Weapon1");
+	//if (IsLocallyControlled()&& !HasAuthority()) {
 	//	Server_AddWeaponInPlayer("Weapon1");
 	//}
+	//else {
+	//	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
+	//	if (ps)
+	//	{
+	//		ps->Server_AddWeapon("Weapon1"); //
+	//	}
+	//}
+
+	if (HasAuthority()) {
+		Server_AddWeaponInPlayer("Weapon1");
+	}
+
 	IsFishing = false;
 }
 
@@ -568,6 +576,7 @@ bool AFishingBattleCharacter::Multi_Die_Validate() {
 }
 
 void AFishingBattleCharacter::Server_AddWeaponInPlayer_Implementation(FName WeaponID) {
+	UE_LOG(LogTemp, Error, TEXT("addweaponInPlayer!!!!!!!!!!!!!!!!!!!!!!!"));
 	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
 	if (ps)
 	{

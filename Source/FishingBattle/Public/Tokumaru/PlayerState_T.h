@@ -20,10 +20,10 @@ public:
 
 	static const int slotMax = 4;
 
-	UPROPERTY(ReplicatedUsing = OnRep_Inventory)
+	UPROPERTY(Replicated,ReplicatedUsing = OnRep_Inventory)
 	TArray<FInventoryWeapon> inventory;
 
-	UFUNCTION(Server, Reliable, WithValidation)
+	//UFUNCTION(Server, Reliable, WithValidation)
 	void Server_AddWeapon(FName WeaponID); //クライアント用
 
 	UFUNCTION(NetMulticast, Reliable, WithValidation)
@@ -38,6 +38,7 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 protected:
+
 	UFUNCTION()
 	void OnRep_Inventory();
 	

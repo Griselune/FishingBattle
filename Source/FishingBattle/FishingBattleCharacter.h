@@ -249,16 +249,17 @@ public:
 
 	//インベントリ関連
 public:
-	//武器のアクター
+	//武器のアクター登録
 	UPROPERTY(Replicated, ReplicatedUsing = OnRep_EquipWeapon)
 	AActor* weaponActor;
 
+	//ゲームモードに移した
 	//UPROPERTY(EditDefaultsOnly)
 	//TMap<FName, TSubclassOf<AActor>> weaponMap;
 
 
 	UFUNCTION(Server,Reliable, WithValidation)
-	void Server_EquipWeapon(FName weaponID);
+	void Server_EquipWeapon(FName weaponID);//クライアント用
 
 	UFUNCTION(NetMulticast, Reliable, WithValidation)
 	void Multi_EquipWeapon(FName weaponID);  // サーバー用
@@ -266,7 +267,7 @@ public:
 	void EquipSlotIndex(int slotIndex);
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_EquipSlotIndex(int slotIndex);
+	void Server_EquipSlotIndex(int slotIndex);//クライアント用
 
 	UFUNCTION(NetMulticast, Reliable, WithValidation)
 	void Multi_EquipSlotIndex(int slotIndex);  // サーバー用
