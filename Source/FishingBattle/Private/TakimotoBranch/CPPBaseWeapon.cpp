@@ -20,8 +20,20 @@ ACPPBaseWeapon::ACPPBaseWeapon()
 	BoxCollision->SetupAttachment(RootComponent);
 
 	Damage = 0.f;
+	IsHit = false;
+	NextHitTime = 0.f;
+	StaticMesh->SetCollisionProfileName(TEXT("NoCollision"));
+	BoxCollision->SetCollisionProfileName(TEXT("NoCollision"));
 
 	WeaponType = ECPPWeaponType::Non;
+}
+
+void ACPPBaseWeapon::Tick(float DeltaSeconds)
+{
+	NextHitTime--;
+	if (NextHitTime <= 0) {
+		NextHitTime = 0;
+	}
 }
 
 void ACPPBaseWeapon::Attack_Implementation()
@@ -32,7 +44,21 @@ void ACPPBaseWeapon::Attack_Implementation()
 void ACPPBaseWeapon::OnHit_Implementation(AActor* HitActor)
 {
 	if (HitActor && HitActor != GetOwner()) {
-		UGameplayStatics::ApplyDamage(HitActor, Damage, GetInstigatorController(), this, UDamageType::StaticClass());
-		UE_LOG(LogTemp, Error, TEXT("Hit!"));
+		if (NextHitTime <= 0)
+		{
+			UGameplayStatics::ApplyDamage(HitActor, Damage, GetInstigatorController(), this, UDamageType::StaticClass());
+			UE_LOG(LogTemp, Error, TEXT("Hit!"));
+			NextHitTime = 30.f;
+		}
 	}
+}
+
+void ACPPBaseWeapon::Attack_Begin_Implementation()
+{
+	BoxCollision->SetCollisionProfileName(TEXT("OverlapAll"));
+}
+
+void ACPPBaseWeapon::Attack_Finish_Implementation()
+{
+	BoxCollision->SetCollisionProfileName(TEXT("NoCollision"));
 }
