@@ -147,31 +147,18 @@ void AFishingBattleCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (HasAuthority()) {
-		APlayerState_T* ps = GetPlayerState<APlayerState_T>();
-		if (ps && ps->inventory.Num() == 0) {
-			//ps->Server_AddWeapon("Fishinglot");
-			Server_AddWeaponInPlayer("Fishinglot");
-		}
-	}
-	//else {
+	//ゲーム開始時に武器割り当てをしようとした名残。オーナーの設定がクライアント側で間に合ってない。
+	//if (HasAuthority()) {
 	//	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
 	//	if (ps && ps->inventory.Num() == 0) {
-	//		ps->Server_AddWeapon("Fishinglot");
-	//	}
-	//}
-	//if (!HasAuthority()) {
-	//	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
-	//	if (ps && ps->inventory.Num() == 0) {
-	//		ps->Server_AddWeapon("Fishinglot");
-	//		return;
+	//		//ps->Server_AddWeapon("Fishinglot");
+	//		Server_AddWeaponInPlayer("Fishinglot");
 	//	}
 	//}
 	//else {
 	//	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
 	//	if (ps && ps->inventory.Num() == 0) {
-	//		ps->Multi_AddWeapon("Fishinglot");
-	//		return;
+	//		Server_AddWeaponInPlayer("Fishinglot");
 	//	}
 	//}
 }
@@ -437,11 +424,12 @@ void AFishingBattleCharacter::Multi_Fishing_Implementation()
 		animInstance->Montage_SetEndDelegate(Delegate, FishingMontage);
 
 	}
-	else if (IsFishing) {
-		UE_LOG(LogTemp, Warning, TEXT("Fishing!end"));
-		animInstance->Montage_Stop(0.2f, FishingMontage);
-		IsFishing = false;
-	}
+	//釣りを途中で停止できるか否か
+	//else if (IsFishing) {
+	//	UE_LOG(LogTemp, Warning, TEXT("Fishing!end"));
+	//	animInstance->Montage_Stop(0.2f, FishingMontage);
+	//	IsFishing = false;
+	//}
 }
 
 void AFishingBattleCharacter::Server_Attack_Implementation()
@@ -603,7 +591,7 @@ void AFishingBattleCharacter::Multi_EquipWeapon_Implementation(FName weaponID) {
 
 void AFishingBattleCharacter::Server_EquipSlotIndex_Implementation(int slotIndex) {
 	EquipSlotIndex(slotIndex);
-	Multi_EquipSlotIndex(slotIndex);
+	//Multi_EquipSlotIndex(slotIndex);
 }
 
 void AFishingBattleCharacter::Multi_EquipSlotIndex_Implementation(int slotIndex) {
