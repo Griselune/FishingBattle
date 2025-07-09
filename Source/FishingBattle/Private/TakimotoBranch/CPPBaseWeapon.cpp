@@ -8,7 +8,7 @@
 ACPPBaseWeapon::ACPPBaseWeapon()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 
 	DefaultSceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
 	RootComponent = DefaultSceneRoot;
@@ -30,6 +30,8 @@ ACPPBaseWeapon::ACPPBaseWeapon()
 
 void ACPPBaseWeapon::Tick(float DeltaSeconds)
 {
+	Super::Tick(DeltaSeconds);
+
 	NextHitTime--;
 	if (NextHitTime <= 0) {
 		NextHitTime = 0;
@@ -43,9 +45,10 @@ void ACPPBaseWeapon::Attack_Implementation()
 
 void ACPPBaseWeapon::OnHit_Implementation(AActor* HitActor)
 {
+	if (!HasAuthority()) return; //クライアントだったらreturnする
+	
 	if (HitActor && HitActor != GetOwner()) {
-		if (NextHitTime <= 0)
-		{
+		if (NextHitTime <= 0){
 			UGameplayStatics::ApplyDamage(HitActor, Damage, GetInstigatorController(), this, UDamageType::StaticClass());
 			UE_LOG(LogTemp, Error, TEXT("Hit!"));
 			NextHitTime = 30.f;
