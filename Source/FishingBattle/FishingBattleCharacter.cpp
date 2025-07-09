@@ -63,6 +63,12 @@ float AFishingBattleCharacter::TakeDamage(float DamageAmount, FDamageEvent const
 	this->Health -= DamageAmount;
 	if (Health <= 0.0f) {
 		Die();
+		//if (HasAuthority()) {
+		//	Multi_Dead();
+		//}
+		//else {
+		//	Server_Dead();
+		//}
 	}
 
 
@@ -147,7 +153,10 @@ void AFishingBattleCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	//ゲーム開始時に武器割り当てをしようとした名残。オーナーの設定がクライアント側で間に合ってない。
+	healthUpdate.AddDynamic(this, &AFishingBattleCharacter::GetPlayerHealth);
+
+	//ゲーム開始時に武器割り当てをしようとした名残。オーナーの設定がクライアント側で間に合ってないため、プレイヤーの所有物にアクセスできない
+	// サーバーのホストは可能。
 	//if (HasAuthority()) {
 	//	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
 	//	if (ps && ps->inventory.Num() == 0) {
@@ -161,6 +170,14 @@ void AFishingBattleCharacter::BeginPlay()
 	//		Server_AddWeaponInPlayer("Fishinglot");
 	//	}
 	//}
+}
+
+void AFishingBattleCharacter::GetPlayerHealth(float maxHP, float updateHP) {
+	UE_LOG(LogTemp, Warning, TEXT("イベントディスパッチャーですよ。得丸"));
+}
+
+void AFishingBattleCharacter::BroadcastHP(float maxHP, float updateHP) {
+	healthUpdate.Broadcast(maxHP,updateHP);
 }
 
 void AFishingBattleCharacter::Move(const FInputActionValue& Value)
@@ -290,6 +307,15 @@ void AFishingBattleCharacter::Jump()
 
 void AFishingBattleCharacter::Die()
 {
+
+	if (HasAuthority()) {
+		Multi_Dead();
+		return;
+	}
+	else {
+		Server_Dead();
+		return;
+	}
 	if (IsDead)return;
 	UE_LOG(LogTemp, Warning, TEXT("dead!start"));
 	GetCharacterMovement()->DisableMovement();
@@ -319,6 +345,27 @@ void AFishingBattleCharacter::OnDeadEnded(UAnimMontage* Montage, bool in)
 		Multi_Die(); // サーバーならそのまま処理
 	}
 }
+void AFishingBattleCharacter::Server_Dead_Implementation()
+{
+	Multi_Dead();
+}
+
+void AFishingBattleCharacter::Multi_Dead_Implementation()
+{
+	if (IsDead)return;
+	UE_LOG(LogTemp, Warning, TEXT("dead!start"));
+	GetCharacterMovement()->DisableMovement();
+	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
+	if (animInstance) {
+		animInstance->Montage_Play(DeadMontage);
+		IsDead = true;
+	}
+
+	FOnMontageEnded Delegate;
+	Delegate.BindUObject(this, &AFishingBattleCharacter::OnDeadEnded);
+	animInstance->Montage_SetEndDelegate(Delegate, DeadMontage);
+}
+
 
 void AFishingBattleCharacter::Server_Die_Implementation()
 {
@@ -500,11 +547,20 @@ void AFishingBattleCharacter::OnFishingEnded(UAnimMontage* Montage, bool in)
 	//	}
 	//}
 
+	//なぜかわからないがサーバーのみで処理すると正常にクライアントも動作する
 	if (HasAuthority()) {
 		Server_AddWeaponInPlayer("Weapon1");
 	}
 
 	IsFishing = false;
+}
+
+bool AFishingBattleCharacter::Server_Dead_Validate() {
+	return true;
+}
+
+bool AFishingBattleCharacter::Multi_Dead_Validate() {
+	return true;
 }
 
 bool AFishingBattleCharacter::Server_Attack_Validate() {
@@ -591,7 +647,7 @@ void AFishingBattleCharacter::Multi_EquipWeapon_Implementation(FName weaponID) {
 
 void AFishingBattleCharacter::Server_EquipSlotIndex_Implementation(int slotIndex) {
 	EquipSlotIndex(slotIndex);
-	//Multi_EquipSlotIndex(slotIndex);
+	Multi_EquipSlotIndex(slotIndex);
 }
 
 void AFishingBattleCharacter::Multi_EquipSlotIndex_Implementation(int slotIndex) {
@@ -603,7 +659,7 @@ void AFishingBattleCharacter::EquipSlotIndex(int slotIndex)
 	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
 	if (!ps)return;
 
-	const FInventoryWeapon* weapon = ps->GetweaponSlot(slotIndex); 
+	const FInventoryWeapon* weapon = ps->GetweaponSlot(slotIndex);
 	if (weapon) {
 		Server_EquipWeapon(weapon->weaponName);
 		//if (!HasAuthority()) {
@@ -629,7 +685,6 @@ void AFishingBattleCharacter::EquipSlot1()
 	if (!HasAuthority())
 	{
 		Server_EquipSlotIndex(1);
-		return;
 	}
 	else {
 		Multi_EquipSlotIndex(1);
@@ -643,7 +698,6 @@ void AFishingBattleCharacter::EquipSlot2()
 	if (!HasAuthority())
 	{
 		Server_EquipSlotIndex(2);
-		return;
 	}
 	else {
 		Multi_EquipSlotIndex(2);
@@ -657,7 +711,6 @@ void AFishingBattleCharacter::EquipSlot3()
 	if (!HasAuthority())
 	{
 		Server_EquipSlotIndex(3);
-		return;
 	}
 	else {
 		Multi_EquipSlotIndex(3);
@@ -687,33 +740,80 @@ void AFishingBattleCharacter::EquipWeapon(FName weaponID)
 	}
 
 
+	//AGameMode_T* gm = Cast<AGameMode_T>(UGameplayStatics::GetGameMode(this));
+	//if (!gm)return;
+
+	//TSubclassOf<AActor> weaponClass = gm->GetWeaponClass(weaponID);
+	//if (weaponClass) {
+	//	FActorSpawnParameters spawnParams;
+	//	spawnParams.Owner = this;
+	//	AActor* newWeapon = GetWorld()->SpawnActor<AActor>(weaponClass, FVector::ZeroVector, FRotator::ZeroRotator, spawnParams);
+
+
+	//	if (newWeapon) {
+
+
+	//		UChildActorComponent* weaponChildComponent = nullptr;
+	//		TArray<UChildActorComponent*> ChildActorComponents;
+	//		GetComponents<UChildActorComponent>(ChildActorComponents);
+	//		for (UChildActorComponent* comp : ChildActorComponents)
+	//		{
+	//			if (comp->GetName() == TEXT("wepon"))
+	//			{
+	//				weaponChildComponent = comp;
+	//				break;
+	//			}
+	//		}
+	//		if (weaponChildComponent)
+	//		{
+	//			weaponActor = newWeapon;
+	//			weaponActor->SetOwner(this);
+	//			TSubclassOf<AActor> WeaponClass = newWeapon->GetClass();
+	//			weaponChildComponent->SetChildActorClass(weaponClass); // TSubclassOf<AActor>
+	//		}
+
+	//		//weaponActor = newWeapon;
+	//		//weaponActor->SetOwner(this);
+	//		//weaponActor->AttachToComponent(GetMesh(),FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("wepon"));
+	//	}
+	//}
+
+	//-----------------------------------------------------------------------
+
+
 	AGameMode_T* gm = Cast<AGameMode_T>(UGameplayStatics::GetGameMode(this));
 	if (!gm)return;
 
 	TSubclassOf<AActor> weaponClass = gm->GetWeaponClass(weaponID);
 	if (weaponClass) {
-		FActorSpawnParameters spawnParams;
-		spawnParams.Owner = this;
-		AActor* newWeapon = GetWorld()->SpawnActor<AActor>(weaponClass, FVector::ZeroVector, FRotator::ZeroRotator, spawnParams);
 
-		if (newWeapon) {
-			weaponActor = newWeapon;
-			weaponActor->SetOwner(this);
-			weaponActor->AttachToComponent(GetMesh(),FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("wepon"));
+
+		UChildActorComponent* weaponChildComponent = nullptr;
+		TArray<UChildActorComponent*> ChildActorComponents;
+		GetComponents<UChildActorComponent>(ChildActorComponents);
+		for (UChildActorComponent* comp : ChildActorComponents)
+		{
+			if (comp->GetName() == TEXT("wepon"))
+			{
+				weaponChildComponent = comp;
+				break;
+			}
 		}
+		if (weaponChildComponent)
+		{
+			weaponChildComponent->SetChildActorClass(weaponClass); // TSubclassOf<AActor>
+
+			weaponActor = weaponChildComponent->GetChildActor();
+			if (weaponActor)
+			{
+				weaponActor->SetOwner(this); 
+			}
+		}
+
+		//weaponActor = newWeapon;
+		//weaponActor->SetOwner(this);
+		//weaponActor->AttachToComponent(GetMesh(),FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("wepon"));
+
 	}
 
-
-
-	//if (weaponMap.Contains(weaponID)) {
-	//	FActorSpawnParameters SpawnParams;
-	//	SpawnParams.Owner = this;
-	//	AActor* newWeapon = GetWorld()->SpawnActor<AActor>(weaponMap[weaponID], FVector::ZeroVector, FRotator::ZeroRotator, SpawnParams);
-
-	//	if (newWeapon) {
-	//		weaponActor = newWeapon;
-	//		weaponActor->SetOwner(this);
-	//		weaponActor->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("wepon"));
-	//	}
-	//}
 }

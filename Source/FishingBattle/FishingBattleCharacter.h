@@ -21,7 +21,7 @@ struct FInputActionValue;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
-UCLASS(config=Game)
+UCLASS(config = Game)
 class FISHINGBATTLE_API AFishingBattleCharacter : public ACharacter
 {
 	GENERATED_BODY()
@@ -33,7 +33,7 @@ class FISHINGBATTLE_API AFishingBattleCharacter : public ACharacter
 	/** Follow camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FollowCamera;
-	
+
 	/** MappingContext */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputMappingContext* DefaultMappingContext;
@@ -72,7 +72,7 @@ class FISHINGBATTLE_API AFishingBattleCharacter : public ACharacter
 	UInputAction* SwitchFishlot;
 
 
-	UPROPERTY(EditDefaultsOnly,Category = "Anim")
+	UPROPERTY(EditDefaultsOnly, Category = "Anim")
 	UAnimMontage* AttackMontage;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Anim")
@@ -90,13 +90,13 @@ public:
 	AFishingBattleCharacter();
 
 	/// <summary>
-    /// すごい文字化けしてる
-    /// </summary>
-    /// <param name="DamageAmount"></param>
-    /// <param name="DamageEvent"></param>
-    /// <param name="EventInstigator"></param>
-    /// <param name="DamageCauser"></param>
-    /// <returns></returns>
+	/// すごい文字化けしてる
+	/// </summary>
+	/// <param name="DamageAmount"></param>
+	/// <param name="DamageEvent"></param>
+	/// <param name="EventInstigator"></param>
+	/// <param name="DamageCauser"></param>
+	/// <returns></returns>
 	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent,
 		AController* EventInstigator, AActor* DamageCauser) override;
 
@@ -124,10 +124,10 @@ public:
 	bool canFishing = false;
 	AActor* fishingSpot = NULL;
 
-	
 
 
-	
+
+
 
 
 
@@ -190,8 +190,17 @@ protected:
 	/// </summary>
 	void OnFishingEnded(UAnimMontage* Montage, bool in);
 
+	/// <summary>
+	/// 死亡モーション終了後
+	/// </summary>
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_Die();  //　クライアント用
+
+	/// <summary>
+	/// 死亡した瞬間
+	/// </summary>
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_Dead();  //　クライアント用
 
 	void HandleDeath(); //　サーバー用
 
@@ -199,9 +208,17 @@ protected:
 
 	FTimerHandle RespawnTimerHandle;
 
-
+	/// <summary>
+/// 死亡モーション終了後
+/// </summary>
 	UFUNCTION(NetMulticast, Reliable, WithValidation)
 	void Multi_Die();  // サーバー用
+
+	/// <summary>
+	/// 死亡した瞬間
+	/// </summary>
+	UFUNCTION(NetMulticast, Reliable, WithValidation)
+	void Multi_Dead();  // サーバー用
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_Attack();  // クライアント用
@@ -213,7 +230,7 @@ protected:
 	void Server_Fishing();  // クライアント用
 
 
-	UFUNCTION(NetMulticast,Reliable,WithValidation)
+	UFUNCTION(NetMulticast, Reliable, WithValidation)
 	void Multi_Attack();  // サーバー用
 
 	UFUNCTION(NetMulticast, Reliable, WithValidation)
@@ -229,7 +246,7 @@ protected:
 
 
 
-			
+
 
 protected:
 
@@ -258,7 +275,7 @@ public:
 	//TMap<FName, TSubclassOf<AActor>> weaponMap;
 
 
-	UFUNCTION(Server,Reliable, WithValidation)
+	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_EquipWeapon(FName weaponID);//クライアント用
 
 	UFUNCTION(NetMulticast, Reliable, WithValidation)
@@ -287,8 +304,8 @@ public:
 protected:
 
 	/// <summary>
-    /// スロット１の武器を装備
-    /// </summary>
+	/// スロット１の武器を装備
+	/// </summary>
 	void EquipSlot1();
 
 	/// <summary>
@@ -307,6 +324,23 @@ protected:
 	void EquipFishlot();
 
 	void EquipWeapon(FName weaponID);
+
+public:
+
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FHealthUpdate, float, maxHP, float, updateHP);
+
+
+
+	UPROPERTY(BlueprintAssignable, Category = "Health")
+	FHealthUpdate healthUpdate;
+
+
+	UFUNCTION()
+	void GetPlayerHealth(float maxHP,float updateHP);
+
+	UFUNCTION(BlueprintCallable)
+	void BroadcastHP(float maxHP, float updateHP);
+
 
 };
 

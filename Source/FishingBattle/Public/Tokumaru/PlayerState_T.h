@@ -23,6 +23,10 @@ public:
 	UPROPERTY(Replicated,ReplicatedUsing = OnRep_Inventory)
 	TArray<FInventoryWeapon> inventory;
 
+
+
+	//プレイヤーステートクラスからレプリケート関数を動作させる意味がないので、
+	// クライアント・サーバーで分ける必要がないが、一応念のため残しておく。
 	//UFUNCTION(Server, Reliable, WithValidation)
 	void Server_AddWeapon(FName WeaponID); //クライアント用
 
