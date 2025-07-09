@@ -14,6 +14,10 @@ class FISHINGBATTLE_API ACPPWeaponTest2 : public ACPPBaseWeapon
 {
 	GENERATED_BODY()
 
+protected:
+
+	virtual void Tick(float DeltaSeconds);
+
 public:
 
 	virtual void Attack_Implementation() override;
@@ -23,4 +27,6 @@ public:
 	virtual void Attack_Begin_Implementation() override;
 
 	virtual void Attack_Finish_Implementation() override;
+
+	virtual void BeginPlay() override;
 };

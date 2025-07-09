@@ -3,6 +3,7 @@
 
 #include "TakimotoBranch/CPPBaseWeapon.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetSystemLibrary.h"
 
 // Sets default values
 ACPPBaseWeapon::ACPPBaseWeapon()
@@ -18,9 +19,12 @@ ACPPBaseWeapon::ACPPBaseWeapon()
 
 	BoxCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxCollision"));
 	BoxCollision->SetupAttachment(RootComponent);
+}
 
-	Damage = 0.f;
-	IsHit = false;
+void ACPPBaseWeapon::BeginPlay()
+{
+	Super::BeginPlay();
+
 	NextHitTime = 0.f;
 	StaticMesh->SetCollisionProfileName(TEXT("NoCollision"));
 	BoxCollision->SetCollisionProfileName(TEXT("NoCollision"));
