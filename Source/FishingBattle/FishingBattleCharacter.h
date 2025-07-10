@@ -106,7 +106,7 @@ public:
 
 
 	/// <summary>
-	/// ・ｽﾞゑｿｽ・ｽN・ｽ・ｽ・ｽ・ｽ
+	/// 釣り場侵入
 	/// </summary>
 	/// <param name="spot"></param>
 	UFUNCTION(BlueprintCallable)
@@ -114,15 +114,15 @@ public:
 
 
 	/// <summary>
-	/// ・ｽﾞゑｿｽ齬｣・ｽE・ｽ・ｽ
+	/// 釣り場退出
 	/// </summary>
 	UFUNCTION(BlueprintCallable)
 	void ExitSpot();
 
-	//・ｽ・ｽ・ｽ・ｽ轤､
+	//釣りしたとき受け取るものと釣りができるかの判定用。
 	int fish = 0;
 	bool canFishing = false;
-	AActor* fishingSpot = NULL;
+	AActor* fishingSpot = nullptr;
 
 
 
