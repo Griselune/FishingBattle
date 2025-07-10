@@ -18,6 +18,15 @@ AFishingBattleGameState::AFishingBattleGameState()
 	CurrentState = EGameStateList::Init;
 }
 
+void AFishingBattleGameState::BeginPlay()
+{
+	Super::BeginPlay();
+
+	// テスト用
+	CurrentState = EGameStateList::BeforeStart;
+	OnRep_CurrentState();
+}
+
 void AFishingBattleGameState::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
