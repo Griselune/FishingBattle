@@ -63,6 +63,7 @@ void UCPPDamageNotify::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSequence
 
 	for (UChildActorComponent* Comp : ChildActorComponents)
 	{
+		/*IsA<ACPPBaseWeapon>(Comp->GetChildActorClass());*/
 		if (Comp && Comp->ComponentHasTag(TEXT("Weapon"))) // nullチェックとタグのチェック
 		{
 			WeaponChildActorComp = Comp; // タグが見つかったコンポーネントを保存
