@@ -12,6 +12,7 @@
 #include "tokumaru/PlayerState_T.h"
 #include "InputActionValue.h"
 #include <Kismet/GameplayStatics.h>
+#include <WuBranch/Actor/FishingGround.h>
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -78,7 +79,10 @@ float AFishingBattleCharacter::TakeDamage(float DamageAmount, FDamageEvent const
 void AFishingBattleCharacter::EnterSpot(AActor* spot)
 {
 	canFishing = true;
-	fishingSpot = spot;
+	if (spot)
+	{
+		fishingSpot = spot;
+	}
 }
 
 void AFishingBattleCharacter::ExitSpot()
@@ -454,6 +458,14 @@ void AFishingBattleCharacter::Multi_Roll_Implementation()
 
 void AFishingBattleCharacter::Multi_Fishing_Implementation()
 {
+	// 向きの調整
+	if (AFishingGround* Fishing = Cast<AFishingGround>(fishingSpot)) {
+		FVector Point = Fishing->GetFishingPointOnSea();
+		FRotator angle = (Point - GetActorLocation()).Rotation();
+		SetActorRotation(angle);
+	}
+
+	//アニメーション
 	if (IsRoll || !FishingMontage || IsPlayAttack1 || !GetCharacterMovement()->IsMovingOnGround())return;
 	UE_LOG(LogTemp, Warning, TEXT("Fishing!"));
 	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
