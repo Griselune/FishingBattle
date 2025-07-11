@@ -63,6 +63,14 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FCountDownDelegate OnCountDown;
 
+	/// <summary>
+	/// ゲーム状態が変更されたときのデリゲート
+	/// </summary>
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FGameStateChangedDelegate, EGameStateList, State);
+
+	UPROPERTY(BlueprintAssignable)
+	FGameStateChangedDelegate OnGameStateChanged;
+
 private:
 
 #pragma region ゲーム状態
@@ -78,6 +86,11 @@ private:
 	/// </summary>
 	UFUNCTION()
 	void OnRep_CurrentState();
+
+	/// <summary>
+	/// ゲーム状態が変更されたのを知らせる
+	/// </summary>
+	void NotifyStateChanged();
 
 	/// <summary>
 	/// 今の状態
