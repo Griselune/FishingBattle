@@ -27,4 +27,6 @@ public:
 	virtual void Attack_Begin_Implementation() override;
 
 	virtual void Attack_Finish_Implementation() override;
+
+	virtual void BeginPlay() override;
 };

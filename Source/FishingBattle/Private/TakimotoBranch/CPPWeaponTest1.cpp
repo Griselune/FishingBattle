@@ -3,6 +3,11 @@
 
 #include "TakimotoBranch/CPPWeaponTest1.h"
 
+void ACPPWeaponTest1::BeginPlay()
+{
+	Super::BeginPlay();
+}
+
 void ACPPWeaponTest1::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
