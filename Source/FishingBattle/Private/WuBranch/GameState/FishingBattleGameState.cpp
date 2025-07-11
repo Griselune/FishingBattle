@@ -23,8 +23,8 @@ void AFishingBattleGameState::BeginPlay()
 	Super::BeginPlay();
 
 	// テスト用
-	CurrentState = EGameStateList::BeforeStart;
-	OnRep_CurrentState();
+	CurrentState = EGameStateList::CheckPlayerState;
+	//OnRep_CurrentState();
 }
 
 void AFishingBattleGameState::Tick(float DeltaTime)
@@ -35,6 +35,25 @@ void AFishingBattleGameState::Tick(float DeltaTime)
 	if (IsStartCountDown)
 	{
 		CountDown(DeltaTime);
+	}
+
+	if (CurrentState == EGameStateList::CheckPlayerState)
+	{
+		// プレイヤーの状態を確認する処理
+		//TArray<APlayerState*> PlayerStates = PlayerArray;
+		//bool AllPlayersReady = true;
+		//for (APlayerState* PlayerState : PlayerStates)
+		//{
+		//	if (!PlayerState || !PlayerState->bIsReady) // bIsReadyはプレイヤーが準備完了かどうかのフラグ
+		//	{
+		//		AllPlayersReady = false;
+		//		break;
+		//	}
+		//}
+		//if (AllPlayersReady)
+		//{
+		//	Server_ChangeState(EGameStateList::BeforeStart);
+		//}
 	}
 }
 
@@ -65,6 +84,17 @@ bool AFishingBattleGameState::IsStarted() const
 bool AFishingBattleGameState::IsFinished() const
 {
 	return CurrentState >= EGameStateList::Finished;
+}
+
+bool AFishingBattleGameState::AreAllPlayersInMap()
+{
+	if (HasAuthority())
+	{
+		PlayerArray;
+		return false;
+	}
+	else
+		return false;
 }
 
 void AFishingBattleGameState::OnRep_CurrentState()

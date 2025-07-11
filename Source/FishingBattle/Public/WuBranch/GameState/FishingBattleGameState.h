@@ -65,12 +65,29 @@ public:
 
 private:
 
+#pragma region ゲーム状態
+
+	/// <summary>
+	/// プレイヤー全員がマップにいるか
+	/// </summary>
+	/// <returns>true: はい,false: いいえ</returns>
+	bool AreAllPlayersInMap();
+
 	/// <summary>
 	/// クライアントで状態が変更されたときの処理
 	/// </summary>
 	UFUNCTION()
 	void OnRep_CurrentState();
 
+	/// <summary>
+	/// 今の状態
+	/// </summary>
+	UPROPERTY(Replicated, ReplicatedUsing = OnRep_CurrentState)
+	EGameStateList CurrentState;
+
+#pragma endregion
+
+#pragma region カウントダウン
 	/// <summary>
 	/// カウントダウン
 	/// </summary>
@@ -82,12 +99,6 @@ private:
 	/// </summary>
 	/// <param name="Sec">秒数</param>
 	void UpdateCountDownUI(int Sec);
-
-	/// <summary>
-	/// 今の状態
-	/// </summary>
-	UPROPERTY(Replicated, ReplicatedUsing = OnRep_CurrentState)
-	EGameStateList CurrentState;
 
 	/// <summary>
 	/// 開始前のカウントダウン秒数
@@ -109,4 +120,6 @@ private:
 	/// 前回のカウントダウン秒数
 	/// </summary>
 	int PreCountDownTime;
+#pragma endregion
+
 };
