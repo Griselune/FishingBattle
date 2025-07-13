@@ -3,7 +3,6 @@
 
 #include "WuBranch/GameState/FishingBattleGameState.h"
 #include <Net/UnrealNetwork.h>
-#include "Kismet/GameplayStatics.h"
 #include <WuBranch/UI/BaseHUD.h>
 
 AFishingBattleGameState::AFishingBattleGameState()
@@ -22,9 +21,8 @@ void AFishingBattleGameState::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// テスト用
-	CurrentState = EGameStateList::BeforeStart;
-	OnRep_CurrentState();
+	if(HasAuthority())
+		Server_ChangeState(EGameStateList::CheckPlayerState);
 }
 
 void AFishingBattleGameState::Tick(float DeltaTime)
@@ -35,6 +33,11 @@ void AFishingBattleGameState::Tick(float DeltaTime)
 	if (IsStartCountDown)
 	{
 		CountDown(DeltaTime);
+	}
+
+	if (AreAllPlayersInMap())
+	{
+		Server_ChangeState(EGameStateList::BeforeStart);
 	}
 }
 
@@ -48,11 +51,14 @@ void AFishingBattleGameState::GetLifetimeReplicatedProps(TArray<FLifetimePropert
 
 void AFishingBattleGameState::Server_ChangeState_Implementation(EGameStateList NewState)
 {
+	// サーバー側で状態を変更
 	if (HasAuthority())
 	{
-		// サーバー側で状態を変更
-		if (CurrentState == NewState) return;
+		if (CurrentState == NewState) 
+			return;
+
 		CurrentState = NewState;
+		NotifyStateChanged();
 	}
 }
 
@@ -65,6 +71,28 @@ bool AFishingBattleGameState::IsStarted() const
 bool AFishingBattleGameState::IsFinished() const
 {
 	return CurrentState >= EGameStateList::Finished;
+}
+
+bool AFishingBattleGameState::AreAllPlayersInMap()
+{
+	// サーバー側でのみ実行
+	if (!HasAuthority())
+		return false;
+
+	// プレイヤーの状態を確認する段階にいる
+	if (CurrentState != EGameStateList::CheckPlayerState)
+		return false;
+
+	// プレイヤーの状態を確認する処理
+	for (APlayerState* PlayerState : PlayerArray)
+	{
+		// 未完成、プレイヤーステートからプレイヤーがマップにいるかを確認
+		if (!PlayerState)
+		{
+			return false;
+		}
+	}
+	return true;
 }
 
 void AFishingBattleGameState::OnRep_CurrentState()
@@ -80,6 +108,15 @@ void AFishingBattleGameState::OnRep_CurrentState()
 			break;
 		case EGameStateList::Finished:
 			break;
+	}
+	NotifyStateChanged();
+}
+
+void AFishingBattleGameState::NotifyStateChanged()
+{
+	if (OnGameStateChanged.IsBound())
+	{
+		OnGameStateChanged.Broadcast(CurrentState);
 	}
 }
 
@@ -100,5 +137,8 @@ void AFishingBattleGameState::CountDown(float DeltaTime)
 
 void AFishingBattleGameState::UpdateCountDownUI(int Sec)
 {
-	OnCountDown.Broadcast(Sec);
+	if (OnCountDown.IsBound())
+	{
+		OnCountDown.Broadcast(Sec);
+	}
 }
