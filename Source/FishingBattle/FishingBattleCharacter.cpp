@@ -104,6 +104,9 @@ void AFishingBattleCharacter::NotifyControllerChanged()
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
+			nowMappingContext = DefaultMappingContext;
+			//Subsystem->AddMappingContext(FishingMappingContext, 0);
+			//Subsystem->RemoveMappingContext(DefaultMappingContext);
 		}
 	}
 }
@@ -482,6 +485,8 @@ void AFishingBattleCharacter::Multi_Fishing_Implementation()
 		Delegate.BindUObject(this, &AFishingBattleCharacter::OnFishingEnded);
 		animInstance->Montage_SetEndDelegate(Delegate, FishingMontage);
 
+		ChangeMappingContext(FishingMappingContext);
+
 	}
 	//釣りを途中で停止できるか否か
 	//else if (IsFishing) {
@@ -563,6 +568,7 @@ void AFishingBattleCharacter::OnFishingEnded(UAnimMontage* Montage, bool in)
 	if (HasAuthority()) {
 		Server_AddWeaponInPlayer("Weapon1");
 	}
+	ChangeMappingContext(DefaultMappingContext);
 
 	IsFishing = false;
 }
@@ -818,14 +824,36 @@ void AFishingBattleCharacter::EquipWeapon(FName weaponID)
 			weaponActor = weaponChildComponent->GetChildActor();
 			if (weaponActor)
 			{
+				UE_LOG(LogTemp, Error, TEXT("setowner!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"));
 				weaponActor->SetOwner(this); 
 			}
 		}
+		//武器のタイプを取得
+		//ACPPBaseWeapon* Base = Cast<ACPPBaseWeapon>(weaponActor);
+		//if (Base)
+		//{
+		//	// オーバーライドされた GetWeaponType() が呼ばれる！
+		//	EWeaponType Type = Base->GetWeaponType();
+		//}
+		
+
 
 		//weaponActor = newWeapon;
 		//weaponActor->SetOwner(this);
 		//weaponActor->AttachToComponent(GetMesh(),FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("wepon"));
 
 	}
+}
 
+void AFishingBattleCharacter::ChangeMappingContext(UInputMappingContext* context_)
+{
+	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
+	{
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
+		{
+			Subsystem->RemoveMappingContext(nowMappingContext);
+			Subsystem->AddMappingContext(context_, 0);
+			nowMappingContext = context_;
+		}
+	}
 }
