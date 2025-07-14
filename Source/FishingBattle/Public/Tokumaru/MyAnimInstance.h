@@ -1,11 +1,14 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
+#include "Tokumaru/WeaponType.h"
 #include "MyAnimInstance.generated.h"
 
+
+class AFishingBattleCharacter;
 /**
  * 
  */
@@ -20,5 +23,13 @@ public :
 
 	UPROPERTY(BlueprintReadWrite)
 	bool Isjump;
+
+	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Weapon")
+	EWeaponType WeaponType = EWeaponType::FishRod;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Character")
+	AFishingBattleCharacter* MyChar;
 	
 };
