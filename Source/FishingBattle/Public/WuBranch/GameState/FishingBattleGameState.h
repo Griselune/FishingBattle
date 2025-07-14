@@ -63,7 +63,23 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FCountDownDelegate OnCountDown;
 
+	/// <summary>
+	/// ゲーム状態が変更されたときのデリゲート
+	/// </summary>
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FGameStateChangedDelegate, EGameStateList, State);
+
+	UPROPERTY(BlueprintAssignable)
+	FGameStateChangedDelegate OnGameStateChanged;
+
 private:
+
+#pragma region ゲーム状態
+
+	/// <summary>
+	/// プレイヤー全員がマップにいるか
+	/// </summary>
+	/// <returns>true: はい,false: いいえ</returns>
+	bool AreAllPlayersInMap();
 
 	/// <summary>
 	/// クライアントで状態が変更されたときの処理
@@ -71,6 +87,20 @@ private:
 	UFUNCTION()
 	void OnRep_CurrentState();
 
+	/// <summary>
+	/// ゲーム状態が変更されたのを知らせる
+	/// </summary>
+	void NotifyStateChanged();
+
+	/// <summary>
+	/// 今の状態
+	/// </summary>
+	UPROPERTY(Replicated, ReplicatedUsing = OnRep_CurrentState)
+	EGameStateList CurrentState;
+
+#pragma endregion
+
+#pragma region カウントダウン
 	/// <summary>
 	/// カウントダウン
 	/// </summary>
@@ -82,12 +112,6 @@ private:
 	/// </summary>
 	/// <param name="Sec">秒数</param>
 	void UpdateCountDownUI(int Sec);
-
-	/// <summary>
-	/// 今の状態
-	/// </summary>
-	UPROPERTY(Replicated, ReplicatedUsing = OnRep_CurrentState)
-	EGameStateList CurrentState;
 
 	/// <summary>
 	/// 開始前のカウントダウン秒数
@@ -109,4 +133,6 @@ private:
 	/// 前回のカウントダウン秒数
 	/// </summary>
 	int PreCountDownTime;
+#pragma endregion
+
 };
