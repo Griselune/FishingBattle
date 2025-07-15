@@ -7,6 +7,9 @@
 #include "GameStateList.h"
 #include "FishingBattleGameState.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCountDownDelegate, int, Num);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FGameStateChangedDelegate, EGameStateList, State);
+
 /**
  * 
  */
@@ -56,24 +59,21 @@ public:
 	bool IsFinished() const;
 
 	/// <summary>
-	/// ウントダウンのデリゲート
+	/// ウントダウンの登録
 	/// </summary>
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCountDownDelegate, int, Num);
-
 	UPROPERTY(BlueprintAssignable)
 	FCountDownDelegate OnCountDown;
 
 	/// <summary>
-	/// ゲーム状態が変更されたときのデリゲート
+	/// ゲーム状態が変更されたときの登録
 	/// </summary>
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FGameStateChangedDelegate, EGameStateList, State);
-
 	UPROPERTY(BlueprintAssignable)
-	FGameStateChangedDelegate OnGameStateChanged;
-
-private:
+	FGameStateChangedDelegate Client_OnGameStateChanged;
+	UPROPERTY(BlueprintAssignable)
+	FGameStateChangedDelegate Server_OnGameStateChanged;
 
 #pragma region ゲーム状態
+private:
 
 	/// <summary>
 	/// プレイヤー全員がマップにいるか
@@ -90,7 +90,8 @@ private:
 	/// <summary>
 	/// ゲーム状態が変更されたのを知らせる
 	/// </summary>
-	void NotifyStateChanged();
+	void NotifyStateChangedOnClient();
+	void NotifyStateChangedOnServer();
 
 	/// <summary>
 	/// 今の状態
@@ -101,6 +102,8 @@ private:
 #pragma endregion
 
 #pragma region カウントダウン
+private:
+
 	/// <summary>
 	/// カウントダウン
 	/// </summary>

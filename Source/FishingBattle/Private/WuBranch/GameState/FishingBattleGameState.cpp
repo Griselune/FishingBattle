@@ -58,7 +58,7 @@ void AFishingBattleGameState::Server_ChangeState_Implementation(EGameStateList N
 			return;
 
 		CurrentState = NewState;
-		NotifyStateChanged();
+		NotifyStateChangedOnServer();
 	}
 }
 
@@ -109,14 +109,22 @@ void AFishingBattleGameState::OnRep_CurrentState()
 		case EGameStateList::Finished:
 			break;
 	}
-	NotifyStateChanged();
+	NotifyStateChangedOnClient();
 }
 
-void AFishingBattleGameState::NotifyStateChanged()
+void AFishingBattleGameState::NotifyStateChangedOnClient()
 {
-	if (OnGameStateChanged.IsBound())
+	if (Client_OnGameStateChanged.IsBound())
 	{
-		OnGameStateChanged.Broadcast(CurrentState);
+		Client_OnGameStateChanged.Broadcast(CurrentState);
+	}
+}
+
+void AFishingBattleGameState::NotifyStateChangedOnServer()
+{
+	if (Server_OnGameStateChanged.IsBound())
+	{
+		Server_OnGameStateChanged.Broadcast(CurrentState);
 	}
 }
 
