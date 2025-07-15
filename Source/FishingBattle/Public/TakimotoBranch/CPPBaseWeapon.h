@@ -34,8 +34,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	float NextHitTime;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
-	ECPPWeaponType WeaponType;
+	//2025/07/15 下に移動しました　得丸陽生
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	//ECPPWeaponType WeaponType;
+	//------------------------------------
 
 	virtual void Tick(float DeltaSeconds) override;
 
@@ -52,6 +54,10 @@ public:
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Weapon")
 	void Attack_Finish();
+
+	//2025/07/15 ここに移動しました　得丸陽生
+	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite, Category = "Weapon")
+	ECPPWeaponType WeaponType;
 
 	virtual void BeginPlay() override;
 };

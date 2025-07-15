@@ -4,9 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
-#include "Tokumaru/WeaponType.h"
+#include "TakimotoBranch/CPPWeaponType.h"
 #include "MyAnimInstance.generated.h"
-
 
 class AFishingBattleCharacter;
 /**
@@ -26,10 +25,12 @@ public :
 
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Weapon")
-	EWeaponType WeaponType = EWeaponType::FishRod;
+	UPROPERTY(BlueprintReadWrite, Category = "Weapon")
+	ECPPWeaponType WeaponType;
 
-	UPROPERTY(BlueprintReadOnly, Category = "Character")
+	UPROPERTY(BlueprintReadOnly,Category = "Character")
 	AFishingBattleCharacter* MyChar;
-	
+
+	UFUNCTION(BlueprintCallable)
+	void GetWeaponType(ECPPWeaponType type_);
 };
