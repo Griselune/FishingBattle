@@ -10,6 +10,8 @@
 #include "Logging/LogMacros.h"
 #include "tokumaru/InventoryWeapon.h"
 #include "Net/UnrealNetwork.h"
+#include "TakimotoBranch/CPPBaseWeapon.h"
+#include "Tokumaru/WeaponType.h"
 #include "FishingBattleCharacter.generated.h"
 
 class USpringArmComponent;
@@ -37,6 +39,9 @@ class FISHINGBATTLE_API AFishingBattleCharacter : public ACharacter
 	/** MappingContext */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputMappingContext* DefaultMappingContext;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputMappingContext* FishingMappingContext;
 
 	/** Jump Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
@@ -336,11 +341,23 @@ public:
 
 
 	UFUNCTION()
-	void GetPlayerHealth(float maxHP,float updateHP);
+	void GetPlayerHealth(float maxHP, float updateHP);
 
 	UFUNCTION(BlueprintCallable)
 	void BroadcastHP(float maxHP, float updateHP);
 
 
+
+protected:
+	/// <summary>
+	/// マッピングコンテクストの切り替えで操作を制限する。
+	/// </summary>
+	/// <param name="context_"></param>
+	void ChangeMappingContext(UInputMappingContext* context_);
+	//void RemoveMappingContext(UInputMappingContext* context_);
+	UInputMappingContext* nowMappingContext = nullptr;
+
+public:
+	//EWeaponType WeaponType;
 };
 
