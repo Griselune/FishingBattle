@@ -29,7 +29,7 @@ void ACPPBaseWeapon::BeginPlay()
 	StaticMesh->SetCollisionProfileName(TEXT("NoCollision"));
 	BoxCollision->SetCollisionProfileName(TEXT("NoCollision"));
 
-	//WeaponType = ECPPWeaponType::None;
+	WeaponType = ECPPWeaponType::None;
 }
 
 void ACPPBaseWeapon::Tick(float DeltaSeconds)
