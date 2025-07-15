@@ -11,7 +11,7 @@
 #include "tokumaru/InventoryWeapon.h"
 #include "Net/UnrealNetwork.h"
 #include "TakimotoBranch/CPPBaseWeapon.h"
-#include "Tokumaru/WeaponType.h"
+#include "TakimotoBranch/CPPWeaponType.h"
 #include "FishingBattleCharacter.generated.h"
 
 class USpringArmComponent;
@@ -79,6 +79,9 @@ class FISHINGBATTLE_API AFishingBattleCharacter : public ACharacter
 
 	UPROPERTY(EditDefaultsOnly, Category = "Anim")
 	UAnimMontage* AttackMontage;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Anim")
+	UAnimMontage* HeavyAttackMontage;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Anim")
 	UAnimMontage* RollMontage;
@@ -358,6 +361,15 @@ protected:
 	UInputMappingContext* nowMappingContext = nullptr;
 
 public:
-	//EWeaponType WeaponType;
+
+	UPROPERTY(Replicated, ReplicatedUsing = OnRep_AnimInstance, BlueprintReadWrite, Category = "Weapon")
+	ECPPWeaponType WeaponType = ECPPWeaponType::None;
+
+	UFUNCTION()
+	void OnRep_AnimInstance();
+
+
+	UFUNCTION()
+	void DelayedCheckWeaponType();
 };
 
