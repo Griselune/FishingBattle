@@ -8,6 +8,7 @@
 AFishingBattleGameState::AFishingBattleGameState()
 	: IsStartCountDown(false)
 	, CountDownTime(0.0f)
+	, CountDownEndTime(-1.0f)
 	, PreCountDownTime(0)
 {
 	// Set this game state to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
@@ -129,9 +130,10 @@ void AFishingBattleGameState::CountDown(float DeltaTime)
 		UpdateCountDownUI(Sec);
 		PreCountDownTime = Sec;
 	}
-	if (Sec <= 0)
+	if (Sec <= CountDownEndTime)
 	{
 		IsStartCountDown = false;
+		Server_ChangeState(EGameStateList::Started);
 	}
 }
 

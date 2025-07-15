@@ -130,6 +130,12 @@ private:
 	float CountDownTime;
 
 	/// <summary>
+	/// カウントダウンの終了時間
+	/// 0でカウントダウン終了ですが、0の後にStartが表示するので-1を設定した
+	/// </summary>
+	float CountDownEndTime;
+
+	/// <summary>
 	/// 前回のカウントダウン秒数
 	/// </summary>
 	int PreCountDownTime;
