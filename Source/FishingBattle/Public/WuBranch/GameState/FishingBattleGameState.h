@@ -10,6 +10,8 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCountDownDelegate, int, Num);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FGameStateChangedDelegate, EGameStateList, State);
 
+class UTimer;
+
 /**
  * 
  */
@@ -45,6 +47,11 @@ public:
 	/// </summary>
 	/// <returns>ゲームの状態</returns>
 	EGameStateList GetCurrentState() const;
+
+	/// <summary>
+	/// 各状態の初期化
+	/// </summary>
+	void InitState();
 
 	/// <summary>
 	/// ゲームは既に開始したか
@@ -114,7 +121,13 @@ private:
 	/// カウントダウンのUIを更新
 	/// </summary>
 	/// <param name="Sec">秒数</param>
+	UFUNCTION(NetMulticast, Reliable)
 	void UpdateCountDownUI(int Sec);
+
+	/// <summary>
+	/// スタート前のカウントダウンタイマー
+	/// </summary>
+	UTimer* StartTimer;
 
 	/// <summary>
 	/// 開始前のカウントダウン秒数

@@ -3,6 +3,7 @@
 
 #include "WuBranch/GameState/FishingBattleGameState.h"
 #include <Net/UnrealNetwork.h>
+#include "WuBranch/Object/Timer.h"
 
 AFishingBattleGameState::AFishingBattleGameState()
 	: IsStartCountDown(false)
@@ -29,12 +30,6 @@ void AFishingBattleGameState::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	// カウントダウンの処理
-	if (IsStartCountDown)
-	{
-		CountDown(DeltaTime);
-	}
-
 	if (AreAllPlayersInMap())
 	{
 		Server_ChangeState(EGameStateList::BeforeStart);
@@ -58,7 +53,34 @@ void AFishingBattleGameState::Server_ChangeState_Implementation(EGameStateList N
 			return;
 
 		CurrentState = NewState;
+
+		InitState();
 		NotifyStateChangedOnServer();
+	}
+}
+
+EGameStateList AFishingBattleGameState::GetCurrentState() const
+{
+	return CurrentState;
+}
+
+void AFishingBattleGameState::InitState()
+{
+	// サーバー側でのみ実行
+	if (!HasAuthority())
+		return;
+
+	// 各状態の初期化
+	switch (CurrentState)
+	{
+	case EGameStateList::BeforeStart:
+		StartTimer = NewObject<UTimer>(this, UTimer::StaticClass());
+		StartTimer->Init(GetWorld(), 5.0f, -1.0f, UTimer::ETimerType::CountDown, 0.1f);
+		break;
+	case EGameStateList::Started:
+		break;
+	case EGameStateList::Finished:
+		break;
 	}
 }
 
@@ -97,18 +119,6 @@ bool AFishingBattleGameState::AreAllPlayersInMap()
 
 void AFishingBattleGameState::OnRep_CurrentState()
 {
-	switch (CurrentState)
-	{
-		case EGameStateList::BeforeStart:
-			CountDownTime = StartCountDownSecond;
-			PreCountDownTime = 0;
-			IsStartCountDown = true;
-			break;
-		case EGameStateList::Started:
-			break;
-		case EGameStateList::Finished:
-			break;
-	}
 	NotifyStateChangedOnClient();
 }
 
@@ -130,6 +140,10 @@ void AFishingBattleGameState::NotifyStateChangedOnServer()
 
 void AFishingBattleGameState::CountDown(float DeltaTime)
 {
+	// サーバー側でのみ実行
+	if (!HasAuthority())
+		return;
+
 	CountDownTime -= DeltaTime;
 	int Sec = FMath::CeilToInt(CountDownTime);
 	if (Sec != PreCountDownTime)
@@ -144,7 +158,7 @@ void AFishingBattleGameState::CountDown(float DeltaTime)
 	}
 }
 
-void AFishingBattleGameState::UpdateCountDownUI(int Sec)
+void AFishingBattleGameState::UpdateCountDownUI_Implementation(int Sec)
 {
 	if (OnCountDown.IsBound())
 	{

@@ -7,6 +7,7 @@
 #include "DeathMatchGameState.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FChangeTimeDelegate, int, Min, int, Sec);
+class UTimer;
 
 /**
  * 
@@ -37,6 +38,12 @@ public:
 private:
 
 #pragma region タイマー
+
+	/// <summary>
+	/// タイマーの作成
+	/// </summary>
+	void CreateTimer();
+
 	/// <summary>
 	/// タイマーのカウントをバインド
 	/// </summary>
@@ -46,7 +53,12 @@ private:
 	/// タイマーの時間が変更されたときの処理(サーバー)
 	/// </summary>
 	/// <param name="TotalSec">全秒数</param>
-	void Server_OnTimeChanged(int TotalSec);
+	void Server_OnTimeChanged(float TotalSec);
+
+	/// <summary>
+	/// タイマーが終了したときの処理(サーバー)
+	/// </summary>
+	void Server_OnTimeFinished();
 
 	/// <summary>
 	/// タイマーの時間が変更されたときの処理(クライアント)
@@ -60,6 +72,11 @@ private:
 	void NotifyTimeChanged();
 	
 	/// <summary>
+	/// ゲームタイマー
+	/// </summary>
+	UTimer* GameTimer;
+
+	/// <summary>
 	/// タイマーの分
 	/// </summary>
 	UPROPERTY(Replicated, ReplicatedUsing = OnRep_Client_OnTimeChanged)
@@ -71,4 +88,6 @@ private:
 	UPROPERTY(Replicated, ReplicatedUsing = OnRep_Client_OnTimeChanged)
 	int Sec;
 #pragma endregion
+
+
 };
