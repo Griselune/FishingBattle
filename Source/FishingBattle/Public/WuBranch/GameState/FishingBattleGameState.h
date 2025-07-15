@@ -21,14 +21,14 @@ public:
 
 protected:
 
-	virtual void BeginPlay() override;
+	virtual void BeginPlay();
 
 public:
 
 	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	virtual void Tick(float DeltaTime);
 
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 
 	/// <summary>
 	/// ゲームの状態を変更

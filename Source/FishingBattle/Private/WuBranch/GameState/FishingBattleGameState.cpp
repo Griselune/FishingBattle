@@ -3,7 +3,6 @@
 
 #include "WuBranch/GameState/FishingBattleGameState.h"
 #include <Net/UnrealNetwork.h>
-#include <WuBranch/UI/BaseHUD.h>
 
 AFishingBattleGameState::AFishingBattleGameState()
 	: IsStartCountDown(false)
