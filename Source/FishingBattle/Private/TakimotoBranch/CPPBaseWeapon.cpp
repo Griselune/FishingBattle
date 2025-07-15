@@ -29,7 +29,9 @@ void ACPPBaseWeapon::BeginPlay()
 	StaticMesh->SetCollisionProfileName(TEXT("NoCollision"));
 	BoxCollision->SetCollisionProfileName(TEXT("NoCollision"));
 
-	WeaponType = ECPPWeaponType::None;
+	//2025 7/15 新しくスポーンさせたときにエディタの変更が上書きされるので、いったん
+	// コメントアウトしました。 得丸陽生
+	//WeaponType = ECPPWeaponType::None;
 }
 
 void ACPPBaseWeapon::Tick(float DeltaSeconds)
