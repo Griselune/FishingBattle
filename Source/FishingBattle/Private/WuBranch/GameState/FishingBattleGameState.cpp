@@ -3,11 +3,11 @@
 
 #include "WuBranch/GameState/FishingBattleGameState.h"
 #include <Net/UnrealNetwork.h>
-#include <WuBranch/UI/BaseHUD.h>
 
 AFishingBattleGameState::AFishingBattleGameState()
 	: IsStartCountDown(false)
 	, CountDownTime(0.0f)
+	, CountDownEndTime(-1.0f)
 	, PreCountDownTime(0)
 {
 	// Set this game state to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
@@ -58,7 +58,7 @@ void AFishingBattleGameState::Server_ChangeState_Implementation(EGameStateList N
 			return;
 
 		CurrentState = NewState;
-		NotifyStateChanged();
+		NotifyStateChangedOnServer();
 	}
 }
 
@@ -109,14 +109,22 @@ void AFishingBattleGameState::OnRep_CurrentState()
 		case EGameStateList::Finished:
 			break;
 	}
-	NotifyStateChanged();
+	NotifyStateChangedOnClient();
 }
 
-void AFishingBattleGameState::NotifyStateChanged()
+void AFishingBattleGameState::NotifyStateChangedOnClient()
 {
-	if (OnGameStateChanged.IsBound())
+	if (Client_OnGameStateChanged.IsBound())
 	{
-		OnGameStateChanged.Broadcast(CurrentState);
+		Client_OnGameStateChanged.Broadcast(CurrentState);
+	}
+}
+
+void AFishingBattleGameState::NotifyStateChangedOnServer()
+{
+	if (Server_OnGameStateChanged.IsBound())
+	{
+		Server_OnGameStateChanged.Broadcast(CurrentState);
 	}
 }
 
@@ -129,9 +137,10 @@ void AFishingBattleGameState::CountDown(float DeltaTime)
 		UpdateCountDownUI(Sec);
 		PreCountDownTime = Sec;
 	}
-	if (Sec <= 0)
+	if (Sec <= CountDownEndTime)
 	{
 		IsStartCountDown = false;
+		Server_ChangeState(EGameStateList::Started);
 	}
 }
 

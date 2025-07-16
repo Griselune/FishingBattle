@@ -104,6 +104,9 @@ void AFishingBattleCharacter::NotifyControllerChanged()
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
+			nowMappingContext = DefaultMappingContext;
+			//Subsystem->AddMappingContext(FishingMappingContext, 0);
+			//Subsystem->RemoveMappingContext(DefaultMappingContext);
 		}
 	}
 }
@@ -147,10 +150,12 @@ void AFishingBattleCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 	}
 }
 
+
 void AFishingBattleCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AFishingBattleCharacter, weaponActor);
+	DOREPLIFETIME(AFishingBattleCharacter, WeaponType);
 }
 
 void AFishingBattleCharacter::BeginPlay()
@@ -181,7 +186,7 @@ void AFishingBattleCharacter::GetPlayerHealth(float maxHP, float updateHP) {
 }
 
 void AFishingBattleCharacter::BroadcastHP(float maxHP, float updateHP) {
-	healthUpdate.Broadcast(maxHP,updateHP);
+	healthUpdate.Broadcast(maxHP, updateHP);
 }
 
 void AFishingBattleCharacter::Move(const FInputActionValue& Value)
@@ -426,13 +431,33 @@ void AFishingBattleCharacter::Multi_Attack_Implementation()
 	UMyAnimInstance* mAnim = Cast<UMyAnimInstance>(animInstance);
 	if (animInstance && mAnim) {
 		if (mAnim->Isjump) return;
-		animInstance->Montage_Play(AttackMontage, 2.0f);
-		mAnim->attack1 = true;
-		IsPlayAttack1 = true;
-
 		FOnMontageEnded Delegate;
-		Delegate.BindUObject(this, &AFishingBattleCharacter::OnAttackEnded);
-		animInstance->Montage_SetEndDelegate(Delegate, AttackMontage);
+		switch (this->WeaponType) {
+		case ECPPWeaponType::WeaponTest1:
+
+			mAnim->attack1 = true;
+			IsPlayAttack1 = true;
+			animInstance->Montage_Play(HeavyAttackMontage, 1.0f);
+
+			Delegate.BindUObject(this, &AFishingBattleCharacter::OnAttackEnded);
+			animInstance->Montage_SetEndDelegate(Delegate, HeavyAttackMontage);
+			break;
+		default:
+
+			mAnim->attack1 = true;
+			IsPlayAttack1 = true;
+			animInstance->Montage_Play(AttackMontage, 2.0f);
+
+			Delegate.BindUObject(this, &AFishingBattleCharacter::OnAttackEnded);
+			animInstance->Montage_SetEndDelegate(Delegate, AttackMontage);
+			break;
+		}
+		//mAnim->attack1 = true;
+		//IsPlayAttack1 = true;
+
+		//FOnMontageEnded Delegate;
+		//Delegate.BindUObject(this, &AFishingBattleCharacter::OnAttackEnded);
+		//animInstance->Montage_SetEndDelegate(Delegate, AttackMontage);
 	}
 }
 
@@ -481,6 +506,8 @@ void AFishingBattleCharacter::Multi_Fishing_Implementation()
 		FOnMontageEnded Delegate;
 		Delegate.BindUObject(this, &AFishingBattleCharacter::OnFishingEnded);
 		animInstance->Montage_SetEndDelegate(Delegate, FishingMontage);
+
+		ChangeMappingContext(FishingMappingContext);
 
 	}
 	//釣りを途中で停止できるか否か
@@ -563,6 +590,7 @@ void AFishingBattleCharacter::OnFishingEnded(UAnimMontage* Montage, bool in)
 	if (HasAuthority()) {
 		Server_AddWeaponInPlayer("Weapon1");
 	}
+	ChangeMappingContext(DefaultMappingContext);
 
 	IsFishing = false;
 }
@@ -797,6 +825,7 @@ void AFishingBattleCharacter::EquipWeapon(FName weaponID)
 	if (!gm)return;
 
 	TSubclassOf<AActor> weaponClass = gm->GetWeaponClass(weaponID);
+	UE_LOG(LogTemp, Warning, TEXT("weaponClass is: %s"), *weaponClass->GetName());
 	if (weaponClass) {
 
 
@@ -818,14 +847,75 @@ void AFishingBattleCharacter::EquipWeapon(FName weaponID)
 			weaponActor = weaponChildComponent->GetChildActor();
 			if (weaponActor)
 			{
-				weaponActor->SetOwner(this); 
+				UE_LOG(LogTemp, Error, TEXT("setowner!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"));
+				weaponActor->SetOwner(this);
 			}
 		}
+
+		FTimerHandle WeaponCheckTimer;
+		GetWorld()->GetTimerManager().SetTimer(
+			WeaponCheckTimer,
+			this,
+			&AFishingBattleCharacter::DelayedCheckWeaponType,
+			0.1f, // 100ms の遅延
+			false
+		);
+
+
+		////武器のタイプを取得
+		//ACPPBaseWeapon* Base = Cast<ACPPBaseWeapon>(weaponActor);
+		//if (Base)
+		//{
+		//	UE_LOG(LogTemp, Error, TEXT("GetWeaponTypeInCharacter!!!!!!"));
+		//	this->WeaponType = Base->WeaponType;
+		//	//OnRep_AnimInstance();
+
+		//}
+
+		//UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
+        //if (!animInstance)return;
+        //UMyAnimInstance* mAnim = Cast<UMyAnimInstance>(animInstance);
+        //if (!mAnim)return;
+        //mAnim->GetWeaponType(this->WeaponType);
 
 		//weaponActor = newWeapon;
 		//weaponActor->SetOwner(this);
 		//weaponActor->AttachToComponent(GetMesh(),FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("wepon"));
 
 	}
+}
 
+void AFishingBattleCharacter::ChangeMappingContext(UInputMappingContext* context_)
+{
+	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
+	{
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
+		{
+			Subsystem->RemoveMappingContext(nowMappingContext);
+			Subsystem->AddMappingContext(context_, 0);
+			nowMappingContext = context_;
+		}
+	}
+}
+
+void AFishingBattleCharacter::OnRep_AnimInstance()
+{
+	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
+	if (!animInstance)return;
+	UMyAnimInstance* mAnim = Cast<UMyAnimInstance>(animInstance);
+	if (!mAnim)return;
+	mAnim->GetWeaponType(this->WeaponType);
+}
+
+void AFishingBattleCharacter::DelayedCheckWeaponType()
+{
+	//武器のタイプを取得
+	ACPPBaseWeapon* Base = Cast<ACPPBaseWeapon>(weaponActor);
+	if (Base)
+	{
+		UE_LOG(LogTemp, Error, TEXT("GetWeaponTypeInCharacter!!!!!!"));
+		this->WeaponType = Base->WeaponType;
+		OnRep_AnimInstance();
+
+	}
 }

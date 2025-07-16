@@ -7,6 +7,9 @@
 #include "GameStateList.h"
 #include "FishingBattleGameState.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCountDownDelegate, int, Num);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FGameStateChangedDelegate, EGameStateList, State);
+
 /**
  * 
  */
@@ -21,14 +24,14 @@ public:
 
 protected:
 
-	virtual void BeginPlay() override;
+	virtual void BeginPlay();
 
 public:
 
 	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	virtual void Tick(float DeltaTime);
 
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 
 	/// <summary>
 	/// ゲームの状態を変更
@@ -56,24 +59,21 @@ public:
 	bool IsFinished() const;
 
 	/// <summary>
-	/// ウントダウンのデリゲート
+	/// ウントダウンの登録
 	/// </summary>
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCountDownDelegate, int, Num);
-
 	UPROPERTY(BlueprintAssignable)
 	FCountDownDelegate OnCountDown;
 
 	/// <summary>
-	/// ゲーム状態が変更されたときのデリゲート
+	/// ゲーム状態が変更されたときの登録
 	/// </summary>
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FGameStateChangedDelegate, EGameStateList, State);
-
 	UPROPERTY(BlueprintAssignable)
-	FGameStateChangedDelegate OnGameStateChanged;
-
-private:
+	FGameStateChangedDelegate Client_OnGameStateChanged;
+	UPROPERTY(BlueprintAssignable)
+	FGameStateChangedDelegate Server_OnGameStateChanged;
 
 #pragma region ゲーム状態
+private:
 
 	/// <summary>
 	/// プレイヤー全員がマップにいるか
@@ -90,7 +90,8 @@ private:
 	/// <summary>
 	/// ゲーム状態が変更されたのを知らせる
 	/// </summary>
-	void NotifyStateChanged();
+	void NotifyStateChangedOnClient();
+	void NotifyStateChangedOnServer();
 
 	/// <summary>
 	/// 今の状態
@@ -101,6 +102,8 @@ private:
 #pragma endregion
 
 #pragma region カウントダウン
+private:
+
 	/// <summary>
 	/// カウントダウン
 	/// </summary>
@@ -128,6 +131,12 @@ private:
 	/// カウントダウンの計算時間
 	/// </summary>
 	float CountDownTime;
+
+	/// <summary>
+	/// カウントダウンの終了時間
+	/// 0でカウントダウン終了ですが、0の後にStartが表示するので-1を設定した
+	/// </summary>
+	float CountDownEndTime;
 
 	/// <summary>
 	/// 前回のカウントダウン秒数

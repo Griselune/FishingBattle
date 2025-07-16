@@ -13,6 +13,10 @@ void ACPPWeaponTest1::Tick(float DeltaSeconds)
 	Super::Tick(DeltaSeconds);
 }
 
+ACPPWeaponTest1::ACPPWeaponTest1()
+{
+}
+
 void ACPPWeaponTest1::Attack_Implementation()
 {
 
