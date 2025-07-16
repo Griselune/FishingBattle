@@ -6,10 +6,7 @@
 #include "WuBranch/Object/Timer.h"
 
 AFishingBattleGameState::AFishingBattleGameState()
-	: IsStartCountDown(false)
-	, CountDownTime(0.0f)
-	, CountDownEndTime(-1.0f)
-	, PreCountDownTime(0)
+	: PreCountDownTime(0)
 {
 	// Set this game state to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -22,8 +19,10 @@ void AFishingBattleGameState::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if(HasAuthority())
-		Server_ChangeState(EGameStateList::CheckPlayerState);
+	if (HasAuthority())
+	{
+		Server_ChangeState(EGameStateList::CheckPlayerState);	
+	}
 }
 
 void AFishingBattleGameState::Tick(float DeltaTime)
@@ -53,7 +52,6 @@ void AFishingBattleGameState::Server_ChangeState_Implementation(EGameStateList N
 			return;
 
 		CurrentState = NewState;
-
 		InitState();
 		NotifyStateChangedOnServer();
 	}
@@ -74,8 +72,13 @@ void AFishingBattleGameState::InitState()
 	switch (CurrentState)
 	{
 	case EGameStateList::BeforeStart:
+		PreCountDownTime = 0;
 		StartTimer = NewObject<UTimer>(this, UTimer::StaticClass());
-		StartTimer->Init(GetWorld(), 5.0f, -1.0f, UTimer::ETimerType::CountDown, 0.1f);
+		StartTimer->OnInited.AddDynamic(this, &AFishingBattleGameState::OnTimerUpdate);
+		StartTimer->Init(GetWorld(), 5.0f, 0.0f, UTimer::ETimerType::CountDown, 0.1f);
+		StartTimer->OnUpdated.AddDynamic(this, &AFishingBattleGameState::OnTimerUpdate);
+		StartTimer->OnFinished.AddDynamic(this, &AFishingBattleGameState::OnTimerFinished);
+		StartTimer->Start();
 		break;
 	case EGameStateList::Started:
 		break;
@@ -106,15 +109,9 @@ bool AFishingBattleGameState::AreAllPlayersInMap()
 		return false;
 
 	// プレイヤーの状態を確認する処理
-	for (APlayerState* PlayerState : PlayerArray)
-	{
-		// 未完成、プレイヤーステートからプレイヤーがマップにいるかを確認
-		if (!PlayerState)
-		{
-			return false;
-		}
-	}
-	return true;
+	int PlayerNums = 2;//GetGameInstance();
+	UE_LOG(LogTemp, Warning, TEXT("FinishedNums: %d"), PlayerArray.Num());
+	return PlayerNums == PlayerArray.Num();
 }
 
 void AFishingBattleGameState::OnRep_CurrentState()
@@ -138,22 +135,20 @@ void AFishingBattleGameState::NotifyStateChangedOnServer()
 	}
 }
 
-void AFishingBattleGameState::CountDown(float DeltaTime)
+void AFishingBattleGameState::OnTimerUpdate(float Sec)
 {
-	// サーバー側でのみ実行
-	if (!HasAuthority())
-		return;
-
-	CountDownTime -= DeltaTime;
-	int Sec = FMath::CeilToInt(CountDownTime);
-	if (Sec != PreCountDownTime)
+	int Second = FMath::CeilToInt(Sec);
+	if (PreCountDownTime != Second)
 	{
-		UpdateCountDownUI(Sec);
-		PreCountDownTime = Sec;
+		UpdateCountDownUI(Second);
+		PreCountDownTime = Second;
 	}
-	if (Sec <= CountDownEndTime)
+}
+
+void AFishingBattleGameState::OnTimerFinished()
+{
+	if (HasAuthority())
 	{
-		IsStartCountDown = false;
 		Server_ChangeState(EGameStateList::Started);
 	}
 }

@@ -46,8 +46,16 @@ void UTimer::Init(UWorld* WorldContext, float Start, float End, ETimerType Timer
 void UTimer::Start()
 {
 	State = ETimerState::Running;
-	// タイマーの状態を設定
-	World->GetTimerManager().SetTimer(TimerHandle, this, &UTimer::Tick, this->DeltaTime, true);
+	if(!World)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("World is null in UTimer::Start"));
+		return;
+	}
+	else
+	{
+		// タイマーの状態を設定
+		World->GetTimerManager().SetTimer(TimerHandle, this, &UTimer::Tick, this->DeltaTime, true);
+	}
 }
 
 void UTimer::Stop()

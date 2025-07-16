@@ -7,6 +7,7 @@
 #include "DeathMatchGameState.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FChangeTimeDelegate, int, Min, int, Sec);
+
 class UTimer;
 
 /**
@@ -17,6 +18,9 @@ class FISHINGBATTLE_API ADeathMatchGameState : public AFishingBattleGameState
 {
 	GENERATED_BODY()
 	
+public:
+
+	ADeathMatchGameState();
 
 protected:
 
@@ -37,6 +41,17 @@ public:
 
 private:
 
+	/// <summary>
+	/// ゲーム開始時の処理
+	/// </summary>
+	UFUNCTION()
+	void OnGameStateChanged(EGameStateList State);
+
+	/// <summary>
+	/// リザルト画面に切り替える
+	/// </summary>
+	void GotoResultMap();
+
 #pragma region タイマー
 
 	/// <summary>
@@ -45,48 +60,29 @@ private:
 	void CreateTimer();
 
 	/// <summary>
-	/// タイマーのカウントをバインド
-	/// </summary>
-	void BindTimerCount();
-
-	/// <summary>
 	/// タイマーの時間が変更されたときの処理(サーバー)
 	/// </summary>
 	/// <param name="TotalSec">全秒数</param>
+	UFUNCTION()
 	void Server_OnTimeChanged(float TotalSec);
 
 	/// <summary>
 	/// タイマーが終了したときの処理(サーバー)
 	/// </summary>
-	void Server_OnTimeFinished();
-
-	/// <summary>
-	/// タイマーの時間が変更されたときの処理(クライアント)
-	/// </summary>
 	UFUNCTION()
-	void OnRep_Client_OnTimeChanged();
+	void Server_OnTimeFinished();
 
 	/// <summary>
 	/// タイマーの時間が変更されたことを通知する(クライアント)
 	/// </summary>
-	void NotifyTimeChanged();
+	UFUNCTION(NetMulticast, Reliable)
+	void NotifyTimeChanged(int Min, int Sec);
 	
 	/// <summary>
 	/// ゲームタイマー
 	/// </summary>
+	UPROPERTY()
 	UTimer* GameTimer;
-
-	/// <summary>
-	/// タイマーの分
-	/// </summary>
-	UPROPERTY(Replicated, ReplicatedUsing = OnRep_Client_OnTimeChanged)
-	int Min;
-
-	/// <summary>
-	/// タイマーの秒
-	/// </summary>
-	UPROPERTY(Replicated, ReplicatedUsing = OnRep_Client_OnTimeChanged)
-	int Sec;
 #pragma endregion
 
 

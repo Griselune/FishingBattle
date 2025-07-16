@@ -110,12 +110,18 @@ private:
 
 #pragma region カウントダウン
 private:
+	/// <summary>
+	/// タイマーの更新
+	/// </summary>
+	/// <param name="Sec">秒数</param>
+	UFUNCTION()
+	void OnTimerUpdate(float Sec);
 
 	/// <summary>
-	/// カウントダウン
+	/// タイマーが終了した通知を受け
 	/// </summary>
-	/// <param name="DeltaTime">デルタタイム</param>
-	void CountDown(float DeltaTime);
+	UFUNCTION()
+	void OnTimerFinished();
 
 	/// <summary>
 	/// カウントダウンのUIを更新
@@ -128,28 +134,6 @@ private:
 	/// スタート前のカウントダウンタイマー
 	/// </summary>
 	UTimer* StartTimer;
-
-	/// <summary>
-	/// 開始前のカウントダウン秒数
-	/// </summary>
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	int StartCountDownSecond;
-
-	/// <summary>
-	/// カウントダウンの開始フラグ
-	/// </summary>
-	bool IsStartCountDown;
-
-	/// <summary>
-	/// カウントダウンの計算時間
-	/// </summary>
-	float CountDownTime;
-
-	/// <summary>
-	/// カウントダウンの終了時間
-	/// 0でカウントダウン終了ですが、0の後にStartが表示するので-1を設定した
-	/// </summary>
-	float CountDownEndTime;
 
 	/// <summary>
 	/// 前回のカウントダウン秒数
