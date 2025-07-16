@@ -22,6 +22,8 @@ void UMyAnimInstance::GetWeaponType(ECPPWeaponType type_)
 	//		OnRep_AnimInstance();
 	//	}
 	//}
+
+
 	WeaponType = type_;
 	return;
 }

@@ -28,8 +28,8 @@ public :
 	UPROPERTY(BlueprintReadWrite, Category = "Weapon")
 	ECPPWeaponType WeaponType;
 
-	UPROPERTY(BlueprintReadOnly,Category = "Character")
-	AFishingBattleCharacter* MyChar;
+	//UPROPERTY(BlueprintReadOnly,Category = "Character")
+	//AFishingBattleCharacter* MyChar;
 
 	UFUNCTION(BlueprintCallable)
 	void GetWeaponType(ECPPWeaponType type_);
