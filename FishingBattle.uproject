@@ -11,7 +11,8 @@
 			"AdditionalDependencies": [
 				"Engine",
 				"UMG",
-				"OnlineSubsystemUtils"
+				"OnlineSubsystemUtils",
+				"CoreUObject"
 			]
 		}
 	],
@@ -21,6 +22,14 @@
 			"Enabled": true,
 			"TargetAllowList": [
 				"Editor"
+			]
+		},
+		{
+			"Name": "NiagaraUIRenderer",
+			"Enabled": true,
+			"SupportedTargetPlatforms": [
+				"Win64",
+				"Android"
 			]
 		}
 	]

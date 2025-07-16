@@ -1,7 +1,8 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
-#include "FishingBattle/FishingBattleCharacter.h"
 #include "Tokumaru/MyAnimInstance.h"
+#include "FishingBattle/FishingBattleCharacter.h"
+
 
 UMyAnimInstance::UMyAnimInstance() {
 	attack1 = false;
