@@ -14,10 +14,11 @@ void APlayerState_T::Server_AddWeapon(FName WeaponID)
 		return;
 	}
 
+
 	FInventoryWeapon newWeapon;
 	newWeapon.weaponName = WeaponID;
 	inventory.Add(newWeapon);
-	OnRep_Inventory();
+	//OnRep_Inventory();
 
 }
 
@@ -58,12 +59,18 @@ void APlayerState_T::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(APlayerState_T, inventory);
+	DOREPLIFETIME(APlayerState_T, InGamePlay);
 
 }
 
 void APlayerState_T::OnRep_Inventory()
 {
 	UE_LOG(LogTemp, Log, TEXT("インベントリ更新"));
+}
+
+void APlayerState_T::OnRep_InGamePlay()
+{
+	UE_LOG(LogTemp, Log, TEXT("スタンバイok"));
 }
 
 //bool APlayerState_T::Server_AddWeapon_Validate(FName WeapontID) {

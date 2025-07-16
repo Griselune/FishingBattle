@@ -150,10 +150,12 @@ void AFishingBattleCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 	}
 }
 
+
 void AFishingBattleCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AFishingBattleCharacter, weaponActor);
+	DOREPLIFETIME(AFishingBattleCharacter, WeaponType);
 }
 
 void AFishingBattleCharacter::BeginPlay()
@@ -161,6 +163,9 @@ void AFishingBattleCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	healthUpdate.AddDynamic(this, &AFishingBattleCharacter::GetPlayerHealth);
+
+	Server_TrueInGamePlay();
+
 
 	//ゲーム開始時に武器割り当てをしようとした名残。オーナーの設定がクライアント側で間に合ってないため、プレイヤーの所有物にアクセスできない
 	// サーバーのホストは可能。
@@ -184,7 +189,7 @@ void AFishingBattleCharacter::GetPlayerHealth(float maxHP, float updateHP) {
 }
 
 void AFishingBattleCharacter::BroadcastHP(float maxHP, float updateHP) {
-	healthUpdate.Broadcast(maxHP,updateHP);
+	healthUpdate.Broadcast(maxHP, updateHP);
 }
 
 void AFishingBattleCharacter::Move(const FInputActionValue& Value)
@@ -344,6 +349,7 @@ void AFishingBattleCharacter::OnDeadEnded(UAnimMontage* Montage, bool in)
 {
 	UE_LOG(LogTemp, Warning, TEXT("dead!end"));
 	SetActorHiddenInGame(true);
+	//ChangeMappingContext(DefaultMappingContext);
 	if (!HasAuthority())
 	{
 		Server_Die();  // クライアントならサーバーへ要求
@@ -361,7 +367,8 @@ void AFishingBattleCharacter::Multi_Dead_Implementation()
 {
 	if (IsDead)return;
 	UE_LOG(LogTemp, Warning, TEXT("dead!start"));
-	GetCharacterMovement()->DisableMovement();
+	//動きをマッピングコンテクストの変更で制限させるようにする。
+	//GetCharacterMovement()->DisableMovement();
 	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
 	if (animInstance) {
 		animInstance->Montage_Play(DeadMontage);
@@ -371,6 +378,11 @@ void AFishingBattleCharacter::Multi_Dead_Implementation()
 	FOnMontageEnded Delegate;
 	Delegate.BindUObject(this, &AFishingBattleCharacter::OnDeadEnded);
 	animInstance->Montage_SetEndDelegate(Delegate, DeadMontage);
+
+	//これ
+	ChangeMappingContext(DeadMappingContext);
+
+
 }
 
 
@@ -429,13 +441,42 @@ void AFishingBattleCharacter::Multi_Attack_Implementation()
 	UMyAnimInstance* mAnim = Cast<UMyAnimInstance>(animInstance);
 	if (animInstance && mAnim) {
 		if (mAnim->Isjump) return;
-		animInstance->Montage_Play(AttackMontage, 2.0f);
-		mAnim->attack1 = true;
-		IsPlayAttack1 = true;
-
 		FOnMontageEnded Delegate;
-		Delegate.BindUObject(this, &AFishingBattleCharacter::OnAttackEnded);
-		animInstance->Montage_SetEndDelegate(Delegate, AttackMontage);
+		switch (this->WeaponType) {
+		case ECPPWeaponType::WeaponTest1:
+
+			mAnim->attack1 = true;
+			IsPlayAttack1 = true;
+			animInstance->Montage_Play(HeavyAttackMontage, 1.0f);
+
+			Delegate.BindUObject(this, &AFishingBattleCharacter::OnAttackEnded);
+			animInstance->Montage_SetEndDelegate(Delegate, HeavyAttackMontage);
+			break;
+		default:
+
+			mAnim->attack1 = true;
+			IsPlayAttack1 = true;
+			animInstance->Montage_Play(AttackMontage, 2.0f);
+
+			Delegate.BindUObject(this, &AFishingBattleCharacter::OnAttackEnded);
+			animInstance->Montage_SetEndDelegate(Delegate, AttackMontage);
+			break;
+		}
+		//mAnim->attack1 = true;
+		//IsPlayAttack1 = true;
+
+		//FOnMontageEnded Delegate;
+		//Delegate.BindUObject(this, &AFishingBattleCharacter::OnAttackEnded);
+		//animInstance->Montage_SetEndDelegate(Delegate, AttackMontage);
+	}
+	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
+	if (ps) {
+		if (ps->InGamePlay) {
+			UE_LOG(LogTemp, Warning, TEXT("InGamePlay True"));
+		}
+		else {
+			UE_LOG(LogTemp, Warning, TEXT("InGamePlay False"));
+		}
 	}
 }
 
@@ -636,6 +677,9 @@ bool AFishingBattleCharacter::Server_Die_Validate() {
 bool AFishingBattleCharacter::Multi_Die_Validate() {
 	return true;
 }
+bool AFishingBattleCharacter::Server_TrueInGamePlay_Validate() {
+	return true;
+}
 
 void AFishingBattleCharacter::Server_AddWeaponInPlayer_Implementation(FName WeaponID) {
 	UE_LOG(LogTemp, Error, TEXT("addweaponInPlayer!!!!!!!!!!!!!!!!!!!!!!!"));
@@ -670,6 +714,14 @@ void AFishingBattleCharacter::Server_EquipSlotIndex_Implementation(int slotIndex
 
 void AFishingBattleCharacter::Multi_EquipSlotIndex_Implementation(int slotIndex) {
 	EquipSlotIndex(slotIndex);
+}
+
+void AFishingBattleCharacter::Server_TrueInGamePlay_Implementation()
+{
+	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
+	if (ps) {
+		ps->InGamePlay = true;
+	}
 }
 
 void AFishingBattleCharacter::EquipSlotIndex(int slotIndex)
@@ -803,6 +855,7 @@ void AFishingBattleCharacter::EquipWeapon(FName weaponID)
 	if (!gm)return;
 
 	TSubclassOf<AActor> weaponClass = gm->GetWeaponClass(weaponID);
+	UE_LOG(LogTemp, Warning, TEXT("weaponClass is: %s"), *weaponClass->GetName());
 	if (weaponClass) {
 
 
@@ -825,18 +878,35 @@ void AFishingBattleCharacter::EquipWeapon(FName weaponID)
 			if (weaponActor)
 			{
 				UE_LOG(LogTemp, Error, TEXT("setowner!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"));
-				weaponActor->SetOwner(this); 
+				weaponActor->SetOwner(this);
 			}
 		}
-		//武器のタイプを取得
+
+		FTimerHandle WeaponCheckTimer;
+		GetWorld()->GetTimerManager().SetTimer(
+			WeaponCheckTimer,
+			this,
+			&AFishingBattleCharacter::DelayedCheckWeaponType,
+			0.1f, // 100ms の遅延
+			false
+		);
+
+
+		////武器のタイプを取得
 		//ACPPBaseWeapon* Base = Cast<ACPPBaseWeapon>(weaponActor);
 		//if (Base)
 		//{
-		//	// オーバーライドされた GetWeaponType() が呼ばれる！
-		//	EWeaponType Type = Base->GetWeaponType();
-		//}
-		
+		//	UE_LOG(LogTemp, Error, TEXT("GetWeaponTypeInCharacter!!!!!!"));
+		//	this->WeaponType = Base->WeaponType;
+		//	//OnRep_AnimInstance();
 
+		//}
+
+		//UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
+        //if (!animInstance)return;
+        //UMyAnimInstance* mAnim = Cast<UMyAnimInstance>(animInstance);
+        //if (!mAnim)return;
+        //mAnim->GetWeaponType(this->WeaponType);
 
 		//weaponActor = newWeapon;
 		//weaponActor->SetOwner(this);
@@ -855,5 +925,27 @@ void AFishingBattleCharacter::ChangeMappingContext(UInputMappingContext* context
 			Subsystem->AddMappingContext(context_, 0);
 			nowMappingContext = context_;
 		}
+	}
+}
+
+void AFishingBattleCharacter::OnRep_AnimInstance()
+{
+	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
+	if (!animInstance)return;
+	UMyAnimInstance* mAnim = Cast<UMyAnimInstance>(animInstance);
+	if (!mAnim)return;
+	mAnim->GetWeaponType(this->WeaponType);
+}
+
+void AFishingBattleCharacter::DelayedCheckWeaponType()
+{
+	//武器のタイプを取得
+	ACPPBaseWeapon* Base = Cast<ACPPBaseWeapon>(weaponActor);
+	if (Base)
+	{
+		UE_LOG(LogTemp, Error, TEXT("GetWeaponTypeInCharacter!!!!!!"));
+		this->WeaponType = Base->WeaponType;
+		OnRep_AnimInstance();
+
 	}
 }

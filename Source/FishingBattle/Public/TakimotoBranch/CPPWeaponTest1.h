@@ -20,6 +20,8 @@ protected:
 
 public:
 
+	ACPPWeaponTest1();
+
 	virtual void Attack_Implementation() override;
 
 	virtual void OnHit_Implementation(AActor* HitActor) override;

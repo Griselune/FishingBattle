@@ -11,13 +11,22 @@ UMyAnimInstance::UMyAnimInstance() {
 void UMyAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
-
-	APawn* Owner = TryGetPawnOwner();
-	if (!Owner) return;
-
-	MyChar = Cast<AFishingBattleCharacter>(Owner);
-	if (!MyChar) return;
-
-	//WeaponType = MyChar->CurrentWeaponType;
 }
+
+void UMyAnimInstance::GetWeaponType(ECPPWeaponType type_)
+{
+	//APawn* Owner = TryGetPawnOwner();
+	//if (Owner) {
+	//	MyChar = Cast<AFishingBattleCharacter>(Owner);
+	//	if (MyChar) {
+	//		this->WeaponType = MyChar->WeaponType;
+	//		OnRep_AnimInstance();
+	//	}
+	//}
+
+
+	WeaponType = type_;
+	return;
+}
+
 
