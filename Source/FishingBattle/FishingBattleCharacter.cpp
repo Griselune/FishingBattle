@@ -164,6 +164,9 @@ void AFishingBattleCharacter::BeginPlay()
 
 	healthUpdate.AddDynamic(this, &AFishingBattleCharacter::GetPlayerHealth);
 
+	Server_TrueInGamePlay();
+
+
 	//ゲーム開始時に武器割り当てをしようとした名残。オーナーの設定がクライアント側で間に合ってないため、プレイヤーの所有物にアクセスできない
 	// サーバーのホストは可能。
 	//if (HasAuthority()) {
@@ -346,6 +349,7 @@ void AFishingBattleCharacter::OnDeadEnded(UAnimMontage* Montage, bool in)
 {
 	UE_LOG(LogTemp, Warning, TEXT("dead!end"));
 	SetActorHiddenInGame(true);
+	//ChangeMappingContext(DefaultMappingContext);
 	if (!HasAuthority())
 	{
 		Server_Die();  // クライアントならサーバーへ要求
@@ -363,7 +367,8 @@ void AFishingBattleCharacter::Multi_Dead_Implementation()
 {
 	if (IsDead)return;
 	UE_LOG(LogTemp, Warning, TEXT("dead!start"));
-	GetCharacterMovement()->DisableMovement();
+	//動きをマッピングコンテクストの変更で制限させるようにする。
+	//GetCharacterMovement()->DisableMovement();
 	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
 	if (animInstance) {
 		animInstance->Montage_Play(DeadMontage);
@@ -373,6 +378,11 @@ void AFishingBattleCharacter::Multi_Dead_Implementation()
 	FOnMontageEnded Delegate;
 	Delegate.BindUObject(this, &AFishingBattleCharacter::OnDeadEnded);
 	animInstance->Montage_SetEndDelegate(Delegate, DeadMontage);
+
+	//これ
+	ChangeMappingContext(DeadMappingContext);
+
+
 }
 
 
@@ -458,6 +468,15 @@ void AFishingBattleCharacter::Multi_Attack_Implementation()
 		//FOnMontageEnded Delegate;
 		//Delegate.BindUObject(this, &AFishingBattleCharacter::OnAttackEnded);
 		//animInstance->Montage_SetEndDelegate(Delegate, AttackMontage);
+	}
+	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
+	if (ps) {
+		if (ps->InGamePlay) {
+			UE_LOG(LogTemp, Warning, TEXT("InGamePlay True"));
+		}
+		else {
+			UE_LOG(LogTemp, Warning, TEXT("InGamePlay False"));
+		}
 	}
 }
 
@@ -658,6 +677,9 @@ bool AFishingBattleCharacter::Server_Die_Validate() {
 bool AFishingBattleCharacter::Multi_Die_Validate() {
 	return true;
 }
+bool AFishingBattleCharacter::Server_TrueInGamePlay_Validate() {
+	return true;
+}
 
 void AFishingBattleCharacter::Server_AddWeaponInPlayer_Implementation(FName WeaponID) {
 	UE_LOG(LogTemp, Error, TEXT("addweaponInPlayer!!!!!!!!!!!!!!!!!!!!!!!"));
@@ -692,6 +714,14 @@ void AFishingBattleCharacter::Server_EquipSlotIndex_Implementation(int slotIndex
 
 void AFishingBattleCharacter::Multi_EquipSlotIndex_Implementation(int slotIndex) {
 	EquipSlotIndex(slotIndex);
+}
+
+void AFishingBattleCharacter::Server_TrueInGamePlay_Implementation()
+{
+	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
+	if (ps) {
+		ps->InGamePlay = true;
+	}
 }
 
 void AFishingBattleCharacter::EquipSlotIndex(int slotIndex)

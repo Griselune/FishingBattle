@@ -43,6 +43,9 @@ class FISHINGBATTLE_API AFishingBattleCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputMappingContext* FishingMappingContext;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputMappingContext* DeadMappingContext;
+
 	/** Jump Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* JumpAction;
@@ -210,8 +213,15 @@ protected:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_Dead();  //　クライアント用
 
+	/// <summary>
+	/// ゲームモード(サーバー)へのリスポーン要求
+	/// </summary>
 	void HandleDeath(); //　サーバー用
 
+
+	/// <summary>
+	/// リスポーン要求↑in
+	/// </summary>
 	void RequestRespawn(); //　リスポーンを要求
 
 	FTimerHandle RespawnTimerHandle;
@@ -306,7 +316,11 @@ public:
 	UFUNCTION(NetMulticast, Reliable, WithValidation)
 	void Multi_AddWeaponInPlayer(FName WeaponID);  // サーバー用
 
-
+	/// <summary>
+	/// ゲームに入ったかどうかの判定をするもの
+	/// </summary>
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_TrueInGamePlay();//クライアント用
 
 
 protected:
@@ -371,5 +385,9 @@ public:
 
 	UFUNCTION()
 	void DelayedCheckWeaponType();
+
+public:
+	UPROPERTY(BlueprintReadWrite,Category = "Fishing")
+	bool canFish = false;
 };
 

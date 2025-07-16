@@ -3,6 +3,20 @@
 
 #include "Tokumaru/InventoryWidget.h"
 
+FName UInventoryWidget::SetFishRod(FName weaponID)
+{
+	APlayerController* pc = GetOwningPlayer();
+	if (pc) {
+		APlayerState_T* ps = pc->GetPlayerState<APlayerState_T>();
+		if (ps) {
+			if (ps->inventory.Num() >= 1) {
+				return ps->inventory[0].weaponName;
+			}
+		}
+	}
+	return FName("NoWeapon");
+}
+
 FName UInventoryWidget::SetInventory1(FName weaponID)
 {
 	APlayerController* pc = GetOwningPlayer();

@@ -16,6 +16,10 @@ class FISHINGBATTLE_API UInventoryWidget : public UUserWidget
 	GENERATED_BODY()
 public:
 
+
+	UFUNCTION(BlueprintCallable)
+	FName SetFishRod(FName weaponID);
+
 	/// <summary>
 	/// インベントリ表示UIの1番目変更
 	/// </summary>
