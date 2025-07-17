@@ -115,12 +115,6 @@ void ADeathMatchGameState::Server_OnTimeFinished()
 	Server_ChangeState(EGameStateList::Finished);
 }
 
-//void ADeathMatchGameState::OnRep_Client_OnTimeChanged()
-//{
-//	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, TEXT("Client Get Time Changed"));
-//	NotifyTimeChanged();
-//}
-
 void ADeathMatchGameState::NotifyTimeChanged_Implementation(int Min, int Sec)
 {
 	if (OnChangeTimeDelegate.IsBound())
