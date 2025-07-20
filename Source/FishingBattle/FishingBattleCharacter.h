@@ -140,6 +140,7 @@ public:
 
 	//釣りしたとき受け取るものと釣りができるかの判定用。
 	int fish = 0;
+	UPROPERTY(EditAnywhere)
 	bool canFishing = false;
 	AActor* fishingSpot = nullptr;
 
@@ -318,6 +319,10 @@ public:
 	UFUNCTION()
 	void OnRep_EquipWeapon();
 
+	/// <summary>
+	/// プレイヤーステートの中のインベントリ配列に武器を追加する。
+	/// </summary>
+	/// <param name="WeaponID"></param>
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_AddWeaponInPlayer(FName WeaponID); //クライアント用
 
@@ -329,6 +334,12 @@ public:
 	/// </summary>
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_TrueInGamePlay();//クライアント用
+
+	/// <summary>
+	/// ゲーム開始時にインベントリ配列に釣り竿追加する。
+	/// </summary>
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_BeginAddFishrot();//クライアント用
 
 
 protected:
