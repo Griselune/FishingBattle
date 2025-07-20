@@ -502,6 +502,7 @@ void AFishingBattleCharacter::Multi_Roll_Implementation()
 
 void AFishingBattleCharacter::Multi_Fishing_Implementation()
 {
+	if (!canFishing)return;
 	// 向きの調整
 	if (AFishingGround* Fishing = Cast<AFishingGround>(fishingSpot)) {
 		FVector Point = Fishing->GetFishingPointOnSea();
