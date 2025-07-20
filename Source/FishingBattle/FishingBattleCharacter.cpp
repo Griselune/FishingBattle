@@ -13,6 +13,7 @@
 #include "InputActionValue.h"
 #include <Kismet/GameplayStatics.h>
 #include <WuBranch/Actor/FishingGround.h>
+#include <WuBranch/PlayerController/FisherController.h>
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -72,9 +73,26 @@ float AFishingBattleCharacter::TakeDamage(float DamageAmount, FDamageEvent const
 		//}
 	}
 
+	// 2025.07.17 ウー start
+	BroadcastHP(100.0f, Health);
+	// 2025.07.17 ウー end
 
 	return DamageAmount;
 }
+
+// 2025.07.17 ウー start
+void AFishingBattleCharacter::Heal(float healAmount)
+{
+	if (IsDead)
+		return;
+
+	Health += healAmount;
+	if (Health > 100.0f) {
+		Health = 100.0f;
+	}
+	BroadcastHP(100.0f, Health);
+}
+// 2025.07.17 ウー end
 
 void AFishingBattleCharacter::EnterSpot(AActor* spot)
 {

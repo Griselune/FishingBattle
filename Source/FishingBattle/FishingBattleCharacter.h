@@ -111,10 +111,18 @@ public:
 	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent,
 		AController* EventInstigator, AActor* DamageCauser) override;
 
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HP")
 	float Health = 100;
 
+	// 2025.07.17 ウー start
+
+	/// <summary>
+	/// ヒールする
+	/// </summary>
+	/// <param name="healAmount">回復量</param>
+	void Heal(float healAmount);
+
+	// 2025.07.17 ウー end
 
 	/// <summary>
 	/// 釣り場侵入
