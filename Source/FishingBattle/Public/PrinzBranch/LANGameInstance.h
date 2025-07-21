@@ -18,25 +18,25 @@ class FISHINGBATTLE_API ULANGameInstance : public UGameInstance
 public:
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
-    FString HostSessionName;
+    FString GISessionName;
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
-    FString HostSessionPassword;
+    FString GISessionPassword;
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
-    int32 HostSessionPlayerLimit = 1;
+    int32 GISessionPlayerLimit = 1;
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
-    int32 HostSessionTimeLimit = 3;
+    int32 GISessionTimeLimit = 3;
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
-    bool isDeathMatch = false;
+    bool GIisDeathMatch = false;
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
-    bool isBattleRoyale = true;
+    bool GIisBattleRoyale = true;
 
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
-    int32 SessionCurrentPlayer;
+    //UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
+    //int32 SessionCurrentPlayer;
 
     UFUNCTION(BlueprintCallable, Category = "LAN Session")
     void CreateLANSession(const FString& SessionName, const FString& Password, const int32& PlayerLimit, const int32& TimeLimit); //added playerlimit and timelimit
