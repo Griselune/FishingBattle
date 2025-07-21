@@ -27,9 +27,21 @@ public:
 
 	//プレイヤーステートクラスからレプリケート関数を動作させる意味がないので、
 	// クライアント・サーバーで分ける必要がないが、一応念のため残しておく。
+	// 一応レプリケートはできるらしいが、結局処理はプレイヤーからサーバー対応関数の中に
+	// 入れてあるのでok
 	//UFUNCTION(Server, Reliable, WithValidation)
+	
+	/// <summary>
+	/// プレイヤーステート内のインベントリ配列に指定した文字列を入れる。現在四つまで（釣り竿含む）
+	/// </summary>
+	/// <param name="WeaponID"></param>
 	void Server_AddWeapon(FName WeaponID); //クライアント用
 
+
+	/// <summary>
+	/// サーバー用に作ったが、そもそも意味がないので使っていない
+	/// </summary>
+	/// <param name="WeaponID"></param>
 	UFUNCTION(NetMulticast, Reliable, WithValidation)
 	void Multi_AddWeapon(FName WeaponID);  // サーバー用
 
@@ -41,9 +53,18 @@ public:
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+	/// <summary>
+	/// プレイヤーがマップにいるかの判定
+	/// </summary>
+	UPROPERTY(Replicated, ReplicatedUsing = OnRep_InGamePlay)
+	bool InGamePlay = false;
+
 protected:
 
 	UFUNCTION()
 	void OnRep_Inventory();
+
+	UFUNCTION()
+	void OnRep_InGamePlay();
 	
 };

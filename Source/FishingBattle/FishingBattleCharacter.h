@@ -43,6 +43,9 @@ class FISHINGBATTLE_API AFishingBattleCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputMappingContext* FishingMappingContext;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputMappingContext* DeadMappingContext;
+
 	/** Jump Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* JumpAction;
@@ -108,10 +111,18 @@ public:
 	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent,
 		AController* EventInstigator, AActor* DamageCauser) override;
 
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HP")
 	float Health = 100;
 
+	// 2025.07.17 ウー start
+
+	/// <summary>
+	/// ヒールする
+	/// </summary>
+	/// <param name="healAmount">回復量</param>
+	void Heal(float healAmount);
+
+	// 2025.07.17 ウー end
 
 	/// <summary>
 	/// 釣り場侵入
@@ -129,6 +140,7 @@ public:
 
 	//釣りしたとき受け取るものと釣りができるかの判定用。
 	int fish = 0;
+	UPROPERTY(EditAnywhere)
 	bool canFishing = false;
 	AActor* fishingSpot = nullptr;
 
@@ -210,8 +222,15 @@ protected:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_Dead();  //　クライアント用
 
+	/// <summary>
+	/// ゲームモード(サーバー)へのリスポーン要求
+	/// </summary>
 	void HandleDeath(); //　サーバー用
 
+
+	/// <summary>
+	/// リスポーン要求↑in
+	/// </summary>
 	void RequestRespawn(); //　リスポーンを要求
 
 	FTimerHandle RespawnTimerHandle;
@@ -300,13 +319,27 @@ public:
 	UFUNCTION()
 	void OnRep_EquipWeapon();
 
+	/// <summary>
+	/// プレイヤーステートの中のインベントリ配列に武器を追加する。
+	/// </summary>
+	/// <param name="WeaponID"></param>
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_AddWeaponInPlayer(FName WeaponID); //クライアント用
 
 	UFUNCTION(NetMulticast, Reliable, WithValidation)
 	void Multi_AddWeaponInPlayer(FName WeaponID);  // サーバー用
 
+	/// <summary>
+	/// ゲームに入ったかどうかの判定をするもの
+	/// </summary>
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_TrueInGamePlay();//クライアント用
 
+	/// <summary>
+	/// ゲーム開始時にインベントリ配列に釣り竿追加する。
+	/// </summary>
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_BeginAddFishrot();//クライアント用
 
 
 protected:
@@ -371,5 +404,9 @@ public:
 
 	UFUNCTION()
 	void DelayedCheckWeaponType();
+
+public:
+	UPROPERTY(BlueprintReadWrite,Category = "Fishing")
+	bool canFish = false;
 };
 

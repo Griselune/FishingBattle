@@ -13,6 +13,7 @@
 #include "InputActionValue.h"
 #include <Kismet/GameplayStatics.h>
 #include <WuBranch/Actor/FishingGround.h>
+#include <WuBranch/PlayerController/FisherController.h>
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -72,9 +73,26 @@ float AFishingBattleCharacter::TakeDamage(float DamageAmount, FDamageEvent const
 		//}
 	}
 
+	// 2025.07.17 ウー start
+	BroadcastHP(100.0f, Health);
+	// 2025.07.17 ウー end
 
 	return DamageAmount;
 }
+
+// 2025.07.17 ウー start
+void AFishingBattleCharacter::Heal(float healAmount)
+{
+	if (IsDead)
+		return;
+
+	Health += healAmount;
+	if (Health > 100.0f) {
+		Health = 100.0f;
+	}
+	BroadcastHP(100.0f, Health);
+}
+// 2025.07.17 ウー end
 
 void AFishingBattleCharacter::EnterSpot(AActor* spot)
 {
@@ -163,6 +181,10 @@ void AFishingBattleCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	healthUpdate.AddDynamic(this, &AFishingBattleCharacter::GetPlayerHealth);
+
+	Server_TrueInGamePlay();
+	Server_BeginAddFishrot();
+
 
 	//ゲーム開始時に武器割り当てをしようとした名残。オーナーの設定がクライアント側で間に合ってないため、プレイヤーの所有物にアクセスできない
 	// サーバーのホストは可能。
@@ -346,6 +368,7 @@ void AFishingBattleCharacter::OnDeadEnded(UAnimMontage* Montage, bool in)
 {
 	UE_LOG(LogTemp, Warning, TEXT("dead!end"));
 	SetActorHiddenInGame(true);
+	//ChangeMappingContext(DefaultMappingContext);
 	if (!HasAuthority())
 	{
 		Server_Die();  // クライアントならサーバーへ要求
@@ -363,7 +386,8 @@ void AFishingBattleCharacter::Multi_Dead_Implementation()
 {
 	if (IsDead)return;
 	UE_LOG(LogTemp, Warning, TEXT("dead!start"));
-	GetCharacterMovement()->DisableMovement();
+	//動きをマッピングコンテクストの変更で制限させるようにする。
+	//GetCharacterMovement()->DisableMovement();
 	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
 	if (animInstance) {
 		animInstance->Montage_Play(DeadMontage);
@@ -373,6 +397,11 @@ void AFishingBattleCharacter::Multi_Dead_Implementation()
 	FOnMontageEnded Delegate;
 	Delegate.BindUObject(this, &AFishingBattleCharacter::OnDeadEnded);
 	animInstance->Montage_SetEndDelegate(Delegate, DeadMontage);
+
+	//これ
+	ChangeMappingContext(DeadMappingContext);
+
+
 }
 
 
@@ -459,6 +488,15 @@ void AFishingBattleCharacter::Multi_Attack_Implementation()
 		//Delegate.BindUObject(this, &AFishingBattleCharacter::OnAttackEnded);
 		//animInstance->Montage_SetEndDelegate(Delegate, AttackMontage);
 	}
+	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
+	if (ps) {
+		if (ps->InGamePlay) {
+			UE_LOG(LogTemp, Warning, TEXT("InGamePlay True"));
+		}
+		else {
+			UE_LOG(LogTemp, Warning, TEXT("InGamePlay False"));
+		}
+	}
 }
 
 void AFishingBattleCharacter::Multi_Roll_Implementation()
@@ -483,6 +521,7 @@ void AFishingBattleCharacter::Multi_Roll_Implementation()
 
 void AFishingBattleCharacter::Multi_Fishing_Implementation()
 {
+	if (!canFishing)return;
 	// 向きの調整
 	if (AFishingGround* Fishing = Cast<AFishingGround>(fishingSpot)) {
 		FVector Point = Fishing->GetFishingPointOnSea();
@@ -627,6 +666,10 @@ bool AFishingBattleCharacter::Multi_Fishing_Validate() {
 	return true;
 }
 
+bool AFishingBattleCharacter::Server_BeginAddFishrot_Validate() {
+	return true;
+}
+
 bool AFishingBattleCharacter::Server_EquipWeapon_Validate(FName weaponID) {
 	return true;
 }
@@ -656,6 +699,9 @@ bool AFishingBattleCharacter::Server_Die_Validate() {
 }
 
 bool AFishingBattleCharacter::Multi_Die_Validate() {
+	return true;
+}
+bool AFishingBattleCharacter::Server_TrueInGamePlay_Validate() {
 	return true;
 }
 
@@ -694,6 +740,24 @@ void AFishingBattleCharacter::Multi_EquipSlotIndex_Implementation(int slotIndex)
 	EquipSlotIndex(slotIndex);
 }
 
+void AFishingBattleCharacter::Server_TrueInGamePlay_Implementation()
+{
+	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
+	if (ps) {
+		ps->InGamePlay = true;
+	}
+}
+
+void AFishingBattleCharacter::Server_BeginAddFishrot_Implementation()
+{
+	UE_LOG(LogTemp, Error, TEXT("addweaponInPlayer!!!!!!!!!!!!!!!!!!!!!!!"));
+	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
+	if (ps)
+	{
+		ps->Server_AddWeapon("Fishinglot"); //
+	}
+}
+
 void AFishingBattleCharacter::EquipSlotIndex(int slotIndex)
 {
 	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
@@ -717,6 +781,7 @@ void AFishingBattleCharacter::OnRep_EquipWeapon()
 		weaponActor->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("wepon"));
 	}
 }
+
 
 void AFishingBattleCharacter::EquipSlot1()
 {

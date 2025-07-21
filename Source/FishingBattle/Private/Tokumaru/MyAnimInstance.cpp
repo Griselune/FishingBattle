@@ -1,4 +1,5 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
+
 #include "Tokumaru/MyAnimInstance.h"
 #include "FishingBattle/FishingBattleCharacter.h"
 
@@ -22,6 +23,8 @@ void UMyAnimInstance::GetWeaponType(ECPPWeaponType type_)
 	//		OnRep_AnimInstance();
 	//	}
 	//}
+
+
 	WeaponType = type_;
 	return;
 }
