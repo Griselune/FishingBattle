@@ -35,6 +35,9 @@ public:
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
     bool isBattleRoyale = true;
 
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
+    int32 SessionCurrentPlayer;
+
     UFUNCTION(BlueprintCallable, Category = "LAN Session")
     void CreateLANSession(const FString& SessionName, const FString& Password, const int32& PlayerLimit, const int32& TimeLimit); //added playerlimit and timelimit
 
