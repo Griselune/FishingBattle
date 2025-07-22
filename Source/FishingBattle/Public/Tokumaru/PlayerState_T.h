@@ -39,7 +39,7 @@ public:
 
 
 	/// <summary>
-	/// サーバー用に作ったが、そもそもオーナーを持たないプレイヤーステートでは意味がないので使っていない
+	/// サーバー用に作ったが、そもそも意味がないので使っていない
 	/// </summary>
 	/// <param name="WeaponID"></param>
 	UFUNCTION(NetMulticast, Reliable, WithValidation)

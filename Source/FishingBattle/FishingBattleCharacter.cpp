@@ -183,6 +183,7 @@ void AFishingBattleCharacter::BeginPlay()
 	healthUpdate.AddDynamic(this, &AFishingBattleCharacter::GetPlayerHealth);
 
 	Server_TrueInGamePlay();
+	Server_BeginAddFishrot();
 
 
 	//ゲーム開始時に武器割り当てをしようとした名残。オーナーの設定がクライアント側で間に合ってないため、プレイヤーの所有物にアクセスできない
@@ -520,6 +521,7 @@ void AFishingBattleCharacter::Multi_Roll_Implementation()
 
 void AFishingBattleCharacter::Multi_Fishing_Implementation()
 {
+	if (!canFishing)return;
 	// 向きの調整
 	if (AFishingGround* Fishing = Cast<AFishingGround>(fishingSpot)) {
 		FVector Point = Fishing->GetFishingPointOnSea();
@@ -664,6 +666,10 @@ bool AFishingBattleCharacter::Multi_Fishing_Validate() {
 	return true;
 }
 
+bool AFishingBattleCharacter::Server_BeginAddFishrot_Validate() {
+	return true;
+}
+
 bool AFishingBattleCharacter::Server_EquipWeapon_Validate(FName weaponID) {
 	return true;
 }
@@ -742,6 +748,16 @@ void AFishingBattleCharacter::Server_TrueInGamePlay_Implementation()
 	}
 }
 
+void AFishingBattleCharacter::Server_BeginAddFishrot_Implementation()
+{
+	UE_LOG(LogTemp, Error, TEXT("addweaponInPlayer!!!!!!!!!!!!!!!!!!!!!!!"));
+	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
+	if (ps)
+	{
+		ps->Server_AddWeapon("Fishinglot"); //
+	}
+}
+
 void AFishingBattleCharacter::EquipSlotIndex(int slotIndex)
 {
 	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
@@ -765,6 +781,7 @@ void AFishingBattleCharacter::OnRep_EquipWeapon()
 		weaponActor->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("wepon"));
 	}
 }
+
 
 void AFishingBattleCharacter::EquipSlot1()
 {
