@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -41,7 +41,7 @@ public:
     //UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
     //int32 SessionCurrentPlayer;
 
-    TMap<APlayerController, FString> PlayerNames;
+    TMap<APlayerController*, FString> PlayerNames;
 
 
 
