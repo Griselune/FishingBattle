@@ -38,9 +38,13 @@ public:
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
     bool GIisBattleRoyale = true;
 
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
+    FString GIPlayerName;
+
     //UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
     //int32 SessionCurrentPlayer;
 
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
     TMap<APlayerController*, FString> PlayerNames;
 
 
