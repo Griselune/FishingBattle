@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -18,22 +18,32 @@ class FISHINGBATTLE_API ULANGameInstance : public UGameInstance
 public:
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
-    FString HostSessionName;
+    FString GISessionName;
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
-    FString HostSessionPassword;
+    FString GISessionPassword;
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
-    int32 HostSessionPlayerLimit = 1;
+    int32 GISessionPlayerLimit = 1;
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
-    int32 HostSessionTimeLimit = 3;
+    int32 GISessionCurrentPlayers = 1;
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
-    bool isDeathMatch = false;
+    int32 GISessionTimeLimit = 3;
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
-    bool isBattleRoyale = true;
+    bool GIisDeathMatch = false;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
+    bool GIisBattleRoyale = true;
+
+    //UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
+    //int32 SessionCurrentPlayer;
+
+    TMap<APlayerController*, FString> PlayerNames;
+
+
 
     UFUNCTION(BlueprintCallable, Category = "LAN Session")
     void CreateLANSession(const FString& SessionName, const FString& Password, const int32& PlayerLimit, const int32& TimeLimit); //added playerlimit and timelimit

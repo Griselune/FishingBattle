@@ -32,5 +32,8 @@
 				"Android"
 			]
 		}
+	],
+	"TargetPlatforms": [
+		"Windows"
 	]
 }
