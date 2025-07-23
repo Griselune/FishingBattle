@@ -41,7 +41,7 @@ public:
     //UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
     //int32 SessionCurrentPlayer;
 
-    TMap<APlayerController, FString> PlayerNames;
+    TMap<APlayerController*, FString> PlayerNames;
 
 
 
