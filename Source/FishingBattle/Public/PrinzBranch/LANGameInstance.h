@@ -27,6 +27,9 @@ public:
     int32 GISessionPlayerLimit = 1;
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
+    int32 GISessionCurrentPlayers = 1;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
     int32 GISessionTimeLimit = 3;
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
@@ -37,6 +40,10 @@ public:
 
     //UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
     //int32 SessionCurrentPlayer;
+
+    TMap<APlayerController, FString> PlayerNames;
+
+
 
     UFUNCTION(BlueprintCallable, Category = "LAN Session")
     void CreateLANSession(const FString& SessionName, const FString& Password, const int32& PlayerLimit, const int32& TimeLimit); //added playerlimit and timelimit
