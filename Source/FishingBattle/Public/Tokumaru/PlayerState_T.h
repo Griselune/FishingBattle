@@ -23,6 +23,12 @@ public:
 	UPROPERTY(Replicated,ReplicatedUsing = OnRep_Inventory)
 	TArray<FInventoryWeapon> inventory;
 
+	UPROPERTY(Replicated, ReplicatedUsing = OnRep_DeadCounter, BlueprintReadWrite)
+    int DeadCounter = 0;
+
+    UFUNCTION()
+    void OnRep_DeadCounter();
+
 
 
 	//プレイヤーステートクラスからレプリケート関数を動作させる意味がないので、
