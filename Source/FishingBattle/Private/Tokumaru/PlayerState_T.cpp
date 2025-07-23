@@ -6,6 +6,7 @@
 
 
 
+
 void APlayerState_T::Server_AddWeapon(FName WeaponID)
 {
 	//Multi_AddWeapon(WeaponID);
@@ -60,6 +61,7 @@ void APlayerState_T::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(APlayerState_T, inventory);
 	DOREPLIFETIME(APlayerState_T, InGamePlay);
+	DOREPLIFETIME(APlayerState_T, DeadCounter);
 
 }
 
@@ -71,6 +73,12 @@ void APlayerState_T::OnRep_Inventory()
 void APlayerState_T::OnRep_InGamePlay()
 {
 	UE_LOG(LogTemp, Log, TEXT("スタンバイok"));
+}
+
+
+void APlayerState_T::OnRep_DeadCounter()
+{
+	UE_LOG(LogTemp, Error, TEXT("AddDeadCounter"));
 }
 
 //bool APlayerState_T::Server_AddWeapon_Validate(FName WeapontID) {
