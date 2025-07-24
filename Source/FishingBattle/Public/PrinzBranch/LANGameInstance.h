@@ -41,11 +41,11 @@ public:
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
     FString GIPlayerName;
 
-    //UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
-    //int32 SessionCurrentPlayer;
-
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
-    TMap<APlayerController*, FString> PlayerNames;
+    TMap<APlayerController*, FString> GIPlayerList;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")  //potentially useless if Playercontroller is enough
+    int32 GIid = 0;
 
 
 
