@@ -46,6 +46,12 @@ class FISHINGBATTLE_API AFishingBattleCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputMappingContext* DeadMappingContext;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputMappingContext* HasFishrotMappingContext;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputMappingContext* HasweaponMappingContext;
+
 	/** Jump Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* JumpAction;
@@ -341,6 +347,12 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_BeginAddFishrot();//クライアント用
 
+	/// <summary>
+/// ゲーム開始時にインベントリ配列に釣り竿追加する。
+/// </summary>
+	UFUNCTION(NetMulticast, Reliable, WithValidation)
+	void Multi_BeginAddFishrot();//クライアント用
+
 
 protected:
 
@@ -408,5 +420,28 @@ public:
 public:
 	UPROPERTY(BlueprintReadWrite,Category = "Fishing")
 	bool canFish = false;
+
+
+	//UPROPERTY(Replicated, ReplicatedUsing = OnRep_DeadCounter, BlueprintReadWrite)
+	//int DeadCounter = 0;
+
+	//UFUNCTION()
+	//void OnRep_DeadCounter();
+	
+	/// <summary>
+	/// プレイヤーステートの死に回数計測変数に加算。
+	/// </summary>
+	void AddToDeadCounter();
+
+	//virtual void OnRep_PlayerState() override;
+
+	/// <summary>
+	/// プレイヤーがコントローラーに所持されたとき呼ばれるらしい。
+	/// プレイヤーステートも取得できる
+	/// </summary>
+	/// <param name="NewController"></param>
+	virtual void PossessedBy(AController* NewController) override;
+
+	int cnt = 0;
 };
 
