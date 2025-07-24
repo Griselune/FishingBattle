@@ -1,4 +1,4 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -38,10 +38,14 @@ public:
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
     bool GIisBattleRoyale = true;
 
-    //UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
-    //int32 SessionCurrentPlayer;
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
+    FString GIPlayerName;
 
-    TMap<APlayerController*, FString> PlayerNames;
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
+    TMap<APlayerController*, FString> GIPlayerList;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")  //potentially useless if Playercontroller is enough
+    int32 GIid = 0;
 
 
 
