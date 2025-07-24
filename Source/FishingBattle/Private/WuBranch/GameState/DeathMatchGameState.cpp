@@ -66,7 +66,7 @@ void ADeathMatchGameState::OnGameStateChanged(EGameStateList State)
 		{
 			// 複数のPCで確認する前にサーバ側は一旦リザルト画面に行かない
 			// 一つのPCで複数人を模擬した場合はUnreal Engineはクラッシュする
-			//GotoResultMap();
+			GotoResultMap();
 		}
 	}
 }
