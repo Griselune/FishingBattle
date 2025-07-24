@@ -4,6 +4,7 @@
 #include "WuBranch/Actor/Component/FishableComponent.h"
 #include "Components/MeshComponent.h"
 #include "TakimotoBranch/CPPBaseWeapon.h"
+#include <Kismet/GameplayStatics.h>
 
 // Sets default values for this component's properties
 UFishableComponent::UFishableComponent()
@@ -53,6 +54,10 @@ ACPPBaseWeapon* UFishableComponent::GetFish()
 		}
 			
 	}
+
+	// サウンド
+	if (CatchSound)
+		UGameplayStatics::SpawnSound2D(GetWorld(), CatchSound);
 	return nullptr;
 }
 
