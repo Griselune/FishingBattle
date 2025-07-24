@@ -4,6 +4,7 @@
 #include "WuBranch/GameState/FishingBattleGameState.h"
 #include <Net/UnrealNetwork.h>
 #include "WuBranch/Object/Timer.h"
+#include <PrinzBranch/LANGameInstance.h>
 
 AFishingBattleGameState::AFishingBattleGameState()
 	: PreCountDownTime(0)
@@ -109,7 +110,13 @@ bool AFishingBattleGameState::AreAllPlayersInMap()
 		return false;
 
 	// プレイヤーの状態を確認する処理
-	int PlayerNums = 2;//GetGameInstance();
+	ULANGameInstance* GInstance = GetGameInstance<ULANGameInstance>();
+	if (!GInstance)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Game Instance is nullptr!"));
+		return false;
+	}
+	int PlayerNums = GInstance->GISessionCurrentPlayers;
 	UE_LOG(LogTemp, Warning, TEXT("FinishedNums: %d"), PlayerArray.Num());
 	return PlayerNums == PlayerArray.Num();
 }
