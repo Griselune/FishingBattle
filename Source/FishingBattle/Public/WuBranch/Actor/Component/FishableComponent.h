@@ -50,4 +50,10 @@ private:
 	/// 確率の合計
 	/// </summary>
 	int TotalProbility;
+
+	/// <summary>
+	/// 釣れた時のサウンド
+	/// </summary>
+	UPROPERTY(EditAnywhere)
+	class USoundBase* CatchSound;
 };
