@@ -51,7 +51,7 @@ void ADeathMatchGameState::OnGameStateChanged(EGameStateList State)
 		
 		if (State == EGameStateList::Finished)
 		{
-			GotoResultMap();
+			OnGameFinished();
 		}
 	}
 	// サーバー側のみ実行
@@ -66,19 +66,22 @@ void ADeathMatchGameState::OnGameStateChanged(EGameStateList State)
 		{
 			// 複数のPCで確認する前にサーバ側は一旦リザルト画面に行かない
 			// 一つのPCで複数人を模擬した場合はUnreal Engineはクラッシュする
-			GotoResultMap();
+			OnGameFinished();
 		}
 	}
 }
 
-void ADeathMatchGameState::GotoResultMap()
+void ADeathMatchGameState::OnGameFinished()
 {
 	// 3秒後に切り替える
 	FTimerHandle ChangeMapHandler;
 	UWorld* world = GetWorld();
-	GetWorld()->GetTimerManager().SetTimer(ChangeMapHandler, [world] {
-		UGameplayStatics::OpenLevel(world, FName(TEXT("ResultMap")));
-		}, 1.0f, false, 3.0f);
+	GetWorld()->GetTimerManager().SetTimer(ChangeMapHandler, this, &ADeathMatchGameState::Changelevel, 1.0f, false, 3.0f);
+}
+
+void ADeathMatchGameState::Changelevel()
+{
+	GetWorld()->ServerTravel("/Game/WuBranch/Maps/ResultMap.umap?listen", true);
 }
 
 void ADeathMatchGameState::CreateTimer()
