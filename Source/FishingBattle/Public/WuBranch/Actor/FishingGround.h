@@ -35,7 +35,7 @@ public:
 	/// 魚を手に入れ
 	/// </summary>
 	/// <returns>魚</returns>
-	ACPPBaseWeapon* GetFish();
+	TSubclassOf<AActor> GetFish();
 
 	/// <summary>
 	/// 魚影ポイントをゲット
