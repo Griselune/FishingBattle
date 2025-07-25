@@ -7,7 +7,7 @@
 
 
 
-void APlayerState_T::Server_AddWeapon(FName WeaponID)
+void APlayerState_T::Server_AddWeapon(TSubclassOf<AActor> WeaponID)
 {
 	//Multi_AddWeapon(WeaponID);
 	if (!HasEmptySlot()) {
@@ -17,23 +17,9 @@ void APlayerState_T::Server_AddWeapon(FName WeaponID)
 
 
 	FInventoryWeapon newWeapon;
-	newWeapon.weaponName = WeaponID;
+	newWeapon.weaponActor = WeaponID;
 	inventory.Add(newWeapon);
 	//OnRep_Inventory();
-
-}
-
-void APlayerState_T::Multi_AddWeapon_Implementation(FName WeaponID)
-{
-	if (!HasEmptySlot()) {
-		UE_LOG(LogTemp, Error, TEXT("cantAddWeapon!"));
-		return;
-	}
-
-	FInventoryWeapon newWeapon;
-	newWeapon.weaponName = WeaponID;
-	inventory.Add(newWeapon);
-	OnRep_Inventory();
 
 }
 
@@ -50,7 +36,6 @@ bool APlayerState_T::HasEmptySlot() const
 
 const FInventoryWeapon* APlayerState_T::GetweaponSlot(int index) const
 {
-
 	return inventory.IsValidIndex(index) ? &inventory[index] : nullptr;
 }
 
@@ -79,13 +64,5 @@ void APlayerState_T::OnRep_InGamePlay()
 void APlayerState_T::OnRep_DeadCounter()
 {
 	UE_LOG(LogTemp, Error, TEXT("AddDeadCounter"));
-}
-
-//bool APlayerState_T::Server_AddWeapon_Validate(FName WeapontID) {
-//	return true;
-//}
-
-bool APlayerState_T::Multi_AddWeapon_Validate(FName WeapontID) {
-	return true;
 }
 

@@ -684,7 +684,8 @@ void AFishingBattleCharacter::OnFishingEnded(UAnimMontage* Montage, bool in)
 
 	//なぜかわからないがサーバーのみで処理すると正常にクライアントも動作する
 	if (HasAuthority()) {
-		Multi_AddWeaponInPlayer("Weapon1");
+		TSubclassOf<AActor> weaponActorSubclass = Cast<AFishingGround>(fishingSpot)->GetFish();
+		Multi_AddWeaponInPlayer(weaponActorSubclass);
 		//if (cnt == 1) {
 		//	Server_AddWeaponInPlayer("Fishinglot");
 		//	cnt++;
@@ -739,11 +740,11 @@ bool AFishingBattleCharacter::Server_BeginAddFishrot_Validate() {
 	return true;
 }
 
-bool AFishingBattleCharacter::Server_EquipWeapon_Validate(FName weaponID) {
+bool AFishingBattleCharacter::Server_EquipWeapon_Validate(TSubclassOf<AActor> weaponID) {
 	return true;
 }
 
-bool AFishingBattleCharacter::Multi_EquipWeapon_Validate(FName weaponID) {
+bool AFishingBattleCharacter::Multi_EquipWeapon_Validate(TSubclassOf<AActor> weaponID) {
 	return true;
 }
 
@@ -755,11 +756,11 @@ bool AFishingBattleCharacter::Multi_EquipSlotIndex_Validate(int slotIndex) {
 	return true;
 }
 
-bool AFishingBattleCharacter::Server_AddWeaponInPlayer_Validate(FName WeaponID) {
+bool AFishingBattleCharacter::Server_AddWeaponInPlayer_Validate(TSubclassOf<AActor> WeaponID) {
 	return true;
 }
 
-bool AFishingBattleCharacter::Multi_AddWeaponInPlayer_Validate(FName WeaponID) {
+bool AFishingBattleCharacter::Multi_AddWeaponInPlayer_Validate(TSubclassOf<AActor> WeaponID) {
 	return true;
 }
 
@@ -778,29 +779,43 @@ bool AFishingBattleCharacter::Multi_BeginAddFishrot_Validate(){
 	return true;
 }
 
-void AFishingBattleCharacter::Server_AddWeaponInPlayer_Implementation(FName WeaponID) {
+void AFishingBattleCharacter::Server_AddWeaponInPlayer_Implementation(TSubclassOf<AActor> WeaponID) {
 	UE_LOG(LogTemp, Error, TEXT("addweaponInPlayer!!!!!!!!!!!!!!!!!!!!!!!"));
 	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
+	TSubclassOf<AActor> weaponActorSubclass = Cast<AFishingGround>(fishingSpot)->GetFish();
 	if (ps)
 	{
-		ps->Server_AddWeapon(WeaponID); //
+		if (weaponActorSubclass) {
+			UE_LOG(LogTemp, Error, TEXT("addweaponInPlayer!!!!!!!!!!!!!!!!!!!!!!!"));
+			ps->Server_AddWeapon(weaponActorSubclass);
+		}
+	}
+	else {
+		UE_LOG(LogTemp, Error, TEXT("プレイヤーステートないけどどうする？"));
 	}
 }
 
-void  AFishingBattleCharacter::Multi_AddWeaponInPlayer_Implementation(FName WeaponID) {
+void  AFishingBattleCharacter::Multi_AddWeaponInPlayer_Implementation(TSubclassOf<AActor> WeaponID) {
 	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
+	TSubclassOf<AActor> weaponActorSubclass = Cast<AFishingGround>(fishingSpot)->GetFish();
 	if (ps)
 	{
-		ps->Server_AddWeapon(WeaponID); //
+		if (weaponActorSubclass) {
+			UE_LOG(LogTemp, Error, TEXT("addweaponInPlayer!!!!!!!!!!!!!!!!!!!!!!!"));
+			ps->Server_AddWeapon(weaponActorSubclass);
+		}
+	}
+	else {
+		UE_LOG(LogTemp, Error, TEXT("プレイヤーステートないけどどうする？"));
 	}
 }
 
-void AFishingBattleCharacter::Server_EquipWeapon_Implementation(FName weaponID) {
+void AFishingBattleCharacter::Server_EquipWeapon_Implementation(TSubclassOf<AActor> weaponID) {
 	//EquipWeapon(weaponID);
 	Multi_EquipWeapon(weaponID);
 }
 
-void AFishingBattleCharacter::Multi_EquipWeapon_Implementation(FName weaponID) {
+void AFishingBattleCharacter::Multi_EquipWeapon_Implementation(TSubclassOf<AActor> weaponID) {
 	EquipWeapon(weaponID);
 }
 
@@ -826,8 +841,8 @@ void AFishingBattleCharacter::Server_BeginAddFishrot_Implementation(){
 	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
 	if (ps)
 	{
-		UE_LOG(LogTemp, Error, TEXT("addweaponInPlayer!!!!!!!!!!!!!!!!!!!!!!!"));
-		ps->Server_AddWeapon("Fishinglot"); //
+			UE_LOG(LogTemp, Error, TEXT("addweaponInPlayer!!!!!!!!!!!!!!!!!!!!!!!"));
+			ps->Server_AddWeapon(FishRod);
 	}
 	else {
 		UE_LOG(LogTemp, Error, TEXT("プレイヤーステートないけどどうする？"));
@@ -840,7 +855,7 @@ void AFishingBattleCharacter::Multi_BeginAddFishrot_Implementation()
 	if (ps)
 	{
 		UE_LOG(LogTemp, Error, TEXT("addweaponInPlayer!!!!!!!!!!!!!!!!!!!!!!!"));
-		ps->Server_AddWeapon("Fishinglot"); //
+		ps->Server_AddWeapon(FishRod);
 	}
 	else {
 		UE_LOG(LogTemp, Error, TEXT("プレイヤーステートないけどどうする？"));
@@ -854,7 +869,7 @@ void AFishingBattleCharacter::EquipSlotIndex(int slotIndex)
 
 	const FInventoryWeapon* weapon = ps->GetweaponSlot(slotIndex);
 	if (weapon) {
-		Server_EquipWeapon(weapon->weaponName);
+		Server_EquipWeapon(weapon->weaponActor);
 		//if (!HasAuthority()) {
 		//	Server_EquipWeapon(weapon->weaponName);
 		//}
@@ -946,7 +961,7 @@ void AFishingBattleCharacter::EquipFishlot()
 	ChangeMappingContext(HasFishrotMappingContext);
 }
 
-void AFishingBattleCharacter::EquipWeapon(FName weaponID)
+void AFishingBattleCharacter::EquipWeapon(TSubclassOf<AActor> weaponID)
 {
 	if (weaponActor) {
 		weaponActor->Destroy();
@@ -997,9 +1012,8 @@ void AFishingBattleCharacter::EquipWeapon(FName weaponID)
 	AGameMode_T* gm = Cast<AGameMode_T>(UGameplayStatics::GetGameMode(this));
 	if (!gm)return;
 
-	TSubclassOf<AActor> weaponClass = gm->GetWeaponClass(weaponID);
-	UE_LOG(LogTemp, Warning, TEXT("weaponClass is: %s"), *weaponClass->GetName());
-	if (weaponClass) {
+	UE_LOG(LogTemp, Warning, TEXT("weaponClass is: %s"), *weaponID->GetName());
+	//if (weaponClass) {
 
 
 		UChildActorComponent* weaponChildComponent = nullptr;
@@ -1020,7 +1034,7 @@ void AFishingBattleCharacter::EquipWeapon(FName weaponID)
 				weaponChildComponent->GetChildActor()->Destroy();
 				weaponChildComponent->SetChildActorClass(nullptr); // 念のため明示的に外す
 			}
-			weaponChildComponent->SetChildActorClass(weaponClass); // TSubclassOf<AActor>
+			weaponChildComponent->SetChildActorClass(weaponID); // TSubclassOf<AActor>
 
 			weaponActor = weaponChildComponent->GetChildActor();
 			if (weaponActor)
@@ -1060,7 +1074,7 @@ void AFishingBattleCharacter::EquipWeapon(FName weaponID)
 		//weaponActor->SetOwner(this);
 		//weaponActor->AttachToComponent(GetMesh(),FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("wepon"));
 
-	}
+	//}
 }
 
 void AFishingBattleCharacter::ChangeMappingContext(UInputMappingContext* context_)

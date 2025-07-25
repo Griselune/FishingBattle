@@ -30,7 +30,7 @@ public:
 	/// 魚をゲット
 	/// </summary>
 	/// <returns>魚</returns>
-	ACPPBaseWeapon* GetFish();
+	TSubclassOf<AActor> GetFish();
 
 private:
 

@@ -18,19 +18,21 @@ public:
 
 
 	UFUNCTION(BlueprintCallable)
-	FName SetFishRod(FName weaponID);
+	FName SetFishRod();
 
 	/// <summary>
 	/// インベントリ表示UIの1番目変更
 	/// </summary>
 	/// <param name="weaponID"></param>
 	UFUNCTION(BlueprintCallable)
-	FName SetInventory1(FName weaponID);
+	FName SetInventory1();
 
 	UFUNCTION(BlueprintCallable)
-	FName SetInventory2(FName weaponID);
+	FName SetInventory2();
 
 	UFUNCTION(BlueprintCallable)
-	FName SetInventory3(FName weaponID);
+	FName SetInventory3();
 
+	//インベントリの配列がアクターの実体になったので、武器タイプを参照してテキスト（イメージ）を変えるようにすること
+	//得丸
 };
