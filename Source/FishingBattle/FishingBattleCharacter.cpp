@@ -60,9 +60,34 @@ AFishingBattleCharacter::AFishingBattleCharacter()
 
 float AFishingBattleCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
+	// 2025.07.24 ウー start
+	if (!HasAuthority())
+	{
+		return 0.0f;
+	}
+	// 2025.07.24 ウー end
 	if (IsRoll)return 0.0f;
 	if (IsDead)return 0.0f;
-	this->Health -= DamageAmount;
+	UE_LOG(LogTemp, Warning, TEXT("At Server %s Take Damage"), *GetName());
+
+	float Damage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+	
+	this->Health -= Damage;
+
+	UE_LOG(LogTemp, Warning, TEXT("--- SERVER STATE SNAPSHOT after damage on %s ---"), *GetFName().ToString());
+	TArray<AActor*> Found;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AFishingBattleCharacter::StaticClass(), Found);
+	for (AActor* it : Found)
+	{
+		AFishingBattleCharacter* Char = Cast<AFishingBattleCharacter>(it);
+		if (Char)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("    -> Character: %s | Health: %f"), *Char->GetFName().ToString(), Char->Health);
+		}
+	}
+	UE_LOG(LogTemp, Warning, TEXT("--- SNAPSHOT END ---"));
+
+
 	if (Health <= 0.0f) {
 		Die();
 		//if (HasAuthority()) {
@@ -73,16 +98,16 @@ float AFishingBattleCharacter::TakeDamage(float DamageAmount, FDamageEvent const
 		//}
 	}
 
-	// 2025.07.17 ウー start
-	BroadcastHP(100.0f, Health);
-	// 2025.07.17 ウー end
-
 	return DamageAmount;
 }
 
 // 2025.07.17 ウー start
-void AFishingBattleCharacter::Heal(float healAmount)
+void AFishingBattleCharacter::Heal_Implementation(float healAmount)
 {
+	// サーバー側のみ実行する
+	if (!HasAuthority())
+		return;
+
 	if (IsDead)
 		return;
 
@@ -90,7 +115,6 @@ void AFishingBattleCharacter::Heal(float healAmount)
 	if (Health > 100.0f) {
 		Health = 100.0f;
 	}
-	BroadcastHP(100.0f, Health);
 }
 // 2025.07.17 ウー end
 
@@ -174,6 +198,9 @@ void AFishingBattleCharacter::GetLifetimeReplicatedProps(TArray<FLifetimePropert
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AFishingBattleCharacter, weaponActor);
 	DOREPLIFETIME(AFishingBattleCharacter, WeaponType);
+	// 2025.07.24 ウー start
+	DOREPLIFETIME(AFishingBattleCharacter, Health);
+	// 2025.07.24 ウー end
 	//DOREPLIFETIME(AFishingBattleCharacter, DeadCounter);
 }
 
@@ -181,7 +208,9 @@ void AFishingBattleCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	healthUpdate.AddDynamic(this, &AFishingBattleCharacter::GetPlayerHealth);
+	// 2025.07.24 ウー start
+	//healthUpdate.AddDynamic(this, &AFishingBattleCharacter::GetPlayerHealth);
+	// 2025.07.24 ウー end
 
 	Server_TrueInGamePlay();
 	//if (HasAuthority()) {
@@ -206,15 +235,38 @@ void AFishingBattleCharacter::BeginPlay()
 	//	}
 	//}
 }
+// 2025.07.24 ウー start
+//void AFishingBattleCharacter::GetPlayerHealth(float maxHP, float updateHP) {
+//	UE_LOG(LogTemp, Warning, TEXT("イベントディスパッチャーですよ。得丸"));
+//}
 
-void AFishingBattleCharacter::GetPlayerHealth(float maxHP, float updateHP) {
-	UE_LOG(LogTemp, Warning, TEXT("イベントディスパッチャーですよ。得丸"));
+void AFishingBattleCharacter::OnRep_UpdatedHealth()
+{
+	if (HasAuthority())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Server %s get new HP: %lf"), *GetName(), Health);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Client %s get new HP: %lf"), *GetName(), Health);
+	}
+	UpdateHP(100.0f, Health);
 }
 
-void AFishingBattleCharacter::BroadcastHP(float maxHP, float updateHP) {
-	healthUpdate.Broadcast(maxHP, updateHP);
-}
-
+//void AFishingBattleCharacter::BroadcastHP_Implementation(float maxHP, float updateHP)
+//{
+//	if (HasAuthority())
+//	{
+//		UE_LOG(LogTemp, Warning, TEXT("Server %s update HP: %lf"), *GetName(), updateHP);
+//	}
+//	else
+//	{
+//		UE_LOG(LogTemp, Warning, TEXT("Client %s update HP: %lf"), *GetName(), updateHP);
+//	}
+//	
+//	healthUpdate.Broadcast(maxHP, updateHP);
+//}
+// 2025.07.24 ウー end
 void AFishingBattleCharacter::Move(const FInputActionValue& Value)
 {
 	if (IsFishing)return;
@@ -254,7 +306,7 @@ void AFishingBattleCharacter::Look(const FInputActionValue& Value)
 
 void AFishingBattleCharacter::Attack1()
 {
-
+	UE_LOG(LogTemp, Warning, TEXT("%s do attack"), *GetFName().ToString());
 	if (!HasAuthority()) {
 		Server_Attack();
 		return;
