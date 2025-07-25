@@ -12,6 +12,9 @@ AGameMode_T::AGameMode_T()
     {
         DefaultPawnClass = PlayerPawnBPClass.Class;
     }
+    // 2025.07.25 ウー start
+    bUseSeamlessTravel = true;
+    // 2025.07.25 ウー end
 }
 
 void AGameMode_T::RespawnPlayerT(AController* Controller)
