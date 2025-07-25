@@ -312,10 +312,10 @@ public:
 
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_EquipWeapon(FName weaponID);//クライアント用
+	void Server_EquipWeapon(TSubclassOf<AActor> weaponID);//クライアント用
 
 	UFUNCTION(NetMulticast, Reliable, WithValidation)
-	void Multi_EquipWeapon(FName weaponID);  // サーバー用
+	void Multi_EquipWeapon(TSubclassOf<AActor> weaponID);  // サーバー用
 
 	void EquipSlotIndex(int slotIndex);
 
@@ -333,10 +333,10 @@ public:
 	/// </summary>
 	/// <param name="WeaponID"></param>
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_AddWeaponInPlayer(FName WeaponID); //クライアント用
+	void Server_AddWeaponInPlayer(TSubclassOf<AActor> WeaponID); //クライアント用
 
 	UFUNCTION(NetMulticast, Reliable, WithValidation)
-	void Multi_AddWeaponInPlayer(FName WeaponID);  // サーバー用
+	void Multi_AddWeaponInPlayer(TSubclassOf<AActor> WeaponID);  // サーバー用
 
 	/// <summary>
 	/// ゲームに入ったかどうかの判定をするもの
@@ -379,7 +379,7 @@ protected:
 	/// </summary>
 	void EquipFishlot();
 
-	void EquipWeapon(FName weaponID);
+	void EquipWeapon(TSubclassOf<AActor> weaponID);
 
 public:
 
@@ -455,6 +455,7 @@ public:
 	/// <param name="NewController"></param>
 	virtual void PossessedBy(AController* NewController) override;
 
-	int cnt = 0;
+	UPROPERTY(BlueprintReadWrite,EditAnywhere)
+	TSubclassOf<AActor> FishRod;
 };
 

@@ -41,15 +41,7 @@ public:
 	/// プレイヤーステート内のインベントリ配列に指定した文字列を入れる。現在四つまで（釣り竿含む）
 	/// </summary>
 	/// <param name="WeaponID"></param>
-	void Server_AddWeapon(FName WeaponID); //クライアント用
-
-
-	/// <summary>
-	/// サーバー用に作ったが、そもそも意味がないので使っていない
-	/// </summary>
-	/// <param name="WeaponID"></param>
-	UFUNCTION(NetMulticast, Reliable, WithValidation)
-	void Multi_AddWeapon(FName WeaponID);  // サーバー用
+	void Server_AddWeapon(TSubclassOf<AActor> WeaponID); //クライアント用
 
 	void InventoryInitialize();
 

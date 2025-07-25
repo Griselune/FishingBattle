@@ -11,7 +11,7 @@ struct FInventoryWeapon {
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere,BlueprintReadWrite)
-	FName weaponName;
+	TSubclassOf<AActor> weaponActor;
 
 };
 /**

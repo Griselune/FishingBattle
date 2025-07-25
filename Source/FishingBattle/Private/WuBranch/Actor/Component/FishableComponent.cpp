@@ -37,7 +37,7 @@ void UFishableComponent::BeginPlay()
 //	// ...
 //}
 
-ACPPBaseWeapon* UFishableComponent::GetFish()
+TSubclassOf<AActor> UFishableComponent::GetFish()
 {
 	// １から合計確率までランダムで数値をゲット
 	int Target = FMath::RandRange(1, TotalProbility);
@@ -50,7 +50,7 @@ ACPPBaseWeapon* UFishableComponent::GetFish()
 		if (Sum >= Target)
 		{
 			ACPPBaseWeapon* Weapon = NewObject<ACPPBaseWeapon>(GetWorld(), FishType.Key.Get());
-			return Weapon;
+			return FishType.Key;
 		}
 			
 	}
