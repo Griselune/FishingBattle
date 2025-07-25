@@ -11,6 +11,7 @@ void ACPPItemHeal::Heal(AActor* Player)
 		AFishingBattleCharacter* fbc = Cast<AFishingBattleCharacter>(Player);
 		if (fbc)
 		{
+			if (!HasAuthority()) return;
 			// 2025.07.17 ウー start
 			//fbc->Health += 10.f;
 			fbc->Heal(10.0f);
