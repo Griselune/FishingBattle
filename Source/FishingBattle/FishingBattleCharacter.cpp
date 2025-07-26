@@ -68,7 +68,6 @@ float AFishingBattleCharacter::TakeDamage(float DamageAmount, FDamageEvent const
 	// 2025.07.24 ウー end
 	if (IsRoll)return 0.0f;
 	if (IsDead)return 0.0f;
-	UE_LOG(LogTemp, Warning, TEXT("At Server %s Take Damage"), *GetName());
 
 	// 2025.07.24 ウー start
 	float Damage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
@@ -78,20 +77,6 @@ float AFishingBattleCharacter::TakeDamage(float DamageAmount, FDamageEvent const
 	// 自分も更新する, Replicatedはサーバー自身のReplicatedUsingにバインドされた関数を呼ばない
 	UpdateHP(100.0f, Health);
 	// 2025.07.24 ウー end
-
-	UE_LOG(LogTemp, Warning, TEXT("--- SERVER STATE SNAPSHOT after damage on %s ---"), *GetFName().ToString());
-	TArray<AActor*> Found;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AFishingBattleCharacter::StaticClass(), Found);
-	for (AActor* it : Found)
-	{
-		AFishingBattleCharacter* Char = Cast<AFishingBattleCharacter>(it);
-		if (Char)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("    -> Character: %s | Health: %f"), *Char->GetFName().ToString(), Char->Health);
-		}
-	}
-	UE_LOG(LogTemp, Warning, TEXT("--- SNAPSHOT END ---"));
-
 
 	if (Health <= 0.0f) {
 		Die();
@@ -250,14 +235,6 @@ void AFishingBattleCharacter::BeginPlay()
 
 void AFishingBattleCharacter::OnRep_UpdatedHealth()
 {
-	if (HasAuthority())
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Server %s get new HP: %lf"), *GetName(), Health);
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Client %s get new HP: %lf"), *GetName(), Health);
-	}
 	UpdateHP(100.0f, Health);
 }
 
@@ -314,7 +291,6 @@ void AFishingBattleCharacter::Look(const FInputActionValue& Value)
 
 void AFishingBattleCharacter::Attack1()
 {
-	UE_LOG(LogTemp, Warning, TEXT("%s do attack"), *GetFName().ToString());
 	if (!HasAuthority()) {
 		Server_Attack();
 		return;
