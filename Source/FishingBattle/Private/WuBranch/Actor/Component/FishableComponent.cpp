@@ -44,21 +44,25 @@ TSubclassOf<AActor> UFishableComponent::GetFish()
 	// 
 	auto FishTypesArray = FishTypes.Array();
 	int Sum = 0;
+	TSubclassOf<AActor> Fish = nullptr;
 	for (const auto& FishType : FishTypesArray)
 	{
 		Sum += FishType.Value;
 		if (Sum >= Target)
 		{
-			ACPPBaseWeapon* Weapon = NewObject<ACPPBaseWeapon>(GetWorld(), FishType.Key.Get());
-			return FishType.Key;
+			//ACPPBaseWeapon* Weapon = NewObject<ACPPBaseWeapon>(GetWorld(), FishType.Key.Get());
+			Fish = FishType.Key;
 		}
 			
 	}
 
 	// サウンド
 	if (CatchSound)
-		UGameplayStatics::SpawnSound2D(GetWorld(), CatchSound);
-	return nullptr;
+	{
+		UGameplayStatics::PlaySound2D(GetWorld(), CatchSound);
+	}
+		
+	return Fish;
 }
 
 void UFishableComponent::CaculateTotalProbility()
