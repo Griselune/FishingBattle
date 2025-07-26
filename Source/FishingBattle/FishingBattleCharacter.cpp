@@ -70,9 +70,14 @@ float AFishingBattleCharacter::TakeDamage(float DamageAmount, FDamageEvent const
 	if (IsDead)return 0.0f;
 	UE_LOG(LogTemp, Warning, TEXT("At Server %s Take Damage"), *GetName());
 
+	// 2025.07.24 ウー start
 	float Damage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 	
 	this->Health -= Damage;
+
+	// 自分も更新する, Replicatedはサーバー自身のReplicatedUsingにバインドされた関数を呼ばない
+	UpdateHP(100.0f, Health);
+	// 2025.07.24 ウー end
 
 	UE_LOG(LogTemp, Warning, TEXT("--- SERVER STATE SNAPSHOT after damage on %s ---"), *GetFName().ToString());
 	TArray<AActor*> Found;
@@ -115,6 +120,9 @@ void AFishingBattleCharacter::Heal_Implementation(float healAmount)
 	if (Health > 100.0f) {
 		Health = 100.0f;
 	}
+
+	// 自分も更新する
+	UpdateHP(100.0f, Health);
 }
 // 2025.07.17 ウー end
 
