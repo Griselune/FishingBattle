@@ -39,21 +39,25 @@ public:
     bool GIisBattleRoyale = true;
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
-    FString GIPlayerName;
+    FString GIPlayerName;  //BluePrintで名前を保存する
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
-    TMap<APlayerController*, FString> GIPlayerList;
+    FString GIPlayerUniqueNetID;  //BluePrintで名前を保存する
 
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
+    TMap<APlayerController*, FString> GIPlayerList; //Serverが持っているプレヤーリストのコピー
+
+
+    //
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")  //potentially useless if Playercontroller is enough
     int32 GIid = 0;
+    //
 
-
-
-    UFUNCTION(BlueprintCallable, Category = "LAN Session")
-    void CreateLANSession(const FString& SessionName, const FString& Password, const int32& PlayerLimit, const int32& TimeLimit); //added playerlimit and timelimit
+    //UFUNCTION(BlueprintCallable, Category = "LAN Session")
+    //void CreateLANSession(const FString& SessionName, const FString& Password, const int32& PlayerLimit, const int32& TimeLimit); //added playerlimit and timelimit
 
 private:
-    void OnCreateSessionComplete(FName SessionName, bool bWasSuccessful);
+    //void OnCreateSessionComplete(FName SessionName, bool bWasSuccessful);
 
-    TSharedPtr<class FOnlineSessionSettings> SessionSettings;
+    //TSharedPtr<class FOnlineSessionSettings> SessionSettings;
 };

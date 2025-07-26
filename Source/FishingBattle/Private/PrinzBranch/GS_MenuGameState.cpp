@@ -3,15 +3,35 @@
 
 #include "PrinzBranch/GS_MenuGameState.h"
 #include <Net/UnrealNetwork.h>
+#include "PrinzBranch/LANGameInstance.h"
+#include "Kismet/GameplayStatics.h"
+#include "PrinzBranch/MenuPlayerController.h"
 
 void AGS_MenuGameState::BeginPlay()
 {
-	//// client
-	//if (!HasAuthority())
+	////Server -- Serverは自身の名前を先にプレヤーリストに入れる
+	//if (HasAuthority())
 	//{
-	//	UE_LOG(LogTemp, Warning, TEXT("Client Ask Server Data"));
-	//	GetDataFromServer();
+	////	ULANGameInstance* GI = UGameplayStatics::GetGameInstance(this)->GetSubsystem<ULANGameInstance>();
+
+	//	ULANGameInstance* GI = Cast<ULANGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
+	//	AMenuPlayerController* PC = GetWorld()->GetFirstPlayerController<AMenuPlayerController>();
+	//	if (GI && PC)
+	//	{
+	//		AddPlayerToList(PC, GI->GIPlayerName);
+	//	}
 	//}
+}
+
+void AGS_MenuGameState::HostAddPlayerList_Implementation()
+{
+	//Server -- Serverは自身の名前を先にプレヤーリストに入れる
+	ULANGameInstance* GI = Cast<ULANGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
+	AMenuPlayerController* PC = GetWorld()->GetFirstPlayerController<AMenuPlayerController>();
+	if (GI && PC)
+	{
+		AddPlayerToList(PC, GI->GIPlayerName);
+	}
 }
 
 void AGS_MenuGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -37,13 +57,12 @@ void AGS_MenuGameState::SendData()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Server Send Session Name"));
 	SetSessionName(GSSessionName);
-	SetSessionPassword(GSSessionPassword);
-	SetSessionPlayerLimit(GSSessionPlayerLimit);
-	SetPlayerName(GSPlayerName);
-	SetSessionTimeLimit(GSSessionTimeLimit);
-	SetSessionIsDeathMatch(GSisDeathMatch);
-	SetSessionIsBattleRoyale(GSisBattleRoyale);
-	SetPlayerName(GSPlayerName);								 //should be Tmap
+	//SetSessionPassword(GSSessionPassword);
+	//SetSessionPlayerLimit(GSSessionPlayerLimit);
+	//SetSessionTimeLimit(GSSessionTimeLimit);
+	//SetSessionIsDeathMatch(GSisDeathMatch);
+	//SetSessionIsBattleRoyale(GSisBattleRoyale);
+
 }
 
 void AGS_MenuGameState::SetSessionName_Implementation(const FString& Name)
@@ -96,6 +115,7 @@ void AGS_MenuGameState::SetSessionIsBattleRoyale_Implementation(bool isBR)
 /// <summary>
 /// プレヤーのリストの管理。各プレヤーのID（APlayerController）と名前を記入する。
 /// </summary>
+
 void AGS_MenuGameState::AddPlayerToList_Implementation(APlayerController* PC, const FString& PName)
 {
 	GSPlayerList.Add(PC, PName);

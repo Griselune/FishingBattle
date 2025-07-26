@@ -83,4 +83,8 @@ private:
     UFUNCTION(BlueprintCallable, NetMulticast, Reliable)
     void RemovePlayerFromList(APlayerController* PC);
 
+
+    UFUNCTION(BlueprintCallable, Server, Reliable)
+    void HostAddPlayerList();
+
 };

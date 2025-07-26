@@ -18,6 +18,9 @@ public:
 	UFUNCTION(Server, Reliable)
 	void GetDataFromServer();
 
+	UFUNCTION(BlueprintCallable, Client, Reliable)
+	void SendDataToServer();
+
 protected:
 
 	virtual void BeginPlay() override;
