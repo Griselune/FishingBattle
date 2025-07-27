@@ -7,45 +7,46 @@
 #include "Kismet/GameplayStatics.h"
 
 
-void ULANGameInstance::CreateLANSession(const FString& SessionName, const FString& Password, const int32& PlayerLimit, const int32& TimeLimit) //added playerlimit and timelimit
-{
-    IOnlineSubsystem* Subsystem = IOnlineSubsystem::Get();
-    if (Subsystem)
-    {
-        IOnlineSessionPtr SessionInterface = Subsystem->GetSessionInterface();
-        if (SessionInterface.IsValid())
-        {
-            // Bind callback
-            SessionInterface->OnCreateSessionCompleteDelegates.AddUObject(this, &ULANGameInstance::OnCreateSessionComplete);
+//void ULANGameInstance::CreateLANSession(const FString& SessionName, const FString& Password, const int32& PlayerLimit, const int32& TimeLimit) //added playerlimit and timelimit
+//{
+//    IOnlineSubsystem* Subsystem = IOnlineSubsystem::Get();
+//    if (Subsystem)
+//    {
+//        IOnlineSessionPtr SessionInterface = Subsystem->GetSessionInterface();
+//        if (SessionInterface.IsValid())
+//        {
+//            // Bind callback
+//            SessionInterface->OnCreateSessionCompleteDelegates.AddUObject(this, &ULANGameInstance::OnCreateSessionComplete);
+//
+//            SessionSettings = MakeShareable(new FOnlineSessionSettings());
+//            SessionSettings->bIsLANMatch = true;
+//        //    SessionSettings->NumPublicConnections = 4;
+//            SessionSettings->Set(FName("PlayerLimit"), PlayerLimit, EOnlineDataAdvertisementType::ViaOnlineService); //added to replace line above
+//            SessionSettings->Set(FName("TimeLimit"), TimeLimit, EOnlineDataAdvertisementType::ViaOnlineService); //added
+//
+//            SessionSettings->bShouldAdvertise = true;
+//            SessionSettings->bUsesPresence = false;
+//
+//            // Store password in session settings
+//            SessionSettings->Set(FName("SessionPassword"), Password, EOnlineDataAdvertisementType::ViaOnlineService);
+//
+//            SessionInterface->CreateSession(0, FName(*SessionName), *SessionSettings);
+//        }
+//    }
+//}
+//
+//void ULANGameInstance::OnCreateSessionComplete(FName SessionName, bool bWasSuccessful)
+//{
+//    if (bWasSuccessful)
+//    {
+//     //   UE_LOG(LogTemp, Log, TEXT("LAN session '%s' created successfully"), *SessionName);
+//
+//        // Open the map as listen server
+//        UGameplayStatics::OpenLevel(GetWorld(), FName("Proto"), true, "listen");
+//    }
+//    else
+//    {
+//        UE_LOG(LogTemp, Error, TEXT("Failed to create session."));
+//    }
+//}
 
-            SessionSettings = MakeShareable(new FOnlineSessionSettings());
-            SessionSettings->bIsLANMatch = true;
-        //    SessionSettings->NumPublicConnections = 4;
-            SessionSettings->Set(FName("PlayerLimit"), PlayerLimit, EOnlineDataAdvertisementType::ViaOnlineService); //added to replace line above
-            SessionSettings->Set(FName("TimeLimit"), TimeLimit, EOnlineDataAdvertisementType::ViaOnlineService); //added
-
-            SessionSettings->bShouldAdvertise = true;
-            SessionSettings->bUsesPresence = false;
-
-            // Store password in session settings
-            SessionSettings->Set(FName("SessionPassword"), Password, EOnlineDataAdvertisementType::ViaOnlineService);
-
-            SessionInterface->CreateSession(0, FName(*SessionName), *SessionSettings);
-        }
-    }
-}
-
-void ULANGameInstance::OnCreateSessionComplete(FName SessionName, bool bWasSuccessful)
-{
-    if (bWasSuccessful)
-    {
-     //   UE_LOG(LogTemp, Log, TEXT("LAN session '%s' created successfully"), *SessionName);
-
-        // Open the map as listen server
-        UGameplayStatics::OpenLevel(GetWorld(), FName("Proto"), true, "listen");
-    }
-    else
-    {
-        UE_LOG(LogTemp, Error, TEXT("Failed to create session."));
-    }
-}
