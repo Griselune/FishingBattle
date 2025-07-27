@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/GameStateBase.h"
+#include "GameFramework/GameState.h"
 #include "GameStateList.h"
 #include "FishingBattleGameState.generated.h"
 
@@ -16,7 +16,7 @@ class UTimer;
  * 
  */
 UCLASS()
-class FISHINGBATTLE_API AFishingBattleGameState : public AGameStateBase
+class FISHINGBATTLE_API AFishingBattleGameState : public AGameState
 {
 	GENERATED_BODY()
 	

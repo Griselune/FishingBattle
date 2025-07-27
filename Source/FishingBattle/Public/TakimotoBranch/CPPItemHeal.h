@@ -13,6 +13,10 @@ UCLASS()
 class FISHINGBATTLE_API ACPPItemHeal : public ACPPBaseItem
 {
 	GENERATED_BODY()
+
+private:
+
+	bool IsHeal;
 	
 protected:
 

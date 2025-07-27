@@ -48,9 +48,14 @@ private:
 	void OnGameStateChanged(EGameStateList State);
 
 	/// <summary>
+	/// ゲーム終了の処理
+	/// </summary>
+	void OnGameFinished();
+
+	/// <summary>
 	/// リザルト画面に切り替える
 	/// </summary>
-	void GotoResultMap();
+	void Changelevel();
 
 #pragma region タイマー
 

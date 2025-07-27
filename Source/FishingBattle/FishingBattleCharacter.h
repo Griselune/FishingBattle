@@ -117,15 +117,18 @@ public:
 	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent,
 		AController* EventInstigator, AActor* DamageCauser) override;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HP")
-	float Health = 100;
+private:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HP", meta = (AllowPrivateAccess = "true"), Replicated, ReplicatedUsing = OnRep_UpdatedHealth)
+	float Health = 100.0f;
+
+public:
 
 	// 2025.07.17 ウー start
-
 	/// <summary>
 	/// ヒールする
 	/// </summary>
 	/// <param name="healAmount">回復量</param>
+	UFUNCTION(Server, Reliable)
 	void Heal(float healAmount);
 
 	// 2025.07.17 ウー end
@@ -309,10 +312,10 @@ public:
 
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_EquipWeapon(FName weaponID);//クライアント用
+	void Server_EquipWeapon(TSubclassOf<AActor> weaponID);//クライアント用
 
 	UFUNCTION(NetMulticast, Reliable, WithValidation)
-	void Multi_EquipWeapon(FName weaponID);  // サーバー用
+	void Multi_EquipWeapon(TSubclassOf<AActor> weaponID);  // サーバー用
 
 	void EquipSlotIndex(int slotIndex);
 
@@ -330,10 +333,10 @@ public:
 	/// </summary>
 	/// <param name="WeaponID"></param>
 	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_AddWeaponInPlayer(FName WeaponID); //クライアント用
+	void Server_AddWeaponInPlayer(TSubclassOf<AActor> WeaponID); //クライアント用
 
 	UFUNCTION(NetMulticast, Reliable, WithValidation)
-	void Multi_AddWeaponInPlayer(FName WeaponID);  // サーバー用
+	void Multi_AddWeaponInPlayer(TSubclassOf<AActor> WeaponID);  // サーバー用
 
 	/// <summary>
 	/// ゲームに入ったかどうかの判定をするもの
@@ -376,24 +379,34 @@ protected:
 	/// </summary>
 	void EquipFishlot();
 
-	void EquipWeapon(FName weaponID);
+	void EquipWeapon(TSubclassOf<AActor> weaponID);
 
 public:
 
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FHealthUpdate, float, maxHP, float, updateHP);
+	// 2025.07.24 ウー start
+	// ごめん、僕間違った
+	//DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FHealthUpdate, float, maxHP, float, updateHP);
 
+	//UPROPERTY(BlueprintAssignable, Category = "Health")
+	//FHealthUpdate healthUpdate;
 
+	//UFUNCTION()
+	//void GetPlayerHealth(float maxHP, float updateHP);
 
-	UPROPERTY(BlueprintAssignable, Category = "Health")
-	FHealthUpdate healthUpdate;
+	//UFUNCTION(NetMulticast, Reliable, BlueprintCallable)
+	//void BroadcastHP(float maxHP, float updateHP);
 
-
+	/// <summary>
+	/// HPバーの更新
+	/// </summary>
+	/// <param name="MaxHP">最大HP</param>
+	/// <param name="NewHP">新しいHP</param>
+	UFUNCTION(BlueprintImplementableEvent)
+	void UpdateHP(float MaxHP, float NewHP);
+	
 	UFUNCTION()
-	void GetPlayerHealth(float maxHP, float updateHP);
-
-	UFUNCTION(BlueprintCallable)
-	void BroadcastHP(float maxHP, float updateHP);
-
+	void OnRep_UpdatedHealth();
+	// 2025.07.24 ウー end
 
 
 protected:
@@ -442,6 +455,7 @@ public:
 	/// <param name="NewController"></param>
 	virtual void PossessedBy(AController* NewController) override;
 
-	int cnt = 0;
+	UPROPERTY(BlueprintReadWrite,EditAnywhere)
+	TSubclassOf<AActor> FishRod;
 };
 

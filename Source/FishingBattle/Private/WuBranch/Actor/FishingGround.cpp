@@ -66,7 +66,7 @@ void AFishingGround::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	DOREPLIFETIME(AFishingGround, SeaRadius);
 }
 
-ACPPBaseWeapon* AFishingGround::GetFish()
+TSubclassOf<AActor> AFishingGround::GetFish()
 {
 	return Fishable->GetFish();
 }

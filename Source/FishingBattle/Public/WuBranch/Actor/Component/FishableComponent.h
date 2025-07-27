@@ -30,7 +30,7 @@ public:
 	/// 魚をゲット
 	/// </summary>
 	/// <returns>魚</returns>
-	ACPPBaseWeapon* GetFish();
+	TSubclassOf<AActor> GetFish();
 
 private:
 
@@ -54,6 +54,6 @@ private:
 	/// <summary>
 	/// 釣れた時のサウンド
 	/// </summary>
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditDefaultsOnly, meta = (AllowPrivateAccess = "true"))
 	class USoundBase* CatchSound;
 };
