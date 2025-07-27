@@ -15,7 +15,5 @@ class FISHINGBATTLE_API APS_MenuPlayerState : public APlayerState
 	GENERATED_BODY()
 	
 
-public:
-	//UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
-	//TSharedPtr<const FUniqueNetId> NetID;
+
 };

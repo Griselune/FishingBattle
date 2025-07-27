@@ -4,11 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
-#include "MenuPlayerController.generated.h"
 
-/**
- * 
- */
+
+
+
+#include "MenuPlayerController.generated.h"
 UCLASS()
 class FISHINGBATTLE_API AMenuPlayerController : public APlayerController
 {
@@ -16,13 +16,16 @@ class FISHINGBATTLE_API AMenuPlayerController : public APlayerController
 	
 public:
 	UFUNCTION(Server, Reliable)
-	void GetDataFromServer();
+	void GetDataFromServer(const FString& InName);
+
+	UFUNCTION(BlueprintCallable, Server, Reliable)
+	void SendDataToServer(const FString& InName);
 
 	UFUNCTION(BlueprintCallable, Client, Reliable)
-	void SendDataToServer();
+	void SendLogoutToServer(APlayerState* Exiting);
 
 protected:
 
 	virtual void BeginPlay() override;
-
+	
 };

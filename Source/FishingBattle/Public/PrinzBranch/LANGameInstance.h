@@ -42,10 +42,7 @@ public:
     FString GIPlayerName;  //BluePrintで名前を保存する
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
-    FString GIPlayerUniqueNetID;  //BluePrintで名前を保存する
-
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
-    TMap<APlayerController*, FString> GIPlayerList; //Serverが持っているプレヤーリストのコピー
+    TMap<APlayerState*, FString> GIPlayerList; //Serverが持っているプレヤーリストのコピー
 
 
     //

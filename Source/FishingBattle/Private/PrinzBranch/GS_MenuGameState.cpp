@@ -27,10 +27,11 @@ void AGS_MenuGameState::HostAddPlayerList_Implementation()
 {
 	//Server -- Serverは自身の名前を先にプレヤーリストに入れる
 	ULANGameInstance* GI = Cast<ULANGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
-	AMenuPlayerController* PC = GetWorld()->GetFirstPlayerController<AMenuPlayerController>();
-	if (GI && PC)
+	APlayerState* PS = GetWorld()->GetFirstPlayerController<APlayerState>();
+	if (GI)
 	{
-		AddPlayerToList(PC, GI->GIPlayerName);
+		UE_LOG(LogTemp, Warning, TEXT("Server adds it's own name in the list"));
+		AddPlayerToList(PS, GI->GIPlayerName);
 	}
 }
 
@@ -113,19 +114,26 @@ void AGS_MenuGameState::SetSessionIsBattleRoyale_Implementation(bool isBR)
 
 
 /// <summary>
-/// プレヤーのリストの管理。各プレヤーのID（APlayerController）と名前を記入する。
+/// プレヤーのリストの管理。各プレヤーのID（APlayerState）と名前を記入する。
 /// </summary>
 
-void AGS_MenuGameState::AddPlayerToList_Implementation(APlayerController* PC, const FString& PName)
+void AGS_MenuGameState::AddPlayerToList_Implementation(APlayerState* PS, const FString& PName)
 {
-	GSPlayerList.Add(PC, PName);
+	if (PS) {
+		//ULANGameInstance* GI = Cast<ULANGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
+		//FString PName = GI->GIPlayerName;
+		GSPlayerList.Add(PS, PName);
+		UE_LOG(LogTemp, Warning, TEXT("AddPlayerToList() executed"));
+	}
 }
 
-void AGS_MenuGameState::RemovePlayerFromList_Implementation(APlayerController* PC)
+void AGS_MenuGameState::RemovePlayerFromList_Implementation(APlayerState* PS)
 {
+	UE_LOG(LogTemp, Warning, TEXT("RemovePlayerFromList() executed"));
 	for (auto& list : GSPlayerList) {
-		if (list.Key == PC) {
+		if (list.Key == PS) {
 			GSPlayerList.Remove(list.Key);  //リストからプレヤーを取り消す
+			UE_LOG(LogTemp, Warning, TEXT("A player has been removed"));
 			break;
 		}
 	}
