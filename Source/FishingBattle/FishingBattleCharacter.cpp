@@ -75,7 +75,7 @@ float AFishingBattleCharacter::TakeDamage(float DamageAmount, FDamageEvent const
 	this->Health -= Damage;
 
 	// 自分も更新する, Replicatedはサーバー自身のReplicatedUsingにバインドされた関数を呼ばない
-	UpdateHP(100.0f, Health);
+	UpdateHP(MaxHealth, Health);
 	// 2025.07.24 ウー end
 
 	if (Health <= 0.0f) {
@@ -102,14 +102,19 @@ void AFishingBattleCharacter::Heal_Implementation(float healAmount)
 		return;
 
 	Health += healAmount;
-	if (Health > 100.0f) {
-		Health = 100.0f;
+	if (Health > MaxHealth) {
+		Health = MaxHealth;
 	}
 
 	// 自分も更新する
-	UpdateHP(100.0f, Health);
+	UpdateHP(MaxHealth, Health);
 }
 // 2025.07.17 ウー end
+
+float AFishingBattleCharacter::GetMaxHealth() const
+{
+	return MaxHealth;
+}
 
 void AFishingBattleCharacter::EnterSpot(AActor* spot)
 {
@@ -203,6 +208,7 @@ void AFishingBattleCharacter::BeginPlay()
 
 	// 2025.07.24 ウー start
 	//healthUpdate.AddDynamic(this, &AFishingBattleCharacter::GetPlayerHealth);
+	Health = MaxHealth;
 	// 2025.07.24 ウー end
 
 	Server_TrueInGamePlay();
@@ -233,9 +239,24 @@ void AFishingBattleCharacter::BeginPlay()
 //	UE_LOG(LogTemp, Warning, TEXT("イベントディスパッチャーですよ。得丸"));
 //}
 
+void AFishingBattleCharacter::OnRep_Controller()
+{
+	Super::OnRep_Controller();
+
+	UpdateHP(MaxHealth, Health);
+}
+
+void AFishingBattleCharacter::UpdateHP(float MaxHP, float NewHP)
+{
+	if (AFisherController* PC = Cast<AFisherController>(GetController()))
+	{
+		PC->UpdateHP(MaxHP, NewHP);
+	}
+}
+
 void AFishingBattleCharacter::OnRep_UpdatedHealth()
 {
-	UpdateHP(100.0f, Health);
+	UpdateHP(MaxHealth, Health);
 }
 
 //void AFishingBattleCharacter::BroadcastHP_Implementation(float maxHP, float updateHP)
@@ -378,7 +399,6 @@ void AFishingBattleCharacter::Jump()
 
 void AFishingBattleCharacter::Die()
 {
-
 	if (HasAuthority()) {
 		Multi_Dead();
 		return;
@@ -479,6 +499,7 @@ void AFishingBattleCharacter::HandleDeath()
 void AFishingBattleCharacter::RequestRespawn()
 {
 	UE_LOG(LogTemp, Warning, TEXT("リクエストリスポーン"));
+	
 	AController* MyController = GetController();
 	if (MyController)
 	{
@@ -487,7 +508,7 @@ void AFishingBattleCharacter::RequestRespawn()
 			GM->RespawnPlayerT(MyController);
 		}
 	}
-
+	
 	Destroy(); // 消滅
 }
 

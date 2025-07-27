@@ -147,4 +147,10 @@ private:
 	/// </summary>
 	UPROPERTY(EditAnywhere)
 	float FishBiteDelay;
+
+	/// <summary>
+	/// 釣れた時のサウンド
+	/// </summary>
+	UPROPERTY(EditDefaultsOnly, meta = (AllowPrivateAccess = "true"))
+	class USoundBase* CatchSound;
 };
