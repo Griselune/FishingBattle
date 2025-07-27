@@ -10,6 +10,7 @@
 #include <FishingBattle/FishingBattleCharacter.h>
 #include "TakimotoBranch/CPPBaseWeapon.h"
 #include <WuBranch/UI/MyBaseWidget.h>
+#include <Kismet/GameplayStatics.h>
 
 // Sets default values
 AFishingGround::AFishingGround()
@@ -68,7 +69,14 @@ void AFishingGround::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 
 TSubclassOf<AActor> AFishingGround::GetFish()
 {
-	return Fishable->GetFish();
+	TSubclassOf<AActor> Fish = Fishable->GetFish();
+
+	// サウンド
+	if (CatchSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), CatchSound, GetFishingPointOnSea());
+	}
+	return Fish;
 }
 
 FVector AFishingGround::GetFishingPointOnSea()
