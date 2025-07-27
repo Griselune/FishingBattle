@@ -459,6 +459,8 @@ void AFishingBattleCharacter::Multi_Dead_Implementation()
 	Delegate.BindUObject(this, &AFishingBattleCharacter::OnDeadEnded);
 	animInstance->Montage_SetEndDelegate(Delegate, DeadMontage);
 
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
 	//カウンター加算
 	AddToDeadCounter();
 
