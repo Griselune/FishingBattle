@@ -117,7 +117,7 @@ bool AFishingBattleGameState::AreAllPlayersInMap()
 		return false;
 	}
 	int PlayerNums = GInstance->GISessionCurrentPlayers;
-	UE_LOG(LogTemp, Warning, TEXT("FinishedNums: %d"), PlayerArray.Num());
+	UE_LOG(LogTemp, Warning, TEXT("Player Count in Map: %d, Need: %d"), PlayerArray.Num(), PlayerNums);
 	return PlayerNums == PlayerArray.Num();
 }
 
