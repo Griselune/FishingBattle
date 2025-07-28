@@ -44,20 +44,10 @@ void ADeathMatchGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>&
 
 void ADeathMatchGameState::OnGameStateChanged(EGameStateList State)
 {
-	// クライアントのみの処理
-	if (!HasAuthority())
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, FString::Printf(TEXT("Client Get GameState Changed: %d"), (int)State));
-		
-		if (State == EGameStateList::Finished)
-		{
-			OnGameFinished();
-		}
-	}
 	// サーバー側のみ実行
-	else
+	if(HasAuthority())
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, FString::Printf(TEXT("Server Get GameState Changed: %d"), (int)State));
+		UE_LOG(LogTemp, Display, TEXT("Server Get GameState Changed: %d"), (int)State);
 		if (State == EGameStateList::Started)
 		{
 			GameTimer->Start();
@@ -81,7 +71,7 @@ void ADeathMatchGameState::OnGameFinished()
 
 void ADeathMatchGameState::Changelevel()
 {
-	GetWorld()->ServerTravel("/Game/WuBranch/Maps/ResultMap.umap?listen", true);
+	GetWorld()->ServerTravel("/Game/WuBranch/Maps/ResultMap?listen", true);
 }
 
 void ADeathMatchGameState::CreateTimer()
