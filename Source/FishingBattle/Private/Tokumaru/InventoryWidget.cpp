@@ -101,3 +101,15 @@ UTexture2D* UInventoryWidget::SetInventory3()
 	}
 	return non;
 }
+
+bool UInventoryWidget::CanRollState()
+{
+	APlayerController* pc = GetOwningPlayer();
+	if (pc) {
+		APlayerState_T* ps = pc->GetPlayerState<APlayerState_T>();
+		if (ps) {
+			return ps->CanRollInPS;
+		}
+	}
+	return false;
+}

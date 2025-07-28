@@ -194,6 +194,14 @@ protected:
 	/// </summary>
 	void Roll();
 	bool IsRoll = false;
+	bool CanRoll = true;
+
+	/// <summary>
+	/// 回避にクールタイムを追加する。boolの切り替え。
+	/// tickを使って時間でクールタイムをつけてもよいが、サーバーとの兼ね合いもあるので、
+	/// いったんboolの操作で解決する。
+	/// </summary>
+	void ReloadCanRoll();
 
 	/// <summary>
 	/// 回避モーション終了

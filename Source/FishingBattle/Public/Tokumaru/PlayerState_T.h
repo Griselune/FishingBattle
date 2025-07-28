@@ -29,6 +29,9 @@ public:
     UFUNCTION()
     void OnRep_DeadCounter();
 
+	UPROPERTY(BlueprintReadWrite)
+	bool CanRollInPS = true;
+
 
 
 	//プレイヤーステートクラスからレプリケート関数を動作させる意味がないので、

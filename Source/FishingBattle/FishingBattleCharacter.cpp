@@ -383,11 +383,30 @@ void AFishingBattleCharacter::Roll()
 	}
 }
 
+void AFishingBattleCharacter::ReloadCanRoll()
+{
+	CanRoll = true;
+	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
+	if (ps) {
+		ps->CanRollInPS = CanRoll;
+	}
+}
+
 void AFishingBattleCharacter::OnRollEnded(UAnimMontage* Montage, bool in)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Roll!end"));
 	//GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 	IsRoll = false;
+
+
+	FTimerHandle ReloadRoll;
+	GetWorld()->GetTimerManager().SetTimer(
+		ReloadRoll,
+		this,
+		&AFishingBattleCharacter::ReloadCanRoll,
+		3.0f, // 100ms の遅延
+		false
+	);
 }
 
 void AFishingBattleCharacter::Jump()
@@ -438,6 +457,7 @@ void AFishingBattleCharacter::OnDeadEnded(UAnimMontage* Montage, bool in)
 		Multi_Die(); // サーバーならそのまま処理
 	}
 }
+
 void AFishingBattleCharacter::Server_Dead_Implementation()
 {
 	Multi_Dead();
@@ -458,8 +478,6 @@ void AFishingBattleCharacter::Multi_Dead_Implementation()
 	FOnMontageEnded Delegate;
 	Delegate.BindUObject(this, &AFishingBattleCharacter::OnDeadEnded);
 	animInstance->Montage_SetEndDelegate(Delegate, DeadMontage);
-
-	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	//カウンター加算
 	AddToDeadCounter();
@@ -517,21 +535,30 @@ void AFishingBattleCharacter::RequestRespawn()
 
 void AFishingBattleCharacter::Multi_Attack_Implementation()
 {
-	if (IsPlayAttack1 || !AttackMontage || IsRoll || !GetCharacterMovement()->IsMovingOnGround()) return;
+	if (IsPlayAttack1 || !AttackMontage || IsRoll) return;
 	UE_LOG(LogTemp, Warning, TEXT("attack!"));
 
 	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
 	if (!animInstance)return;
 	UMyAnimInstance* mAnim = Cast<UMyAnimInstance>(animInstance);
 	if (animInstance && mAnim) {
-		if (mAnim->Isjump) return;
+		//ジャンプ攻撃をできるようにする。
+		//if (mAnim->Isjump) return;
 		FOnMontageEnded Delegate;
 		switch (this->WeaponType) {
-		case ECPPWeaponType::WeaponTest1:
+		case ECPPWeaponType::WeaponTest3:
 
 			mAnim->attack1 = true;
 			IsPlayAttack1 = true;
 			animInstance->Montage_Play(HeavyAttackMontage, 1.0f);
+
+			Delegate.BindUObject(this, &AFishingBattleCharacter::OnAttackEnded);
+			animInstance->Montage_SetEndDelegate(Delegate, HeavyAttackMontage);
+			break;
+		case ECPPWeaponType::WeaponTest2:
+			mAnim->attack1 = true;
+			IsPlayAttack1 = true;
+			animInstance->Montage_Play(HeavyAttackMontage, 1.5f);
 
 			Delegate.BindUObject(this, &AFishingBattleCharacter::OnAttackEnded);
 			animInstance->Montage_SetEndDelegate(Delegate, HeavyAttackMontage);
@@ -568,6 +595,8 @@ void AFishingBattleCharacter::Multi_Roll_Implementation()
 {
 	if (IsRoll || !RollMontage || IsPlayAttack1 || !GetCharacterMovement()->IsMovingOnGround()) return;
 	UE_LOG(LogTemp, Warning, TEXT("Roll!"));
+	
+	if (!CanRoll)return;
 
 	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
 	if (!animInstance)return;
@@ -577,6 +606,13 @@ void AFishingBattleCharacter::Multi_Roll_Implementation()
 		//GetCharacterMovement()->DisableMovement();
 		animInstance->Montage_Play(RollMontage);
 		IsRoll = true;
+
+		CanRoll = false;
+		APlayerState_T* ps = GetPlayerState<APlayerState_T>();
+		if (ps) {
+			ps->CanRollInPS = CanRoll;
+		}
+
 
 		FOnMontageEnded Delegate;
 		Delegate.BindUObject(this, &AFishingBattleCharacter::OnRollEnded);
@@ -1129,6 +1165,7 @@ void AFishingBattleCharacter::AddToDeadCounter()
 	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
 	if (ps) {
 		ps->DeadCounter++;
+		UE_LOG(LogTemp, Warning, TEXT("DeadCounter %d"), ps->DeadCounter);
 	}
 }
 
