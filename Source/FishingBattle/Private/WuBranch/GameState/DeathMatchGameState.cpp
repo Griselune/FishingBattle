@@ -5,6 +5,7 @@
 #include <Net/UnrealNetwork.h>
 #include "WuBranch/Object/Timer.h"
 #include <Kismet/GameplayStatics.h>
+#include <PrinzBranch/LANGameInstance.h>
 
 ADeathMatchGameState::ADeathMatchGameState()
 {
@@ -84,8 +85,15 @@ void ADeathMatchGameState::CreateTimer()
 	// 先に初期化終了のバインドを行う
 	GameTimer->OnInited.AddDynamic(this, &ADeathMatchGameState::Server_OnTimeChanged);
 	// タイマーの初期化
-	// 10分のカウントダウンを設定(今後はプレイヤーが選んだ時間で代入)
-	GameTimer->Init(GetWorld(), 10.0f, 0.0f, UTimer::ETimerType::CountDown, 1.0f);
+	// デフォルトは３分
+	int Time = 3;
+	if (ULANGameInstance* GameInstance = GetGameInstance<ULANGameInstance>())
+	{
+		Time = GameInstance->GISessionTimeLimit;
+	}
+	UE_LOG(LogTemp, Warning, TEXT("Game Time: %d"), Time);
+	GameTimer->Init(GetWorld(), Time * 60.0f, 0.0f, UTimer::ETimerType::CountDown, 1.0f);
+	//GameTimer->Init(GetWorld(), 10.0f, 0.0f, UTimer::ETimerType::CountDown, 1.0f);
 	// タイマーの更新と終了イベントを登録
 	GameTimer->OnUpdated.AddDynamic(this, &ADeathMatchGameState::Server_OnTimeChanged);
 	GameTimer->OnFinished.AddDynamic(this, &ADeathMatchGameState::Server_OnTimeFinished);
