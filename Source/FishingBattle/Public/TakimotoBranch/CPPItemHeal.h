@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "TakimotoBranch/CPPBaseItem.h"
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundBase.h"
 #include "CPPItemHeal.generated.h"
 
 /**
@@ -17,6 +19,11 @@ class FISHINGBATTLE_API ACPPItemHeal : public ACPPBaseItem
 private:
 
 	bool IsHeal;
+
+protected:
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound")
+	USoundBase* HealSound;
 	
 protected:
 

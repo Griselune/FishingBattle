@@ -16,6 +16,9 @@ void ACPPItemHeal::Heal(AActor* Player)
 			//fbc->Health += 10.f;
 			fbc->Heal(10.0f);
 			// 2025.07.17 ウー end
+
+			if(HealSound) UGameplayStatics::PlaySoundAtLocation(this, HealSound, GetActorLocation());
+
 			UE_LOG(LogTemp, Error, TEXT("Heal"));
 
 			this->Destroy();

@@ -56,6 +56,7 @@ void ACPPBaseWeapon::OnHit_Implementation(AActor* HitActor)
 	if (HitActor && HitActor != GetOwner()) {
 		if (NextHitTime <= 0){
 			UGameplayStatics::ApplyDamage(HitActor, Damage, GetInstigatorController(), this, UDamageType::StaticClass());
+			if(HitSound) UGameplayStatics::PlaySoundAtLocation(this, HitSound, GetActorLocation());
 			UE_LOG(LogTemp, Error, TEXT("Hit!"));
 			NextHitTime = 30.f;
 		}
