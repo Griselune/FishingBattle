@@ -121,9 +121,19 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HP", meta = (AllowPrivateAccess = "true"), Replicated, ReplicatedUsing = OnRep_UpdatedHealth)
 	float Health = 100.0f;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HP", meta = (AllowPrivateAccess = "true"))
+	float MaxHealth;
+
 public:
 
 	// 2025.07.17 ウー start
+
+	/// <summary>
+	/// 最大HPをゲット
+	/// </summary>
+	/// <returns>最大HP</returns>
+	float GetMaxHealth() const;
+
 	/// <summary>
 	/// ヒールする
 	/// </summary>
@@ -397,11 +407,15 @@ public:
 	//void BroadcastHP(float maxHP, float updateHP);
 
 	/// <summary>
-	/// HPバーの更新
+	/// リスポーンの後、UIに何か更新が必要な時、ここで更新する
+	/// </summary>
+	virtual void OnRep_Controller() override;
+
+	/// <summary>
+	/// HPの更新
 	/// </summary>
 	/// <param name="MaxHP">最大HP</param>
 	/// <param name="NewHP">新しいHP</param>
-	UFUNCTION(BlueprintImplementableEvent)
 	void UpdateHP(float MaxHP, float NewHP);
 	
 	UFUNCTION()

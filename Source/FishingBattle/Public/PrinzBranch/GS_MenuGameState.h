@@ -47,9 +47,23 @@ public:
     bool GSisBattleRoyale = true;
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
-    TMap<APlayerController*, FString> GSPlayerList;
+    TMap<APlayerState*, FString> GSPlayerList;
 
+
+    /// <summary>
+    /// Functions
+    /// </summary>
     void SendData();
+
+    UFUNCTION(BlueprintCallable, NetMulticast, Reliable)
+    void AddPlayerToList(APlayerState* PS, const FString& PName);
+
+    UFUNCTION(BlueprintCallable, NetMulticast, Reliable)
+    void RemovePlayerFromList(APlayerState* PS);
+
+
+    UFUNCTION(BlueprintCallable, NetMulticast, Reliable)
+    void HostAddPlayerList();
 
 private:
 
@@ -77,10 +91,6 @@ private:
     UFUNCTION(NetMulticast, Reliable)
     void SetSessionIsBattleRoyale(bool isBR);
 
-    UFUNCTION(BlueprintCallable, NetMulticast, Reliable)
-    void AddPlayerToList(APlayerController* PC, const FString& PName);
 
-    UFUNCTION(BlueprintCallable, NetMulticast, Reliable)
-    void RemovePlayerFromList(APlayerController* PC);
 
 };

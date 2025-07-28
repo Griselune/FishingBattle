@@ -4,7 +4,6 @@
 #include "WuBranch/Actor/Component/FishableComponent.h"
 #include "Components/MeshComponent.h"
 #include "TakimotoBranch/CPPBaseWeapon.h"
-#include <Kismet/GameplayStatics.h>
 
 // Sets default values for this component's properties
 UFishableComponent::UFishableComponent()
@@ -54,12 +53,6 @@ TSubclassOf<AActor> UFishableComponent::GetFish()
 			Fish = FishType.Key;
 		}
 			
-	}
-
-	// サウンド
-	if (CatchSound)
-	{
-		UGameplayStatics::PlaySound2D(GetWorld(), CatchSound);
 	}
 		
 	return Fish;
