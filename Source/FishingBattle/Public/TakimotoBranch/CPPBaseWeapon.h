@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "TakimotoBranch/CPPWeaponType.h"
 #include "Components/BoxComponent.h"
+#include "Sound/SoundBase.h"
 #include "CPPBaseWeapon.generated.h"
 
 UCLASS(BlueprintType, Blueprintable, Abstract)
@@ -33,6 +34,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	float NextHitTime;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound")
+	USoundBase* HitSound;
 
 	//2025/07/15 下に移動しました　得丸陽生
 	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")

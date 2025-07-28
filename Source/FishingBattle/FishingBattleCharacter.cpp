@@ -206,12 +206,13 @@ void AFishingBattleCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
+	UE_LOG(LogTemp, Warning, TEXT("initHP %f"), Health);
+
 	// 2025.07.24 ウー start
 	//healthUpdate.AddDynamic(this, &AFishingBattleCharacter::GetPlayerHealth);
 	Health = MaxHealth;
 	// 2025.07.24 ウー end
-
-	Server_TrueInGamePlay();
+	
 	//if (HasAuthority()) {
 	//	Multi_BeginAddFishrot();
 	//	UE_LOG(LogTemp, Warning, TEXT("addFishrod!!!!!!!!!!!!"));
@@ -457,6 +458,8 @@ void AFishingBattleCharacter::Multi_Dead_Implementation()
 	FOnMontageEnded Delegate;
 	Delegate.BindUObject(this, &AFishingBattleCharacter::OnDeadEnded);
 	animInstance->Montage_SetEndDelegate(Delegate, DeadMontage);
+
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 	//カウンター加算
 	AddToDeadCounter();
@@ -1143,6 +1146,8 @@ void AFishingBattleCharacter::PossessedBy(AController* NewController)
 	if (HasAuthority()) {
 		Multi_BeginAddFishrot();
 		UE_LOG(LogTemp, Warning, TEXT("addFishrod!!!!!!!!!!!!"));
+
+		Server_TrueInGamePlay();
 	}
 
 }
