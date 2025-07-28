@@ -10,7 +10,7 @@
 #include "InventoryWidget.generated.h"
 
 /**
- * 
+ *
  */
 UCLASS()
 class FISHINGBATTLE_API UInventoryWidget : public UUserWidget
@@ -25,11 +25,22 @@ public:
 	UFUNCTION(BlueprintCallable)
 	UTexture2D* SetInventory1();
 
+	/// <summary>
+    /// インベントリ表示UIの2番目変更
+    /// </summary>
+    /// <param name="weaponID"></param>
 	UFUNCTION(BlueprintCallable)
 	UTexture2D* SetInventory2();
 
+	/// <summary>
+    /// インベントリ表示UIの3番目変更
+    /// </summary>
+    /// <param name="weaponID"></param>
 	UFUNCTION(BlueprintCallable)
 	UTexture2D* SetInventory3();
+
+	UFUNCTION(BlueprintCallable)
+	bool CanRollState();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Texture")
 	UTexture2D* sharkTexturer;
@@ -42,6 +53,7 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Texture")
 	UTexture2D* non;
+
 
 	//インベントリの配列がアクターの実体になったので、武器タイプを参照してテキスト（イメージ）を変えるようにすること
 	//得丸
