@@ -41,6 +41,7 @@ void AGS_MenuGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 
 	// レプリケーションするプロパティを追加
 	DOREPLIFETIME(AGS_MenuGameState, GSSessionName);
+	DOREPLIFETIME(AGS_MenuGameState, GSReadyPlayers);
 }
 
 void AGS_MenuGameState::OnRep_SessionData()
@@ -137,4 +138,14 @@ void AGS_MenuGameState::RemovePlayerFromList_Implementation(APlayerState* PS)
 			break;
 		}
 	}
+}
+
+void AGS_MenuGameState::HostAddReadyPlayer_Implementation()
+{
+	GSReadyPlayers += 1;
+}
+
+void AGS_MenuGameState::HostRemoveReadyPlayer_Implementation()
+{
+	GSReadyPlayers -=1 ;
 }

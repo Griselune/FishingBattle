@@ -4,9 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
-
-
-
+//#include "GameFramework/GameModeBase.h"
+//#include "GameFramework/GameMode.h"
+//#include "PrinzBranch/GM_MenuGameMode.h"
 
 #include "MenuPlayerController.generated.h"
 UCLASS()
@@ -21,11 +21,16 @@ public:
 	UFUNCTION(BlueprintCallable, Server, Reliable)
 	void SendDataToServer(const FString& InName);
 
-	UFUNCTION(BlueprintCallable, Client, Reliable)
+	UFUNCTION(BlueprintCallable, Server, Reliable)
 	void SendLogoutToServer(APlayerState* Exiting);
+
+	UFUNCTION(BlueprintCallable, Server, Reliable)
+	void SendReadyToServer(bool isReady);
 
 protected:
 
 	virtual void BeginPlay() override;
+
+	//virtual void Logout(AController* Exiting) override;
 	
 };
