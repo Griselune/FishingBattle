@@ -21,6 +21,7 @@ DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 // AFishingBattleCharacter
 
 AFishingBattleCharacter::AFishingBattleCharacter()
+	: Sea(nullptr)
 {
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
@@ -66,7 +67,9 @@ float AFishingBattleCharacter::TakeDamage(float DamageAmount, FDamageEvent const
 		return 0.0f;
 	}
 	// 2025.07.24 ウー end
+	// 回避状態に入ってる
 	if (IsRoll)return 0.0f;
+	// 既に死んだら
 	if (IsDead)return 0.0f;
 
 	// 2025.07.24 ウー start
@@ -109,12 +112,17 @@ void AFishingBattleCharacter::Heal_Implementation(float healAmount)
 	// 自分も更新する
 	UpdateHP(MaxHealth, Health);
 }
-// 2025.07.17 ウー end
+
+void AFishingBattleCharacter::EnterSea(AActor* Actor)
+{
+	Sea = Actor;
+}
 
 float AFishingBattleCharacter::GetMaxHealth() const
 {
 	return MaxHealth;
 }
+// 2025.07.17 ウー end
 
 void AFishingBattleCharacter::EnterSpot(AActor* spot)
 {
@@ -398,6 +406,11 @@ void AFishingBattleCharacter::OnRollEnded(UAnimMontage* Montage, bool in)
 	//GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 	IsRoll = false;
 
+	// 海にいるなら
+	if (Sea)
+	{
+		UGameplayStatics::ApplyDamage(this, GetMaxHealth(), nullptr, Sea, UDamageType::StaticClass());
+	}
 
 	FTimerHandle ReloadRoll;
 	GetWorld()->GetTimerManager().SetTimer(
@@ -407,6 +420,7 @@ void AFishingBattleCharacter::OnRollEnded(UAnimMontage* Montage, bool in)
 		3.0f, // 100ms の遅延
 		false
 	);
+
 }
 
 void AFishingBattleCharacter::Jump()
