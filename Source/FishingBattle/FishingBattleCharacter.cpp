@@ -411,7 +411,7 @@ void AFishingBattleCharacter::EquipSlot1()
 				ChangeMappingContext(DefaultMappingContext);
 			}
 			}),
-		0.1f,
+		0.01f,
 		false
 	);
 }
@@ -440,7 +440,7 @@ void AFishingBattleCharacter::EquipSlot2()
 				ChangeMappingContext(DefaultMappingContext);
 			}
 			}),
-		0.1f,
+		0.01f,
 		false
 	);
 }
@@ -469,7 +469,7 @@ void AFishingBattleCharacter::EquipSlot3()
 				ChangeMappingContext(DefaultMappingContext);
 			}
 			}),
-		0.1f,
+		0.01f,
 		false
 	);
 }
