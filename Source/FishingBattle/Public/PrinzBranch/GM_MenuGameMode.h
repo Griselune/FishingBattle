@@ -16,5 +16,5 @@ class FISHINGBATTLE_API AGM_MenuGameMode : public AGameMode
 	
 public:
 	virtual void OnPostLogin(AController* NewPlayer)override;
-	//virtual void Logout(AController* Exiting) override;
+	virtual void Logout(AController* Exiting) override;
 };

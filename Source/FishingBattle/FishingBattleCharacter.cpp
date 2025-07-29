@@ -329,7 +329,7 @@ void AFishingBattleCharacter::Attack1()
 		Multi_Attack();
 		return;
 	}
-	if (IsPlayAttack1 || !AttackMontage || IsRoll || !GetCharacterMovement()->IsMovingOnGround()) return;
+	/*if (IsPlayAttack1 || !AttackMontage || IsRoll || !GetCharacterMovement()->IsMovingOnGround()) return;
 	UE_LOG(LogTemp, Warning, TEXT("attack!"));
 
 	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
@@ -344,7 +344,7 @@ void AFishingBattleCharacter::Attack1()
 		FOnMontageEnded Delegate;
 		Delegate.BindUObject(this, &AFishingBattleCharacter::OnAttackEnded);
 		animInstance->Montage_SetEndDelegate(Delegate, AttackMontage);
-	}
+	}*/
 
 }
 
@@ -373,22 +373,22 @@ void AFishingBattleCharacter::Roll()
 		Multi_Roll();
 		return;
 	}
-	if (IsRoll || !RollMontage || IsPlayAttack1 || !GetCharacterMovement()->IsMovingOnGround()) return;
-	UE_LOG(LogTemp, Warning, TEXT("Roll!"));
+	//if (IsRoll || !RollMontage || IsPlayAttack1 || !GetCharacterMovement()->IsMovingOnGround()) return;
+	//UE_LOG(LogTemp, Warning, TEXT("Roll!"));
 
-	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
-	if (!animInstance)return;
-	UMyAnimInstance* mAnim = Cast<UMyAnimInstance>(animInstance);
-	if (animInstance && mAnim) {
-		if (mAnim->Isjump) return;
-		//GetCharacterMovement()->DisableMovement();
-		animInstance->Montage_Play(RollMontage);
-		IsRoll = true;
+	//UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
+	//if (!animInstance)return;
+	//UMyAnimInstance* mAnim = Cast<UMyAnimInstance>(animInstance);
+	//if (animInstance && mAnim) {
+	//	if (mAnim->Isjump) return;
+	//	//GetCharacterMovement()->DisableMovement();
+	//	animInstance->Montage_Play(RollMontage);
+	//	IsRoll = true;
 
-		FOnMontageEnded Delegate;
-		Delegate.BindUObject(this, &AFishingBattleCharacter::OnRollEnded);
-		animInstance->Montage_SetEndDelegate(Delegate, RollMontage);
-	}
+	//	FOnMontageEnded Delegate;
+	//	Delegate.BindUObject(this, &AFishingBattleCharacter::OnRollEnded);
+	//	animInstance->Montage_SetEndDelegate(Delegate, RollMontage);
+	//}
 }
 
 void AFishingBattleCharacter::ReloadCanRoll()
@@ -441,18 +441,18 @@ void AFishingBattleCharacter::Die()
 		Server_Dead();
 		return;
 	}
-	if (IsDead)return;
-	UE_LOG(LogTemp, Warning, TEXT("dead!start"));
-	GetCharacterMovement()->DisableMovement();
-	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
-	if (animInstance) {
-		animInstance->Montage_Play(DeadMontage);
-		IsDead = true;
-	}
+	//if (IsDead)return;
+	//UE_LOG(LogTemp, Warning, TEXT("dead!start"));
+	//GetCharacterMovement()->DisableMovement();
+	//UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
+	//if (animInstance) {
+	//	animInstance->Montage_Play(DeadMontage);
+	//	IsDead = true;
+	//}
 
-	FOnMontageEnded Delegate;
-	Delegate.BindUObject(this, &AFishingBattleCharacter::OnDeadEnded);
-	animInstance->Montage_SetEndDelegate(Delegate, DeadMontage);
+	//FOnMontageEnded Delegate;
+	//Delegate.BindUObject(this, &AFishingBattleCharacter::OnDeadEnded);
+	//animInstance->Montage_SetEndDelegate(Delegate, DeadMontage);
 
 	//FTimerHandle TimerHandle;
 	//GetWorldTimerManager().SetTimer(TimerHandle, this, &AFishingBattleCharacter::canDestroy, 5.0f, false);
