@@ -28,17 +28,6 @@ void AGameMode_T::RespawnPlayerT(AController* Controller)
     AActor* StartSpot = FindPlayerStart(Controller);
     if (!StartSpot) return;
 
-    //FVector Location = StartSpot->GetActorLocation();
-    //FRotator Rotation = StartSpot->GetActorRotation();
-
-
-    //FRandomStream Stream;
-    //Stream.GenerateNewSeed();  // 毎回違う乱数列
-    //float randomX = Stream.RandRange(-50.0f, 50.0f);
-    //float randomY = Stream.RandRange(-50.0f, 50.0f);
-
-    //Location.X += randomX;
-    //Location.Y += randomY;
     FVector Location;
     FRotator Rotation;
     bool bHit = false;

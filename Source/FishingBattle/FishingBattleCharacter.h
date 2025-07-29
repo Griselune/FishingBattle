@@ -27,7 +27,30 @@ UCLASS(config = Game)
 class FISHINGBATTLE_API AFishingBattleCharacter : public ACharacter
 {
 	GENERATED_BODY()
+public:
+	AFishingBattleCharacter();
 
+	/// <summary>
+	/// すごい文字化けしてる
+	/// </summary>
+	/// <param name="DamageAmount"></param>
+	/// <param name="DamageEvent"></param>
+	/// <param name="EventInstigator"></param>
+	/// <param name="DamageCauser"></param>
+	/// <returns></returns>
+	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent,
+		AController* EventInstigator, AActor* DamageCauser) override;
+
+	/** Returns CameraBoom subobject **/
+	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
+	/** Returns FollowCamera subobject **/
+	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+
+	virtual void BeginPlay() override;
+
+#pragma region インプット
+
+public:
 	/** Camera boom positioning the camera behind the character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	USpringArmComponent* CameraBoom;
@@ -85,7 +108,18 @@ class FISHINGBATTLE_API AFishingBattleCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* SwitchFishlot;
 
+protected:
+	/// <summary>
+	/// マッピングコンテクストの切り替えで操作を制限する。
+	/// </summary>
+	/// <param name="context_"></param>
+	void ChangeMappingContext(UInputMappingContext* context_);
+	//void RemoveMappingContext(UInputMappingContext* context_);
+	UInputMappingContext* nowMappingContext = nullptr;
+#pragma endregion
 
+#pragma region アニメーション
+public:
 	UPROPERTY(EditDefaultsOnly, Category = "Anim")
 	UAnimMontage* AttackMontage;
 
@@ -100,24 +134,14 @@ class FISHINGBATTLE_API AFishingBattleCharacter : public ACharacter
 
 	UPROPERTY(EditDefaultsOnly, Category = "Anim")
 	UAnimMontage* FishingMontage;
+#pragma endregion
 
 
-
-public:
-	AFishingBattleCharacter();
-
-	/// <summary>
-	/// すごい文字化けしてる
-	/// </summary>
-	/// <param name="DamageAmount"></param>
-	/// <param name="DamageEvent"></param>
-	/// <param name="EventInstigator"></param>
-	/// <param name="DamageCauser"></param>
-	/// <returns></returns>
-	virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent,
-		AController* EventInstigator, AActor* DamageCauser) override;
-
+#pragma region キャラクターステータス
 private:
+
+	bool UnDead = true;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HP", meta = (AllowPrivateAccess = "true"), Replicated, ReplicatedUsing = OnRep_UpdatedHealth)
 	float Health = 100.0f;
 
@@ -125,13 +149,13 @@ private:
 	float MaxHealth;
 
 	/// <summary>
-	/// 海
+	/// プレイヤーステートの死に回数計測変数に加算。
 	/// </summary>
-	AActor* Sea;
+	void AddToDeadCounter();
+#pragma endregion
 
+#pragma region 外部から呼び出し
 public:
-
-	// 2025.07.17 ウー start
 
 	/// <summary>
 	/// 海に入った
@@ -151,8 +175,6 @@ public:
 	UFUNCTION(Server, Reliable)
 	void Heal(float healAmount);
 
-	// 2025.07.17 ウー end
-
 	/// <summary>
 	/// 釣り場侵入
 	/// </summary>
@@ -171,15 +193,23 @@ public:
 	int fish = 0;
 	UPROPERTY(EditAnywhere)
 	bool canFishing = false;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Fishing")
+	bool canFish = false;
+
+private:
+	/// <summary>
+	/// 海
+	/// </summary>
+	AActor* Sea;
+
+	/// <summary>
+	/// 釣り場
+	/// </summary>
 	AActor* fishingSpot = nullptr;
+#pragma endregion
 
-
-
-
-
-
-
-
+#pragma region アニメーションモンタージュ再生から終了までの処理
 protected:
 
 	/** Called for movement input */
@@ -246,7 +276,10 @@ protected:
 	/// 釣りモーション終了
 	/// </summary>
 	void OnFishingEnded(UAnimMontage* Montage, bool in);
+#pragma endregion
 
+#pragma region RPC関数
+protected:
 	/// <summary>
 	/// 死亡モーション終了後
 	/// </summary>
@@ -259,22 +292,10 @@ protected:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_Dead();  //　クライアント用
 
+
 	/// <summary>
-	/// ゲームモード(サーバー)へのリスポーン要求
+	/// 死亡モーション終了後
 	/// </summary>
-	void HandleDeath(); //　サーバー用
-
-
-	/// <summary>
-	/// リスポーン要求↑in
-	/// </summary>
-	void RequestRespawn(); //　リスポーンを要求
-
-	FTimerHandle RespawnTimerHandle;
-
-	/// <summary>
-/// 死亡モーション終了後
-/// </summary>
 	UFUNCTION(NetMulticast, Reliable, WithValidation)
 	void Multi_Die();  // サーバー用
 
@@ -303,49 +324,12 @@ protected:
 	UFUNCTION(NetMulticast, Reliable, WithValidation)
 	void Multi_Fishing();  // サーバー用
 
-
-
-
-
-
-
-
-
-
-protected:
-
-	virtual void NotifyControllerChanged() override;
-
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
-public:
-	/** Returns CameraBoom subobject **/
-	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
-	/** Returns FollowCamera subobject **/
-	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
-
-	virtual void BeginPlay() override;
-
-	//インベントリ関連
-public:
-	//武器のアクター登録
-	UPROPERTY(Replicated, ReplicatedUsing = OnRep_EquipWeapon)
-	AActor* weaponActor;
-
-	//ゲームモードに移した
-	//UPROPERTY(EditDefaultsOnly)
-	//TMap<FName, TSubclassOf<AActor>> weaponMap;
-
-
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_EquipWeapon(TSubclassOf<AActor> weaponID);//クライアント用
 
 	UFUNCTION(NetMulticast, Reliable, WithValidation)
 	void Multi_EquipWeapon(TSubclassOf<AActor> weaponID);  // サーバー用
 
-	void EquipSlotIndex(int slotIndex);
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_EquipSlotIndex(int slotIndex);//クライアント用
@@ -353,16 +337,10 @@ public:
 	UFUNCTION(NetMulticast, Reliable, WithValidation)
 	void Multi_EquipSlotIndex(int slotIndex);  // サーバー用
 
-	UFUNCTION()
-	void OnRep_EquipWeapon();
-
 	/// <summary>
 	/// プレイヤーステートの中のインベントリ配列に武器を追加する。
 	/// </summary>
 	/// <param name="WeaponID"></param>
-	//UFUNCTION(Server, Reliable, WithValidation)
-	//void Server_AddWeaponInPlayer(TSubclassOf<AActor> WeaponID); //クライアント用
-
 	UFUNCTION(NetMulticast, Reliable, WithValidation)
 	void Multi_AddWeaponInPlayer(TSubclassOf<AActor> WeaponID);  // サーバー用
 
@@ -379,12 +357,68 @@ public:
 	void Server_BeginAddFishrot();//クライアント用
 
 	/// <summary>
-/// ゲーム開始時にインベントリ配列に釣り竿追加する。
-/// </summary>
+	/// ゲーム開始時にインベントリ配列に釣り竿追加する。
+	/// </summary>
 	UFUNCTION(NetMulticast, Reliable, WithValidation)
 	void Multi_BeginAddFishrot();//クライアント用
+#pragma endregion
 
 
+#pragma region オーバーライド
+protected:
+
+	virtual void NotifyControllerChanged() override;
+
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
+	/// <summary>
+	/// プレイヤーがコントローラーに所持されたとき呼ばれる.
+	/// プレイヤーステートも取得できる
+	/// </summary>
+	/// <param name="NewController"></param>
+	virtual void PossessedBy(AController* NewController) override;
+
+
+#pragma endregion
+
+#pragma region 武器装備
+public:
+	//武器のアクター登録
+	UPROPERTY(Replicated, ReplicatedUsing = OnRep_EquipWeapon)
+	AActor* weaponActor;
+
+	/// <summary>
+	/// 最初に装備できる釣り竿を指定
+	/// </summary>
+	UPROPERTY(BlueprintReadWrite, EditAnywhere)
+	TSubclassOf<AActor> FishRod;
+
+	/// <summary>
+	/// 所持中の武器が切り替わったときに呼ばれる現状logのみ
+	/// </summary>
+	UFUNCTION()
+	void OnRep_EquipWeapon();
+
+	/// <summary>
+	/// 武器のタイプを取得。
+	/// 装備した直後だと武器の初期化が終わっていない可能性があるので,遅延させている。
+	/// </summary>
+	UFUNCTION()
+	void DelayedCheckWeaponType();
+
+	/// <summary>
+	/// 現在装備している武器のタイプ
+	/// </summary>
+	UPROPERTY(Replicated, ReplicatedUsing = OnRep_AnimInstance, BlueprintReadWrite, Category = "Weapon")
+	ECPPWeaponType WeaponType = ECPPWeaponType::None;
+
+	/// <summary>
+	/// 武器のタイプが切り替わったときに呼ばれる
+	/// </summary>
+	UFUNCTION()
+	void OnRep_AnimInstance();
 protected:
 
 	/// <summary>
@@ -407,22 +441,21 @@ protected:
 	/// </summary>
 	void EquipFishlot();
 
+	/// <summary>
+	/// 武器を装備する
+	/// </summary>
+	/// <param name="weaponID"></param>
 	void EquipWeapon(TSubclassOf<AActor> weaponID);
 
+	/// <summary>
+	/// 引数の番号でインベントリを参照して武器があるか確認
+	/// </summary>
+	/// <param name="slotIndex"></param>
+	void EquipSlotIndex(int slotIndex);
+#pragma endregion
+
+#pragma region 体力UIに使用
 public:
-
-	// 2025.07.24 ウー start
-	// ごめん、僕間違った
-	//DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FHealthUpdate, float, maxHP, float, updateHP);
-
-	//UPROPERTY(BlueprintAssignable, Category = "Health")
-	//FHealthUpdate healthUpdate;
-
-	//UFUNCTION()
-	//void GetPlayerHealth(float maxHP, float updateHP);
-
-	//UFUNCTION(NetMulticast, Reliable, BlueprintCallable)
-	//void BroadcastHP(float maxHP, float updateHP);
 
 	/// <summary>
 	/// リスポーンの後、UIに何か更新が必要な時、ここで更新する
@@ -435,59 +468,25 @@ public:
 	/// <param name="MaxHP">最大HP</param>
 	/// <param name="NewHP">新しいHP</param>
 	void UpdateHP(float MaxHP, float NewHP);
-	
+
 	UFUNCTION()
 	void OnRep_UpdatedHealth();
-	// 2025.07.24 ウー end
 
+#pragma endregion
 
+#pragma region リスポーン
 protected:
-	/// <summary>
-	/// マッピングコンテクストの切り替えで操作を制限する。
-	/// </summary>
-	/// <param name="context_"></param>
-	void ChangeMappingContext(UInputMappingContext* context_);
-	//void RemoveMappingContext(UInputMappingContext* context_);
-	UInputMappingContext* nowMappingContext = nullptr;
-
-public:
-
-	UPROPERTY(Replicated, ReplicatedUsing = OnRep_AnimInstance, BlueprintReadWrite, Category = "Weapon")
-	ECPPWeaponType WeaponType = ECPPWeaponType::None;
-
-	UFUNCTION()
-	void OnRep_AnimInstance();
-
-
-	UFUNCTION()
-	void DelayedCheckWeaponType();
-
-public:
-	UPROPERTY(BlueprintReadWrite,Category = "Fishing")
-	bool canFish = false;
-
-
-	//UPROPERTY(Replicated, ReplicatedUsing = OnRep_DeadCounter, BlueprintReadWrite)
-	//int DeadCounter = 0;
-
-	//UFUNCTION()
-	//void OnRep_DeadCounter();
-	
-	/// <summary>
-	/// プレイヤーステートの死に回数計測変数に加算。
-	/// </summary>
-	void AddToDeadCounter();
-
-	//virtual void OnRep_PlayerState() override;
 
 	/// <summary>
-	/// プレイヤーがコントローラーに所持されたとき呼ばれるらしい。
-	/// プレイヤーステートも取得できる
+	/// ゲームモード(サーバー)へのリスポーン要求
 	/// </summary>
-	/// <param name="NewController"></param>
-	virtual void PossessedBy(AController* NewController) override;
+	void HandleDeath(); //　サーバー用
 
-	UPROPERTY(BlueprintReadWrite,EditAnywhere)
-	TSubclassOf<AActor> FishRod;
+
+	/// <summary>
+	/// リスポーン要求
+	/// </summary>
+	void RequestRespawn(); //　リスポーンを要求
+#pragma endregion
 };
 
