@@ -389,6 +389,7 @@ void AFishingBattleCharacter::EquipSlotIndex(int slotIndex)
 
 void AFishingBattleCharacter::EquipSlot1()
 {
+	if (IsPlayAttack1)return;
 	UE_LOG(LogTemp, Warning, TEXT("weapon1"));
 	//EquipSlotIndex(1);
 	if (!HasAuthority())
@@ -399,16 +400,25 @@ void AFishingBattleCharacter::EquipSlot1()
 		Multi_EquipSlotIndex(1);
 	}
 	//ChangeMappingContext(HasweaponMappingContext);
-	if (weaponActor) {
-		ChangeMappingContext(HasweaponMappingContext);
-	}
-	else {
-		ChangeMappingContext(DefaultMappingContext);
-	}
+	FTimerHandle WeaponCheckTimer;
+	GetWorldTimerManager().SetTimer(
+		WeaponCheckTimer,
+		FTimerDelegate::CreateLambda([this]() {
+			if (weaponActor) {
+				ChangeMappingContext(HasweaponMappingContext);
+			}
+			else {
+				ChangeMappingContext(DefaultMappingContext);
+			}
+			}),
+		0.1f,
+		false
+	);
 }
 
 void AFishingBattleCharacter::EquipSlot2()
 {
+	if (IsPlayAttack1)return;
 	UE_LOG(LogTemp, Warning, TEXT("weapon2"));
 	//EquipSlotIndex(2);
 	if (!HasAuthority())
@@ -419,16 +429,25 @@ void AFishingBattleCharacter::EquipSlot2()
 		Multi_EquipSlotIndex(2);
 	}
 	//ChangeMappingContext(HasweaponMappingContext);
-	if (weaponActor) {
-		ChangeMappingContext(HasweaponMappingContext);
-	}
-	else {
-		ChangeMappingContext(DefaultMappingContext);
-	}
+	FTimerHandle WeaponCheckTimer;
+	GetWorldTimerManager().SetTimer(
+		WeaponCheckTimer,
+		FTimerDelegate::CreateLambda([this]() {
+			if (weaponActor) {
+				ChangeMappingContext(HasweaponMappingContext);
+			}
+			else {
+				ChangeMappingContext(DefaultMappingContext);
+			}
+			}),
+		0.1f,
+		false
+	);
 }
 
 void AFishingBattleCharacter::EquipSlot3()
 {
+	if (IsPlayAttack1)return;
 	UE_LOG(LogTemp, Warning, TEXT("weapon3"));
 	//EquipSlotIndex(3);
 	if (!HasAuthority())
@@ -439,16 +458,25 @@ void AFishingBattleCharacter::EquipSlot3()
 		Multi_EquipSlotIndex(3);
 	}
 	//ChangeMappingContext(HasweaponMappingContext);
-	if (weaponActor) {
-		ChangeMappingContext(HasweaponMappingContext);
-	}
-	else {
-		ChangeMappingContext(DefaultMappingContext);
-	}
+	FTimerHandle WeaponCheckTimer;
+	GetWorldTimerManager().SetTimer(
+		WeaponCheckTimer,
+		FTimerDelegate::CreateLambda([this]() {
+			if (weaponActor) {
+				ChangeMappingContext(HasweaponMappingContext);
+			}
+			else {
+				ChangeMappingContext(DefaultMappingContext);
+			}
+			}),
+		0.1f,
+		false
+	);
 }
 
 void AFishingBattleCharacter::EquipFishlot()
 {
+	if (IsPlayAttack1)return;
 	UE_LOG(LogTemp, Warning, TEXT("fishing"));
 	//EquipSlotIndex(0);
 	if (!HasAuthority())
