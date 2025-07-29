@@ -49,6 +49,9 @@ public:
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
     TMap<APlayerState*, FString> GSPlayerList;
 
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data", Replicated, ReplicatedUsing = OnRep_SessionData)
+    int32 GSReadyPlayers = 0;
+
 
     /// <summary>
     /// Functions
@@ -61,9 +64,14 @@ public:
     UFUNCTION(BlueprintCallable, NetMulticast, Reliable)
     void RemovePlayerFromList(APlayerState* PS);
 
-
     UFUNCTION(BlueprintCallable, NetMulticast, Reliable)
     void HostAddPlayerList();
+
+    UFUNCTION(BlueprintCallable, NetMulticast, Reliable)
+    void HostAddReadyPlayer();
+
+    UFUNCTION(BlueprintCallable, NetMulticast, Reliable)
+    void HostRemoveReadyPlayer();
 
 private:
 

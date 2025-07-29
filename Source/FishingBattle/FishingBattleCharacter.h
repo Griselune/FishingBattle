@@ -360,8 +360,8 @@ public:
 	/// プレイヤーステートの中のインベントリ配列に武器を追加する。
 	/// </summary>
 	/// <param name="WeaponID"></param>
-	UFUNCTION(Server, Reliable, WithValidation)
-	void Server_AddWeaponInPlayer(TSubclassOf<AActor> WeaponID); //クライアント用
+	//UFUNCTION(Server, Reliable, WithValidation)
+	//void Server_AddWeaponInPlayer(TSubclassOf<AActor> WeaponID); //クライアント用
 
 	UFUNCTION(NetMulticast, Reliable, WithValidation)
 	void Multi_AddWeaponInPlayer(TSubclassOf<AActor> WeaponID);  // サーバー用
