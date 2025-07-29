@@ -124,9 +124,19 @@ private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HP", meta = (AllowPrivateAccess = "true"))
 	float MaxHealth;
 
+	/// <summary>
+	/// 海
+	/// </summary>
+	AActor* Sea;
+
 public:
 
 	// 2025.07.17 ウー start
+
+	/// <summary>
+	/// 海に入った
+	/// </summary>
+	void EnterSea(AActor* Actor);
 
 	/// <summary>
 	/// 最大HPをゲット

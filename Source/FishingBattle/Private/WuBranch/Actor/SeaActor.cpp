@@ -54,6 +54,7 @@ void ASeaActor::OnGroundAreaBeginOverlap(UPrimitiveComponent* OverlappedComponen
 				
 				// 即死
 				Player->TakeDamage(100.0f, FDamageEvent(), nullptr, this);
+				Player->EnterSea(this);
 			}
 		}
 	}
