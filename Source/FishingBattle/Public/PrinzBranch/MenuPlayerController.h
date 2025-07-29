@@ -4,9 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
-
-
-
+//#include "GameFramework/GameModeBase.h"
+//#include "GameFramework/GameMode.h"
+//#include "PrinzBranch/GM_MenuGameMode.h"
 
 #include "MenuPlayerController.generated.h"
 UCLASS()
@@ -27,5 +27,7 @@ public:
 protected:
 
 	virtual void BeginPlay() override;
+
+	//virtual void Logout(AController* Exiting) override;
 	
 };

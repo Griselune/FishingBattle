@@ -3,6 +3,8 @@
 #include "PrinzBranch/MenuPlayerController.h"
 #include "PrinzBranch/GS_MenuGameState.h"
 #include "PrinzBranch/LANGameInstance.h"
+#include "GameFramework/GameModeBase.h"
+#include "GameFramework/GameMode.h"
 #include "Kismet/GameplayStatics.h"
 
 void AMenuPlayerController::GetDataFromServer_Implementation(const FString& InName)  //Server Only
@@ -52,3 +54,19 @@ void AMenuPlayerController::BeginPlay()
 		}
 	/*}*/
 }
+
+/// <summary>
+/// ログアウトした途端にサーバーに知らせる
+/// </summary>
+/// <param name="Exiting"></param>
+//void AMenuPlayerController::Logout(AController* Exiting)
+//{
+//	Super::Logout(Exiting);
+//
+//	APlayerState* PS = GetWorld()->GetFirstPlayerController<APlayerState>();
+//	//AMenuPlayerController* PC = Cast<AMenuPlayerController>(Exiting);
+//	if (IsLocalController())
+//	{
+//		SendLogoutToServer(PS);
+//	}
+//}

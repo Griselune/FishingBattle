@@ -8,6 +8,10 @@
 #include "GameFramework/PlayerController.h"
 #include "Kismet/GameplayStatics.h"
 
+/// <summary>
+/// ログインした途端にサーバーに情報を送る
+/// </summary>
+/// <param name="NewPlayer"></param>
 void AGM_MenuGameMode::OnPostLogin(AController* NewPlayer)
 {
     Super::OnPostLogin(NewPlayer);
@@ -21,14 +25,19 @@ void AGM_MenuGameMode::OnPostLogin(AController* NewPlayer)
 
 }
 
-//void AGM_MenuGameMode::Logout(AController* Exiting)
-//{
-//    Super::Logout(Exiting);
-//
-//    AMenuPlayerController* PC = Cast<AMenuPlayerController>(Exiting);
-//    if (PC && PC->IsLocalController())
-//    {
-//        ULANGameInstance* GI = Cast<ULANGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
-//        PC->SendLogoutToServer(Exiting);
-//    }
-//}
+/// <summary>
+/// ログアウトした途端にサーバーに知らせる
+/// </summary>
+/// <param name="Exiting"></param>
+void AGM_MenuGameMode::Logout(AController* Exiting)
+{
+    Super::Logout(Exiting);
+
+    APlayerState* PS = GetWorld()->GetFirstPlayerController<APlayerState>();
+    AMenuPlayerController* PC = Cast<AMenuPlayerController>(Exiting);
+    if (PC->IsLocalController())
+    {
+        //ULANGameInstance* GI = Cast<ULANGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
+        PC->SendLogoutToServer(PS);
+    }
+}
