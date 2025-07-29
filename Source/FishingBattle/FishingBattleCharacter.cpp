@@ -741,9 +741,13 @@ void AFishingBattleCharacter::OnFishingEnded(UAnimMontage* Montage, bool in)
 	//}
 
 	//なぜかわからないがサーバーのみで処理すると正常にクライアントも動作する
+	// Multi_AddWeaponInPlayerはNetMulticastを使ってるので、サーバーを含めた全員に飛ばしてる
 	if (HasAuthority()) {
-		TSubclassOf<AActor> weaponActorSubclass = Cast<AFishingGround>(fishingSpot)->GetFish();
-		Multi_AddWeaponInPlayer(weaponActorSubclass);
+		if (fishingSpot)
+		{
+			if (TSubclassOf<AActor> weaponActorSubclass = Cast<AFishingGround>(fishingSpot)->GetFish())
+				Multi_AddWeaponInPlayer(weaponActorSubclass);
+		}
 		//if (cnt == 1) {
 		//	Server_AddWeaponInPlayer("Fishinglot");
 		//	cnt++;
@@ -814,9 +818,9 @@ bool AFishingBattleCharacter::Multi_EquipSlotIndex_Validate(int slotIndex) {
 	return true;
 }
 
-bool AFishingBattleCharacter::Server_AddWeaponInPlayer_Validate(TSubclassOf<AActor> WeaponID) {
-	return true;
-}
+//bool AFishingBattleCharacter::Server_AddWeaponInPlayer_Validate(TSubclassOf<AActor> WeaponID) {
+//	return true;
+//}
 
 bool AFishingBattleCharacter::Multi_AddWeaponInPlayer_Validate(TSubclassOf<AActor> WeaponID) {
 	return true;
@@ -837,30 +841,30 @@ bool AFishingBattleCharacter::Multi_BeginAddFishrot_Validate(){
 	return true;
 }
 
-void AFishingBattleCharacter::Server_AddWeaponInPlayer_Implementation(TSubclassOf<AActor> WeaponID) {
-	UE_LOG(LogTemp, Error, TEXT("addweaponInPlayer!!!!!!!!!!!!!!!!!!!!!!!"));
-	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
-	TSubclassOf<AActor> weaponActorSubclass = Cast<AFishingGround>(fishingSpot)->GetFish();
-	if (ps)
-	{
-		if (weaponActorSubclass) {
-			UE_LOG(LogTemp, Error, TEXT("addweaponInPlayer!!!!!!!!!!!!!!!!!!!!!!!"));
-			ps->Server_AddWeapon(weaponActorSubclass);
-		}
-	}
-	else {
-		UE_LOG(LogTemp, Error, TEXT("プレイヤーステートないけどどうする？"));
-	}
-}
+//void AFishingBattleCharacter::Server_AddWeaponInPlayer_Implementation(TSubclassOf<AActor> WeaponID) {
+//	UE_LOG(LogTemp, Error, TEXT("addweaponInPlayer!!!!!!!!!!!!!!!!!!!!!!!"));
+//	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
+//	TSubclassOf<AActor> weaponActorSubclass = Cast<AFishingGround>(fishingSpot)->GetFish();
+//	if (ps)
+//	{
+//		if (WeaponID) {
+//			UE_LOG(LogTemp, Error, TEXT("addweaponInPlayer!!!!!!!!!!!!!!!!!!!!!!!"));
+//			ps->Server_AddWeapon(WeaponID);
+//		}
+//	}
+//	else {
+//		UE_LOG(LogTemp, Error, TEXT("プレイヤーステートないけどどうする？"));
+//	}
+//}
 
 void  AFishingBattleCharacter::Multi_AddWeaponInPlayer_Implementation(TSubclassOf<AActor> WeaponID) {
 	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
-	TSubclassOf<AActor> weaponActorSubclass = Cast<AFishingGround>(fishingSpot)->GetFish();
+	//TSubclassOf<AActor> weaponActorSubclass = Cast<AFishingGround>(fishingSpot)->GetFish();
 	if (ps)
 	{
-		if (weaponActorSubclass) {
+		if (WeaponID) {
 			UE_LOG(LogTemp, Error, TEXT("addweaponInPlayer!!!!!!!!!!!!!!!!!!!!!!!"));
-			ps->Server_AddWeapon(weaponActorSubclass);
+			ps->Server_AddWeapon(WeaponID);
 		}
 	}
 	else {
