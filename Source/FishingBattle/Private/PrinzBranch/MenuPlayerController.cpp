@@ -23,8 +23,7 @@ void AMenuPlayerController::SendDataToServer_Implementation(const FString& InNam
 //	ULANGameInstance* GI = Cast<ULANGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
 	AGS_MenuGameState* GS = GetWorld()->GetGameState<AGS_MenuGameState>();
 	APlayerState* PS = GetWorld()->GetFirstPlayerController<APlayerState>();
-		GS->AddPlayerToList_Implementation(PS, InName); //Serverのプレヤーリストに自身を追加する
-		//Get ID in return ?
+	GS->AddPlayerToList_Implementation(PS, InName); //Serverのプレヤーリストに自身を追加する
 }
 
 void AMenuPlayerController::SendLogoutToServer_Implementation(APlayerState* Exiting)
@@ -33,6 +32,17 @@ void AMenuPlayerController::SendLogoutToServer_Implementation(APlayerState* Exit
 	AGS_MenuGameState* GS = GetWorld()->GetGameState<AGS_MenuGameState>();
 	//APlayerState* PS = GetWorld()->GetFirstPlayerController<APlayerState>();
 	GS->RemovePlayerFromList_Implementation(Exiting); //Serverのプレヤーリストに自身を追加する
+}
+
+void AMenuPlayerController::SendReadyToServer_Implementation(bool isReady)
+{
+	AGS_MenuGameState* GS = GetWorld()->GetGameState<AGS_MenuGameState>();
+	if (isReady) {
+		GS->HostAddReadyPlayer_Implementation();
+	}
+	else {
+		GS->HostRemoveReadyPlayer_Implementation();
+	}
 }
 
 void AMenuPlayerController::BeginPlay()

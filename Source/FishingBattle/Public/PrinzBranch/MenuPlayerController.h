@@ -21,8 +21,11 @@ public:
 	UFUNCTION(BlueprintCallable, Server, Reliable)
 	void SendDataToServer(const FString& InName);
 
-	UFUNCTION(BlueprintCallable, Client, Reliable)
+	UFUNCTION(BlueprintCallable, Server, Reliable)
 	void SendLogoutToServer(APlayerState* Exiting);
+
+	UFUNCTION(BlueprintCallable, Server, Reliable)
+	void SendReadyToServer(bool isReady);
 
 protected:
 

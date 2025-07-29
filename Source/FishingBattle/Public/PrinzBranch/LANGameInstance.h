@@ -46,10 +46,8 @@ public:
     TMap<APlayerState*, FString> GIPlayerList; //Serverが持っているプレヤーリストのコピー
 
 
-    //
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")  //potentially useless if Playercontroller is enough
-    int32 GIid = 0;
-    //
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
+    bool GIisReady = false;
 
     //UFUNCTION(BlueprintCallable, Category = "LAN Session")
     //void CreateLANSession(const FString& SessionName, const FString& Password, const int32& PlayerLimit, const int32& TimeLimit); //added playerlimit and timelimit
