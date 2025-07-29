@@ -64,6 +64,11 @@ public:
     TArray<FPlayerRecord> GetRecords() const;
 
     /// <summary>
+    /// 記録をクリアする
+    /// </summary>
+    void ClearRecords();
+
+    /// <summary>
     /// 記録する
     /// </summary>
     /// <param name="Record"></param>

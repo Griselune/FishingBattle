@@ -19,11 +19,6 @@ AFishingBattleGameState::AFishingBattleGameState()
 void AFishingBattleGameState::BeginPlay()
 {
 	Super::BeginPlay();
-
-	if (HasAuthority())
-	{
-		Server_ChangeState(EGameStateList::CheckPlayerState);	
-	}
 }
 
 void AFishingBattleGameState::Tick(float DeltaTime)
