@@ -28,6 +28,11 @@ void ADeathMatchGameState::BeginPlay()
 	{
 		Client_OnGameStateChanged.AddDynamic(this, &ADeathMatchGameState::OnGameStateChanged);
 	}
+
+	if (HasAuthority())
+	{
+		Server_ChangeState(EGameStateList::CheckPlayerState);
+	}
 }
 
 void ADeathMatchGameState::Tick(float DeltaTime)
@@ -48,7 +53,13 @@ void ADeathMatchGameState::OnGameStateChanged(EGameStateList State)
 	// サーバー側のみ実行
 	if(HasAuthority())
 	{
-		UE_LOG(LogTemp, Display, TEXT("Server Get GameState Changed: %d"), (int)State);
+		if (State == EGameStateList::CheckPlayerState)
+		{
+			if (ULANGameInstance* Instance = GetGameInstance<ULANGameInstance>())
+			{
+				Instance->ClearRecords();
+			}
+		}
 		if (State == EGameStateList::Started)
 		{
 			GameTimer->Start();

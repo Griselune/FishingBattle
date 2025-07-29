@@ -57,6 +57,11 @@ TArray<FPlayerRecord> ULANGameInstance::GetRecords() const
     return GameRecords;
 }
 
+void ULANGameInstance::ClearRecords()
+{
+    GameRecords.Empty();
+}
+
 void ULANGameInstance::AddRecord(const FPlayerRecord& Record)
 {
     // 直接に追加
