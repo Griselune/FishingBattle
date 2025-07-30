@@ -18,6 +18,8 @@ public:
 
 protected:
 
+	void BeginPlay() override;
+
 	UPROPERTY(EditAnywhere)
 	TObjectPtr<USceneComponent> DefaultSceneRoot;
 
@@ -28,5 +30,7 @@ protected:
 	TObjectPtr<USphereComponent> SphereCollision;
 
 public:
+
+	void Tick(float DeltaTime) override;
 
 };

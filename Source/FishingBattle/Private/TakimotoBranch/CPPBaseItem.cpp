@@ -7,7 +7,7 @@
 ACPPBaseItem::ACPPBaseItem()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 
 	DefaultSceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
 	RootComponent = DefaultSceneRoot;
@@ -18,4 +18,14 @@ ACPPBaseItem::ACPPBaseItem()
 	SphereCollision = CreateDefaultSubobject<USphereComponent>(TEXT("BoxCollision"));
 	SphereCollision->SetupAttachment(RootComponent);
 
+}
+
+void ACPPBaseItem::BeginPlay()
+{
+	Super::BeginPlay();
+}
+
+void ACPPBaseItem::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
 }
