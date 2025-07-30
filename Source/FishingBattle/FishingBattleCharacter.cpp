@@ -109,6 +109,7 @@ void AFishingBattleCharacter::BeginPlay()
 	Health = MaxHealth;
 	// 2025.07.24 ウー end
 
+	//スポーンしてから5秒無敵にする
 	FTimerHandle WeaponCheckTimer;
 	GetWorldTimerManager().SetTimer(
 		WeaponCheckTimer,
@@ -362,6 +363,9 @@ void AFishingBattleCharacter::EquipSlotIndex(int slotIndex)
 	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
 	if (!ps)return;
 
+
+	//引数の番号を参照してプレイヤーステート内のインベントリから武器を取得
+	//インベントリに武器がなければ素手になる。
 	const FInventoryWeapon* weapon = ps->GetweaponSlot(slotIndex);
 	if (weapon) {
 		Server_EquipWeapon(weapon->weaponActor);
@@ -400,6 +404,8 @@ void AFishingBattleCharacter::EquipSlot1()
 		Multi_EquipSlotIndex(1);
 	}
 	//ChangeMappingContext(HasweaponMappingContext);
+	//サーバー同期の関係か、変数の取得を直接行うと値が反映されないので、
+	//少し遅延をかけて取得できるようにしている。(0.01秒)
 	FTimerHandle WeaponCheckTimer;
 	GetWorldTimerManager().SetTimer(
 		WeaponCheckTimer,
@@ -411,7 +417,7 @@ void AFishingBattleCharacter::EquipSlot1()
 				ChangeMappingContext(DefaultMappingContext);
 			}
 			}),
-		0.01f,
+		0.1f,
 		false
 	);
 }
@@ -429,6 +435,8 @@ void AFishingBattleCharacter::EquipSlot2()
 		Multi_EquipSlotIndex(2);
 	}
 	//ChangeMappingContext(HasweaponMappingContext);
+	//サーバー同期の関係か、変数の取得を直接行うと値が反映されないので、
+	//少し遅延をかけて取得できるようにしている。(0.01秒)
 	FTimerHandle WeaponCheckTimer;
 	GetWorldTimerManager().SetTimer(
 		WeaponCheckTimer,
@@ -440,7 +448,7 @@ void AFishingBattleCharacter::EquipSlot2()
 				ChangeMappingContext(DefaultMappingContext);
 			}
 			}),
-		0.01f,
+		0.1f,
 		false
 	);
 }
@@ -458,6 +466,8 @@ void AFishingBattleCharacter::EquipSlot3()
 		Multi_EquipSlotIndex(3);
 	}
 	//ChangeMappingContext(HasweaponMappingContext);
+	//サーバー同期の関係か、変数の取得を直接行うと値が反映されないので、
+	//少し遅延をかけて取得できるようにしている。(0.01秒)
 	FTimerHandle WeaponCheckTimer;
 	GetWorldTimerManager().SetTimer(
 		WeaponCheckTimer,
@@ -469,7 +479,7 @@ void AFishingBattleCharacter::EquipSlot3()
 				ChangeMappingContext(DefaultMappingContext);
 			}
 			}),
-		0.01f,
+		0.1f,
 		false
 	);
 }
@@ -491,13 +501,14 @@ void AFishingBattleCharacter::EquipFishlot()
 
 void AFishingBattleCharacter::EquipWeapon(TSubclassOf<AActor> weaponID)
 {
+	//すでに武器を持っていたら破壊。
 	if (weaponActor) {
 		weaponActor->Destroy();
 		weaponActor = nullptr;
 	}
 
 
-	//アクターをスポーンしてソケットにアタッチする
+	//アクターをスポーンしてソケットにアタッチする方法
 	//AGameMode_T* gm = Cast<AGameMode_T>(UGameplayStatics::GetGameMode(this));
 	//if (!gm)return;
 
@@ -515,14 +526,14 @@ void AFishingBattleCharacter::EquipWeapon(TSubclassOf<AActor> weaponID)
 
 	//-----------------------------------------------------------------------
 
-	//アクターをチャイルドアクターに登録する
+	//アクターをチャイルドアクターに登録する方法
 	AGameMode_T* gm = Cast<AGameMode_T>(UGameplayStatics::GetGameMode(this));
 	if (!gm)return;
 
 	UE_LOG(LogTemp, Warning, TEXT("weaponClass is: %s"), *weaponID->GetName());
 	//if (weaponClass) {
 
-
+	//ポーンのチャイルドアクターコンポーネント取得
 	UChildActorComponent* weaponChildComponent = nullptr;
 	TArray<UChildActorComponent*> ChildActorComponents;
 	GetComponents<UChildActorComponent>(ChildActorComponents);
@@ -534,6 +545,7 @@ void AFishingBattleCharacter::EquipWeapon(TSubclassOf<AActor> weaponID)
 			break;
 		}
 	}
+	//チャイルドアクターコンポーネントにアクターをアタッチ、現在装備している武器として登録
 	if (weaponChildComponent)
 	{
 		if (weaponChildComponent->GetChildActor())
@@ -654,6 +666,7 @@ bool AFishingBattleCharacter::Multi_BeginAddFishrot_Validate() {
 
 #pragma region オーバーライド
 
+//プレイヤーステート等の初期化が終わってから呼ばれる
 void AFishingBattleCharacter::NotifyControllerChanged()
 {
 	Super::NotifyControllerChanged();
@@ -671,6 +684,7 @@ void AFishingBattleCharacter::NotifyControllerChanged()
 	}
 }
 
+//レプリケートする変数の登録
 void AFishingBattleCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -681,6 +695,7 @@ void AFishingBattleCharacter::GetLifetimeReplicatedProps(TArray<FLifetimePropert
 	// 2025.07.24 ウー end
 }
 
+//プレイヤーがコントローラーを取得したときに呼ばれる
 void AFishingBattleCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
@@ -740,6 +755,7 @@ void AFishingBattleCharacter::ChangeMappingContext(UInputMappingContext* context
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
+			//現在のマッピングコンテクストを削除、あたらしいものにきりかえる。
 			Subsystem->RemoveMappingContext(nowMappingContext);
 			Subsystem->AddMappingContext(context_, 0);
 			nowMappingContext = context_;

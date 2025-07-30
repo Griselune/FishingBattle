@@ -39,9 +39,14 @@ public:
 	UFUNCTION(BlueprintCallable)
 	UTexture2D* SetInventory3();
 
+	/// <summary>
+	/// 回避できるかどうかのUIの更新に使う
+	/// </summary>
+	/// <returns></returns>
 	UFUNCTION(BlueprintCallable)
 	bool CanRollState();
 
+	//UIの画像の入れ替えで使うテクスチャ
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Texture")
 	UTexture2D* sharkTexturer;
 

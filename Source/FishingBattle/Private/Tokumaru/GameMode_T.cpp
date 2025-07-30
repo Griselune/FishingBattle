@@ -37,9 +37,9 @@ void AGameMode_T::RespawnPlayerT(AController* Controller)
 
 
         FRandomStream Stream;
-        Stream.GenerateNewSeed();  // 毎回違う乱数列
-        float randomX = Stream.RandRange(-200.0f, 200.0f);
-        float randomY = Stream.RandRange(-200.0f, 200.0f);
+        Stream.GenerateNewSeed(); //種値更新
+        float randomX = Stream.RandRange(-400.0f, 400.0f);
+        float randomY = Stream.RandRange(-400.0f, 400.0f);
 
         Location.X += randomX;
         Location.Y += randomY;
