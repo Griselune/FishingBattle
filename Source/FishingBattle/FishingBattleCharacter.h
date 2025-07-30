@@ -31,7 +31,7 @@ public:
 	AFishingBattleCharacter();
 
 	/// <summary>
-	/// すごい文字化けしてる
+	/// ダメージをもらう
 	/// </summary>
 	/// <param name="DamageAmount"></param>
 	/// <param name="DamageEvent"></param>
@@ -140,6 +140,9 @@ public:
 #pragma region キャラクターステータス
 private:
 
+	/// <summary>
+	/// 無敵時間作成
+	/// </summary>
 	bool UnDead = true;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HP", meta = (AllowPrivateAccess = "true"), Replicated, ReplicatedUsing = OnRep_UpdatedHealth)
@@ -191,11 +194,10 @@ public:
 
 	//釣りしたとき受け取るものと釣りができるかの判定用。
 	int fish = 0;
+
+	//釣りが可能かどうか
 	UPROPERTY(EditAnywhere)
 	bool canFishing = false;
-
-	UPROPERTY(BlueprintReadWrite, Category = "Fishing")
-	bool canFish = false;
 
 private:
 	/// <summary>
@@ -305,35 +307,66 @@ protected:
 	UFUNCTION(NetMulticast, Reliable, WithValidation)
 	void Multi_Dead();  // サーバー用
 
+	/// <summary>
+	/// 攻撃開始
+	/// </summary>
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_Attack();  // クライアント用
 
+	/// <summary>
+	/// 回避開始
+	/// </summary>
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_Roll();  // クライアント用
 
+	/// <summary>
+	/// 釣り開始
+	/// </summary>
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_Fishing();  // クライアント用
 
-
+	/// <summary>
+	/// 攻撃開始
+	/// </summary>
 	UFUNCTION(NetMulticast, Reliable, WithValidation)
 	void Multi_Attack();  // サーバー用
 
+	/// <summary>
+	/// 回避開始
+	/// </summary>
 	UFUNCTION(NetMulticast, Reliable, WithValidation)
 	void Multi_Roll();  //サーバー用
 
+	/// <summary>
+	/// 釣り開始
+	/// </summary>
 	UFUNCTION(NetMulticast, Reliable, WithValidation)
 	void Multi_Fishing();  // サーバー用
 
+	/// <summary>
+	/// 武器装備
+	/// </summary>
+	/// <param name="weaponID"></param>
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_EquipWeapon(TSubclassOf<AActor> weaponID);//クライアント用
 
+	/// <summary>
+	/// 武器装備
+	/// </summary>
+	/// <param name="weaponID"></param>
 	UFUNCTION(NetMulticast, Reliable, WithValidation)
 	void Multi_EquipWeapon(TSubclassOf<AActor> weaponID);  // サーバー用
 
-
+	/// <summary>
+	/// 引数を使ってインベントリに武器があるか調べる
+	/// </summary>
+	/// <param name="slotIndex"></param>
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_EquipSlotIndex(int slotIndex);//クライアント用
 
+	/// <summary>
+    /// 引数を使ってインベントリに武器があるか調べる
+    /// </summary>
 	UFUNCTION(NetMulticast, Reliable, WithValidation)
 	void Multi_EquipSlotIndex(int slotIndex);  // サーバー用
 
@@ -385,7 +418,7 @@ protected:
 
 #pragma region 武器装備
 public:
-	//武器のアクター登録
+	//武器のアクター登録用
 	UPROPERTY(Replicated, ReplicatedUsing = OnRep_EquipWeapon)
 	AActor* weaponActor;
 
