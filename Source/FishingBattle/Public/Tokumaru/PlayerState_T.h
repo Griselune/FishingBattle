@@ -41,15 +41,27 @@ public:
 	//UFUNCTION(Server, Reliable, WithValidation)
 	
 	/// <summary>
-	/// プレイヤーステート内のインベントリ配列に指定した文字列を入れる。現在四つまで（釣り竿含む）
+	/// プレイヤーステート内のインベントリ配列に武器のアクターを入れる。現在四つまで（釣り竿含む）
 	/// </summary>
 	/// <param name="WeaponID"></param>
 	void Server_AddWeapon(TSubclassOf<AActor> WeaponID); //クライアント用
 
+	/// <summary>
+	/// インベントリの初期化
+	/// </summary>
 	void InventoryInitialize();
 
+	/// <summary>
+	/// インベントリに空きがあるか
+	/// </summary>
+	/// <returns></returns>
 	bool HasEmptySlot() const;
 
+    /// <summary>
+    /// 引数の番号のインベントリから武器を取得
+    /// </summary>
+    /// <param name="index"></param>
+    /// <returns></returns>
     const FInventoryWeapon* GetweaponSlot(int index) const;
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;

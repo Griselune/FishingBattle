@@ -20,13 +20,22 @@ private:
 
 	bool IsHeal;
 
+	float CurrentTime;
+
 protected:
+
+	void BeginPlay() override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Sound")
 	USoundBase* HealSound;
-	
-protected:
 
 	UFUNCTION(BlueprintCallable, Category = "Item")
 	void Heal(AActor* Player);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
+	float SpawnTime;
+
+public:
+
+	void Tick(float DeltaTime) override;
 };
