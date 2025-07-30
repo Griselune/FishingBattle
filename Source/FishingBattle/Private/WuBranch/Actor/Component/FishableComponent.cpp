@@ -51,6 +51,7 @@ TSubclassOf<AActor> UFishableComponent::GetFish()
 		{
 			//ACPPBaseWeapon* Weapon = NewObject<ACPPBaseWeapon>(GetWorld(), FishType.Key.Get());
 			Fish = FishType.Key;
+			break;
 		}
 			
 	}
