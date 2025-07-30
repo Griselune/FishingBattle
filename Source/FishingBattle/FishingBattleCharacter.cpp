@@ -186,7 +186,7 @@ void AFishingBattleCharacter::Multi_Attack_Implementation()
 		case ECPPWeaponType::WeaponTest2:
 			mAnim->attack1 = true;
 			IsPlayAttack1 = true;
-			animInstance->Montage_Play(HeavyAttackMontage, 1.5f);
+			animInstance->Montage_Play(HeavyAttackMontage, 1.3f);
 
 			Delegate.BindUObject(this, &AFishingBattleCharacter::OnAttackEnded);
 			animInstance->Montage_SetEndDelegate(Delegate, HeavyAttackMontage);
@@ -195,7 +195,7 @@ void AFishingBattleCharacter::Multi_Attack_Implementation()
 
 			mAnim->attack1 = true;
 			IsPlayAttack1 = true;
-			animInstance->Montage_Play(AttackMontage, 2.0f);
+			animInstance->Montage_Play(AttackMontage, 2.3f);
 
 			Delegate.BindUObject(this, &AFishingBattleCharacter::OnAttackEnded);
 			animInstance->Montage_SetEndDelegate(Delegate, AttackMontage);
