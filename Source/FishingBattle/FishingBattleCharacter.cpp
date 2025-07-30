@@ -71,6 +71,7 @@ float AFishingBattleCharacter::TakeDamage(float DamageAmount, FDamageEvent const
 	if (IsRoll)return 0.0f;
 	// 既に死んだら
 	if (IsDead)return 0.0f;
+	if (UnDead)return 0.0f;
 
 	// 2025.07.24 ウー start
 	float Damage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
@@ -94,121 +95,8 @@ float AFishingBattleCharacter::TakeDamage(float DamageAmount, FDamageEvent const
 	return DamageAmount;
 }
 
-// 2025.07.17 ウー start
-void AFishingBattleCharacter::Heal_Implementation(float healAmount)
-{
-	// サーバー側のみ実行する
-	if (!HasAuthority())
-		return;
-
-	if (IsDead)
-		return;
-
-	Health += healAmount;
-	if (Health > MaxHealth) {
-		Health = MaxHealth;
-	}
-
-	// 自分も更新する
-	UpdateHP(MaxHealth, Health);
-}
-
-void AFishingBattleCharacter::EnterSea(AActor* Actor)
-{
-	Sea = Actor;
-}
-
-float AFishingBattleCharacter::GetMaxHealth() const
-{
-	return MaxHealth;
-}
-// 2025.07.17 ウー end
-
-void AFishingBattleCharacter::EnterSpot(AActor* spot)
-{
-	canFishing = true;
-	if (spot)
-	{
-		fishingSpot = spot;
-	}
-}
-
-void AFishingBattleCharacter::ExitSpot()
-{
-	canFishing = false;
-	fishingSpot = NULL;
-}
-
-//////////////////////////////////////////////////////////////////////////
-// Input
-
-void AFishingBattleCharacter::NotifyControllerChanged()
-{
-	Super::NotifyControllerChanged();
-
-	// Add Input Mapping Context
-	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
-	{
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
-		{
-			Subsystem->AddMappingContext(DefaultMappingContext, 0);
-			nowMappingContext = DefaultMappingContext;
-			//Subsystem->AddMappingContext(FishingMappingContext, 0);
-			//Subsystem->RemoveMappingContext(DefaultMappingContext);
-		}
-	}
-}
-
-void AFishingBattleCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	// Set up action bindings
-	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent)) {
-
-		// Jumping
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
-
-		// Moving
-		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AFishingBattleCharacter::Move);
-
-		// Looking
-		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AFishingBattleCharacter::Look);
-
-		//Attack
-		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &AFishingBattleCharacter::Attack1);
-
-		//Roll
-		EnhancedInputComponent->BindAction(RollAction, ETriggerEvent::Started, this, &AFishingBattleCharacter::Roll);
-
-		//Fishing
-		EnhancedInputComponent->BindAction(FishingAction, ETriggerEvent::Started, this, &AFishingBattleCharacter::Fishing);
-
-		EnhancedInputComponent->BindAction(SwitchWeapon1, ETriggerEvent::Started, this, &AFishingBattleCharacter::EquipSlot1);
-
-		EnhancedInputComponent->BindAction(SwitchWeapon2, ETriggerEvent::Started, this, &AFishingBattleCharacter::EquipSlot2);
-
-		EnhancedInputComponent->BindAction(SwitchWeapon3, ETriggerEvent::Started, this, &AFishingBattleCharacter::EquipSlot3);
-
-		EnhancedInputComponent->BindAction(SwitchFishlot, ETriggerEvent::Started, this, &AFishingBattleCharacter::EquipFishlot);
-
-	}
-	else
-	{
-		UE_LOG(LogTemplateCharacter, Error, TEXT("'%s' Failed to find an Enhanced Input component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."), *GetNameSafe(this));
-	}
-}
 
 
-void AFishingBattleCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(AFishingBattleCharacter, weaponActor);
-	DOREPLIFETIME(AFishingBattleCharacter, WeaponType);
-	// 2025.07.24 ウー start
-	DOREPLIFETIME(AFishingBattleCharacter, Health);
-	// 2025.07.24 ウー end
-	//DOREPLIFETIME(AFishingBattleCharacter, DeadCounter);
-}
 
 void AFishingBattleCharacter::BeginPlay()
 {
@@ -220,257 +108,20 @@ void AFishingBattleCharacter::BeginPlay()
 	//healthUpdate.AddDynamic(this, &AFishingBattleCharacter::GetPlayerHealth);
 	Health = MaxHealth;
 	// 2025.07.24 ウー end
-	
-	//if (HasAuthority()) {
-	//	Multi_BeginAddFishrot();
-	//	UE_LOG(LogTemp, Warning, TEXT("addFishrod!!!!!!!!!!!!"));
-	//}
 
-
-	//ゲーム開始時に武器割り当てをしようとした名残。オーナーの設定がクライアント側で間に合ってないため、プレイヤーの所有物にアクセスできない
-	// サーバーのホストは可能。
-	//if (HasAuthority()) {
-	//	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
-	//	if (ps && ps->inventory.Num() == 0) {
-	//		//ps->Server_AddWeapon("Fishinglot");
-	//		Server_AddWeaponInPlayer("Fishinglot");
-	//	}
-	//}
-	//else {
-	//	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
-	//	if (ps && ps->inventory.Num() == 0) {
-	//		Server_AddWeaponInPlayer("Fishinglot");
-	//	}
-	//}
-}
-// 2025.07.24 ウー start
-//void AFishingBattleCharacter::GetPlayerHealth(float maxHP, float updateHP) {
-//	UE_LOG(LogTemp, Warning, TEXT("イベントディスパッチャーですよ。得丸"));
-//}
-
-void AFishingBattleCharacter::OnRep_Controller()
-{
-	Super::OnRep_Controller();
-
-	UpdateHP(MaxHealth, Health);
-}
-
-void AFishingBattleCharacter::UpdateHP(float MaxHP, float NewHP)
-{
-	if (AFisherController* PC = Cast<AFisherController>(GetController()))
-	{
-		PC->UpdateHP(MaxHP, NewHP);
-	}
-}
-
-void AFishingBattleCharacter::OnRep_UpdatedHealth()
-{
-	UpdateHP(MaxHealth, Health);
-}
-
-//void AFishingBattleCharacter::BroadcastHP_Implementation(float maxHP, float updateHP)
-//{
-//	if (HasAuthority())
-//	{
-//		UE_LOG(LogTemp, Warning, TEXT("Server %s update HP: %lf"), *GetName(), updateHP);
-//	}
-//	else
-//	{
-//		UE_LOG(LogTemp, Warning, TEXT("Client %s update HP: %lf"), *GetName(), updateHP);
-//	}
-//	
-//	healthUpdate.Broadcast(maxHP, updateHP);
-//}
-// 2025.07.24 ウー end
-void AFishingBattleCharacter::Move(const FInputActionValue& Value)
-{
-	if (IsFishing)return;
-	// input is a Vector2D
-	FVector2D MovementVector = Value.Get<FVector2D>();
-
-	if (Controller != nullptr)
-	{
-		// find out which way is forward
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
-
-		// get forward vector
-		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-
-		// get right vector 
-		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-
-		// add movement 
-		AddMovementInput(ForwardDirection, MovementVector.Y);
-		AddMovementInput(RightDirection, MovementVector.X);
-	}
-}
-
-void AFishingBattleCharacter::Look(const FInputActionValue& Value)
-{
-	// input is a Vector2D
-	FVector2D LookAxisVector = Value.Get<FVector2D>();
-
-	if (Controller != nullptr)
-	{
-		// add yaw and pitch input to controller
-		AddControllerYawInput(LookAxisVector.X);
-		AddControllerPitchInput(LookAxisVector.Y);
-	}
-}
-
-void AFishingBattleCharacter::Attack1()
-{
-	if (!HasAuthority()) {
-		Server_Attack();
-		return;
-	}
-	else {
-		Multi_Attack();
-		return;
-	}
-	/*if (IsPlayAttack1 || !AttackMontage || IsRoll || !GetCharacterMovement()->IsMovingOnGround()) return;
-	UE_LOG(LogTemp, Warning, TEXT("attack!"));
-
-	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
-	if (!animInstance)return;
-	UMyAnimInstance* mAnim = Cast<UMyAnimInstance>(animInstance);
-	if (animInstance && mAnim) {
-		if (mAnim->Isjump) return;
-		animInstance->Montage_Play(AttackMontage, 2.0f);
-		mAnim->attack1 = true;
-		IsPlayAttack1 = true;
-
-		FOnMontageEnded Delegate;
-		Delegate.BindUObject(this, &AFishingBattleCharacter::OnAttackEnded);
-		animInstance->Montage_SetEndDelegate(Delegate, AttackMontage);
-	}*/
-
-}
-
-void AFishingBattleCharacter::OnAttackEnded(UAnimMontage* Montage, bool in) {
-	UE_LOG(LogTemp, Warning, TEXT("attack!end"));
-	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
-	if (!animInstance)return;
-	UMyAnimInstance* mAnim = Cast<UMyAnimInstance>(animInstance);
-	if (!mAnim)return;
-
-
-
-	IsPlayAttack1 = false;
-	mAnim->attack1 = false;
-}
-
-void AFishingBattleCharacter::Roll()
-{
-
-	if (!HasAuthority())
-	{
-		Server_Roll();
-		return;
-	}
-	else {
-		Multi_Roll();
-		return;
-	}
-	//if (IsRoll || !RollMontage || IsPlayAttack1 || !GetCharacterMovement()->IsMovingOnGround()) return;
-	//UE_LOG(LogTemp, Warning, TEXT("Roll!"));
-
-	//UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
-	//if (!animInstance)return;
-	//UMyAnimInstance* mAnim = Cast<UMyAnimInstance>(animInstance);
-	//if (animInstance && mAnim) {
-	//	if (mAnim->Isjump) return;
-	//	//GetCharacterMovement()->DisableMovement();
-	//	animInstance->Montage_Play(RollMontage);
-	//	IsRoll = true;
-
-	//	FOnMontageEnded Delegate;
-	//	Delegate.BindUObject(this, &AFishingBattleCharacter::OnRollEnded);
-	//	animInstance->Montage_SetEndDelegate(Delegate, RollMontage);
-	//}
-}
-
-void AFishingBattleCharacter::ReloadCanRoll()
-{
-	CanRoll = true;
-	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
-	if (ps) {
-		ps->CanRollInPS = CanRoll;
-	}
-}
-
-void AFishingBattleCharacter::OnRollEnded(UAnimMontage* Montage, bool in)
-{
-	UE_LOG(LogTemp, Warning, TEXT("Roll!end"));
-	//GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
-	IsRoll = false;
-
-	// 海にいるなら
-	if (Sea)
-	{
-		UGameplayStatics::ApplyDamage(this, GetMaxHealth(), nullptr, Sea, UDamageType::StaticClass());
-	}
-
-	FTimerHandle ReloadRoll;
-	GetWorld()->GetTimerManager().SetTimer(
-		ReloadRoll,
-		this,
-		&AFishingBattleCharacter::ReloadCanRoll,
-		3.0f, // 100ms の遅延
+	FTimerHandle WeaponCheckTimer;
+	GetWorldTimerManager().SetTimer(
+		WeaponCheckTimer,
+		FTimerDelegate::CreateLambda([this]() {UnDead = false;}),
+		5.0f,
 		false
 	);
-
 }
 
-void AFishingBattleCharacter::Jump()
-{
-	if (IsRoll)return;
-	if (IsFishing)return;
 
-	Super::Jump();
-}
 
-void AFishingBattleCharacter::Die()
-{
-	if (HasAuthority()) {
-		Multi_Dead();
-		return;
-	}
-	else {
-		Server_Dead();
-		return;
-	}
-	//if (IsDead)return;
-	//UE_LOG(LogTemp, Warning, TEXT("dead!start"));
-	//GetCharacterMovement()->DisableMovement();
-	//UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
-	//if (animInstance) {
-	//	animInstance->Montage_Play(DeadMontage);
-	//	IsDead = true;
-	//}
 
-	//FOnMontageEnded Delegate;
-	//Delegate.BindUObject(this, &AFishingBattleCharacter::OnDeadEnded);
-	//animInstance->Montage_SetEndDelegate(Delegate, DeadMontage);
-
-	//FTimerHandle TimerHandle;
-	//GetWorldTimerManager().SetTimer(TimerHandle, this, &AFishingBattleCharacter::canDestroy, 5.0f, false);
-}
-
-void AFishingBattleCharacter::OnDeadEnded(UAnimMontage* Montage, bool in)
-{
-	UE_LOG(LogTemp, Warning, TEXT("dead!end"));
-	SetActorHiddenInGame(true);
-	//ChangeMappingContext(DefaultMappingContext);
-	if (!HasAuthority())
-	{
-		Server_Die();  // クライアントならサーバーへ要求
-	}
-	else {
-		Multi_Die(); // サーバーならそのまま処理
-	}
-}
+#pragma region RPC関数
 
 void AFishingBattleCharacter::Server_Dead_Implementation()
 {
@@ -481,8 +132,6 @@ void AFishingBattleCharacter::Multi_Dead_Implementation()
 {
 	if (IsDead)return;
 	UE_LOG(LogTemp, Warning, TEXT("dead!start"));
-	//動きをマッピングコンテクストの変更で制限させるようにする。
-	//GetCharacterMovement()->DisableMovement();
 	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
 	if (animInstance) {
 		animInstance->Montage_Play(DeadMontage);
@@ -496,7 +145,7 @@ void AFishingBattleCharacter::Multi_Dead_Implementation()
 	//カウンター加算
 	AddToDeadCounter();
 
-	//これ
+	//マッピングコンテクストの変更で操作を制限
 	ChangeMappingContext(DeadMappingContext);
 }
 
@@ -509,42 +158,6 @@ void AFishingBattleCharacter::Server_Die_Implementation()
 void AFishingBattleCharacter::Multi_Die_Implementation()
 {
 	HandleDeath();
-}
-
-void AFishingBattleCharacter::HandleDeath()
-{
-	// リスポーン要求
-	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
-	if (ps) {
-		ps->InventoryInitialize();
-		if (weaponActor) {
-			weaponActor->Destroy();
-		}
-	}
-
-	GetWorld()->GetTimerManager().SetTimer(
-		RespawnTimerHandle,
-		this,
-		&AFishingBattleCharacter::RequestRespawn,
-		2.0f,
-		false
-	);
-}
-
-void AFishingBattleCharacter::RequestRespawn()
-{
-	UE_LOG(LogTemp, Warning, TEXT("リクエストリスポーン"));
-	
-	AController* MyController = GetController();
-	if (MyController)
-	{
-		if (AGameMode_T* GM = Cast<AGameMode_T>(UGameplayStatics::GetGameMode(this)))
-		{
-			GM->RespawnPlayerT(MyController);
-		}
-	}
-	
-	Destroy(); // 消滅
 }
 
 void AFishingBattleCharacter::Multi_Attack_Implementation()
@@ -587,12 +200,6 @@ void AFishingBattleCharacter::Multi_Attack_Implementation()
 			animInstance->Montage_SetEndDelegate(Delegate, AttackMontage);
 			break;
 		}
-		//mAnim->attack1 = true;
-		//IsPlayAttack1 = true;
-
-		//FOnMontageEnded Delegate;
-		//Delegate.BindUObject(this, &AFishingBattleCharacter::OnAttackEnded);
-		//animInstance->Montage_SetEndDelegate(Delegate, AttackMontage);
 	}
 	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
 	if (ps) {
@@ -609,7 +216,7 @@ void AFishingBattleCharacter::Multi_Roll_Implementation()
 {
 	if (IsRoll || !RollMontage || IsPlayAttack1 || !GetCharacterMovement()->IsMovingOnGround()) return;
 	UE_LOG(LogTemp, Warning, TEXT("Roll!"));
-	
+
 	if (!CanRoll)return;
 
 	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
@@ -664,12 +271,6 @@ void AFishingBattleCharacter::Multi_Fishing_Implementation()
 		ChangeMappingContext(FishingMappingContext);
 
 	}
-	//釣りを途中で停止できるか否か
-	//else if (IsFishing) {
-	//	UE_LOG(LogTemp, Warning, TEXT("Fishing!end"));
-	//	animInstance->Montage_Stop(0.2f, FishingMontage);
-	//	IsFishing = false;
-	//}
 }
 
 void AFishingBattleCharacter::Server_Attack_Implementation()
@@ -687,85 +288,298 @@ void AFishingBattleCharacter::Server_Fishing_Implementation()
 	Multi_Fishing();
 }
 
-void AFishingBattleCharacter::Fishing()
-{
-	//if (!canFishing)return;
-	if (!HasAuthority())
+void  AFishingBattleCharacter::Multi_AddWeaponInPlayer_Implementation(TSubclassOf<AActor> WeaponID) {
+	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
+	//TSubclassOf<AActor> weaponActorSubclass = Cast<AFishingGround>(fishingSpot)->GetFish();
+	if (ps)
 	{
-		Server_Fishing();
-		return;
+		if (WeaponID) {
+			UE_LOG(LogTemp, Error, TEXT("addweaponInPlayer!!!!!!!!!!!!!!!!!!!!!!!"));
+			ps->Server_AddWeapon(WeaponID);
+		}
 	}
 	else {
-		Multi_Fishing();
-		return;
+		UE_LOG(LogTemp, Error, TEXT("プレイヤーステートないけどどうする？"));
 	}
-	//if (IsRoll || !FishingMontage || IsPlayAttack1 || !GetCharacterMovement()->IsMovingOnGround())return;
-	//UE_LOG(LogTemp, Warning, TEXT("Fishing!"));
-	//UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
-	//if (!animInstance)return;
-	//UMyAnimInstance* mAnim = Cast<UMyAnimInstance>(animInstance);
-	//if (!mAnim)return;
-	//if (!IsFishing) {
-	//	if (mAnim->Isjump) return;
-	//	animInstance->Montage_Play(FishingMontage);
-	//	UE_LOG(LogTemp, Warning, TEXT("Fishing!Play"));
-	//	IsFishing = true;
-
-	//	FOnMontageEnded Delegate;
-	//	Delegate.BindUObject(this, &AFishingBattleCharacter::OnFishingEnded);
-	//	animInstance->Montage_SetEndDelegate(Delegate, FishingMontage);
-
-	//}
-	//else if(IsFishing){
-	//	UE_LOG(LogTemp, Warning, TEXT("Fishing!end"));
-	//	animInstance->Montage_Stop(0.2f,FishingMontage);
-	//	IsFishing = false;
-	//}
 }
 
-void AFishingBattleCharacter::OnFishingEnded(UAnimMontage* Montage, bool in)
+void AFishingBattleCharacter::Server_EquipWeapon_Implementation(TSubclassOf<AActor> weaponID) {
+	//EquipWeapon(weaponID);
+	Multi_EquipWeapon(weaponID);
+}
+
+void AFishingBattleCharacter::Multi_EquipWeapon_Implementation(TSubclassOf<AActor> weaponID) {
+	EquipWeapon(weaponID);
+}
+
+void AFishingBattleCharacter::Server_EquipSlotIndex_Implementation(int slotIndex) {
+	//EquipSlotIndex(slotIndex);
+	Multi_EquipSlotIndex(slotIndex);
+}
+
+void AFishingBattleCharacter::Multi_EquipSlotIndex_Implementation(int slotIndex) {
+	EquipSlotIndex(slotIndex);
+}
+
+void AFishingBattleCharacter::Server_TrueInGamePlay_Implementation()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Fishing!deligate"));
-	//APlayerState_T* ps = GetPlayerState<APlayerState_T>();
-	//if (!ps)return;
-	//ps->Server_AddWeapon("Weapon1");
-	//if (IsLocallyControlled()&& !HasAuthority()) {
-	//	Server_AddWeaponInPlayer("Weapon1");
-	//}
-	//else {
-	//	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
-	//	if (ps)
-	//	{
-	//		ps->Server_AddWeapon("Weapon1"); //
+	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
+	if (ps) {
+		ps->InGamePlay = true;
+	}
+}
+
+void AFishingBattleCharacter::Server_BeginAddFishrot_Implementation() {
+	//Multi_BeginAddFishrot();
+	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
+	if (ps)
+	{
+		UE_LOG(LogTemp, Error, TEXT("addweaponInPlayer!!!!!!!!!!!!!!!!!!!!!!!"));
+		ps->Server_AddWeapon(FishRod);
+	}
+	else {
+		UE_LOG(LogTemp, Error, TEXT("プレイヤーステートないけどどうする？"));
+	}
+}
+
+void AFishingBattleCharacter::Multi_BeginAddFishrot_Implementation()
+{
+	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
+	if (ps)
+	{
+		UE_LOG(LogTemp, Error, TEXT("addweaponInPlayer!!!!!!!!!!!!!!!!!!!!!!!"));
+		ps->Server_AddWeapon(FishRod);
+	}
+	else {
+		UE_LOG(LogTemp, Error, TEXT("プレイヤーステートないけどどうする？"));
+	}
+}
+#pragma endregion
+
+#pragma region 武器装備
+void AFishingBattleCharacter::EquipSlotIndex(int slotIndex)
+{
+	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
+	if (!ps)return;
+
+	const FInventoryWeapon* weapon = ps->GetweaponSlot(slotIndex);
+	if (weapon) {
+		Server_EquipWeapon(weapon->weaponActor);
+	}
+	else {
+
+		if (weaponActor) {
+			weaponActor->Destroy();
+		}
+
+		weaponActor = nullptr;
+
+		FTimerHandle WeaponCheckTimer;
+		GetWorld()->GetTimerManager().SetTimer(
+			WeaponCheckTimer,
+			this,
+			&AFishingBattleCharacter::DelayedCheckWeaponType,
+			0.1f, // 100ms の遅延
+			false
+		);
+	}
+}
+
+
+
+void AFishingBattleCharacter::EquipSlot1()
+{
+	if (IsPlayAttack1)return;
+	UE_LOG(LogTemp, Warning, TEXT("weapon1"));
+	//EquipSlotIndex(1);
+	if (!HasAuthority())
+	{
+		Server_EquipSlotIndex(1);
+	}
+	else {
+		Multi_EquipSlotIndex(1);
+	}
+	//ChangeMappingContext(HasweaponMappingContext);
+	FTimerHandle WeaponCheckTimer;
+	GetWorldTimerManager().SetTimer(
+		WeaponCheckTimer,
+		FTimerDelegate::CreateLambda([this]() {
+			if (weaponActor) {
+				ChangeMappingContext(HasweaponMappingContext);
+			}
+			else {
+				ChangeMappingContext(DefaultMappingContext);
+			}
+			}),
+		0.01f,
+		false
+	);
+}
+
+void AFishingBattleCharacter::EquipSlot2()
+{
+	if (IsPlayAttack1)return;
+	UE_LOG(LogTemp, Warning, TEXT("weapon2"));
+	//EquipSlotIndex(2);
+	if (!HasAuthority())
+	{
+		Server_EquipSlotIndex(2);
+	}
+	else {
+		Multi_EquipSlotIndex(2);
+	}
+	//ChangeMappingContext(HasweaponMappingContext);
+	FTimerHandle WeaponCheckTimer;
+	GetWorldTimerManager().SetTimer(
+		WeaponCheckTimer,
+		FTimerDelegate::CreateLambda([this]() {
+			if (weaponActor) {
+				ChangeMappingContext(HasweaponMappingContext);
+			}
+			else {
+				ChangeMappingContext(DefaultMappingContext);
+			}
+			}),
+		0.01f,
+		false
+	);
+}
+
+void AFishingBattleCharacter::EquipSlot3()
+{
+	if (IsPlayAttack1)return;
+	UE_LOG(LogTemp, Warning, TEXT("weapon3"));
+	//EquipSlotIndex(3);
+	if (!HasAuthority())
+	{
+		Server_EquipSlotIndex(3);
+	}
+	else {
+		Multi_EquipSlotIndex(3);
+	}
+	//ChangeMappingContext(HasweaponMappingContext);
+	FTimerHandle WeaponCheckTimer;
+	GetWorldTimerManager().SetTimer(
+		WeaponCheckTimer,
+		FTimerDelegate::CreateLambda([this]() {
+			if (weaponActor) {
+				ChangeMappingContext(HasweaponMappingContext);
+			}
+			else {
+				ChangeMappingContext(DefaultMappingContext);
+			}
+			}),
+		0.01f,
+		false
+	);
+}
+
+void AFishingBattleCharacter::EquipFishlot()
+{
+	if (IsPlayAttack1)return;
+	UE_LOG(LogTemp, Warning, TEXT("fishing"));
+	//EquipSlotIndex(0);
+	if (!HasAuthority())
+	{
+		Server_EquipSlotIndex(0);
+	}
+	else {
+		Multi_EquipSlotIndex(0);
+	}
+	ChangeMappingContext(HasFishrotMappingContext);
+}
+
+void AFishingBattleCharacter::EquipWeapon(TSubclassOf<AActor> weaponID)
+{
+	if (weaponActor) {
+		weaponActor->Destroy();
+		weaponActor = nullptr;
+	}
+
+
+	//アクターをスポーンしてソケットにアタッチする
+	//AGameMode_T* gm = Cast<AGameMode_T>(UGameplayStatics::GetGameMode(this));
+	//if (!gm)return;
+
+	//TSubclassOf<AActor> weaponClass = gm->GetWeaponClass(weaponID);
+	//if (weaponClass) {
+	//	FActorSpawnParameters spawnParams;
+	//	spawnParams.Owner = this;
+	//AActor* newWeapon = GetWorld()->SpawnActor<AActor>(weaponClass, FVector::ZeroVector, FRotator::ZeroRotator, spawnParams);
+
+	//		//weaponActor = newWeapon;
+	//		//weaponActor->SetOwner(this);
+	//		//weaponActor->AttachToComponent(GetMesh(),FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("wepon"));
 	//	}
 	//}
 
-	//なぜかわからないがサーバーのみで処理すると正常にクライアントも動作する
-	// Multi_AddWeaponInPlayerはNetMulticastを使ってるので、サーバーを含めた全員に飛ばしてる
-	if (HasAuthority()) {
-		if (fishingSpot)
+	//-----------------------------------------------------------------------
+
+	//アクターをチャイルドアクターに登録する
+	AGameMode_T* gm = Cast<AGameMode_T>(UGameplayStatics::GetGameMode(this));
+	if (!gm)return;
+
+	UE_LOG(LogTemp, Warning, TEXT("weaponClass is: %s"), *weaponID->GetName());
+	//if (weaponClass) {
+
+
+	UChildActorComponent* weaponChildComponent = nullptr;
+	TArray<UChildActorComponent*> ChildActorComponents;
+	GetComponents<UChildActorComponent>(ChildActorComponents);
+	for (UChildActorComponent* comp : ChildActorComponents)
+	{
+		if (comp->GetName() == TEXT("wepon"))
 		{
-			if (TSubclassOf<AActor> weaponActorSubclass = Cast<AFishingGround>(fishingSpot)->GetFish())
-				Multi_AddWeaponInPlayer(weaponActorSubclass);
+			weaponChildComponent = comp;
+			break;
 		}
-		//if (cnt == 1) {
-		//	Server_AddWeaponInPlayer("Fishinglot");
-		//	cnt++;
-		//}
-		//else if(cnt == 0){
-		//	Server_AddWeaponInPlayer("Weapon1");
-		//	cnt++;
-		//}
-		//else {
-		//	Server_AddWeaponInPlayer("Weapon2");
-		//}
+	}
+	if (weaponChildComponent)
+	{
+		if (weaponChildComponent->GetChildActor())
+		{
+			weaponChildComponent->GetChildActor()->Destroy();
+			weaponChildComponent->SetChildActorClass(nullptr); // 念のため明示的に外す
+		}
+		weaponChildComponent->SetChildActorClass(weaponID); // TSubclassOf<AActor>
+
+		weaponActor = weaponChildComponent->GetChildActor();
+		if (weaponActor)
+		{
+			UE_LOG(LogTemp, Error, TEXT("setowner!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"));
+			weaponActor->SetOwner(this);
+		}
 	}
 
-	ChangeMappingContext(HasFishrotMappingContext);
-
-	IsFishing = false;
+	FTimerHandle WeaponCheckTimer;
+	GetWorld()->GetTimerManager().SetTimer(
+		WeaponCheckTimer,
+		this,
+		&AFishingBattleCharacter::DelayedCheckWeaponType,
+		0.1f, // 100ms の遅延
+		false
+	);
 }
 
+void AFishingBattleCharacter::DelayedCheckWeaponType()
+{
+	//武器のタイプを取得
+	//ACPPBaseWeapon* Base = Cast<ACPPBaseWeapon>(weaponActor);
+	if (ACPPBaseWeapon* Base = Cast<ACPPBaseWeapon>(weaponActor))
+	{
+		UE_LOG(LogTemp, Error, TEXT("GetWeaponTypeInCharacter!!!!!!"));
+		this->WeaponType = Base->WeaponType;
+		OnRep_AnimInstance();
+
+	}
+	else {
+		this->WeaponType = ECPPWeaponType::None;
+		OnRep_AnimInstance();
+	}
+}
+#pragma endregion
+
+#pragma region Valiable
 bool AFishingBattleCharacter::Server_Dead_Validate() {
 	return true;
 }
@@ -818,10 +632,6 @@ bool AFishingBattleCharacter::Multi_EquipSlotIndex_Validate(int slotIndex) {
 	return true;
 }
 
-//bool AFishingBattleCharacter::Server_AddWeaponInPlayer_Validate(TSubclassOf<AActor> WeaponID) {
-//	return true;
-//}
-
 bool AFishingBattleCharacter::Multi_AddWeaponInPlayer_Validate(TSubclassOf<AActor> WeaponID) {
 	return true;
 }
@@ -837,306 +647,91 @@ bool AFishingBattleCharacter::Server_TrueInGamePlay_Validate() {
 	return true;
 }
 
-bool AFishingBattleCharacter::Multi_BeginAddFishrot_Validate(){
+bool AFishingBattleCharacter::Multi_BeginAddFishrot_Validate() {
 	return true;
 }
+#pragma endregion
 
-//void AFishingBattleCharacter::Server_AddWeaponInPlayer_Implementation(TSubclassOf<AActor> WeaponID) {
-//	UE_LOG(LogTemp, Error, TEXT("addweaponInPlayer!!!!!!!!!!!!!!!!!!!!!!!"));
-//	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
-//	TSubclassOf<AActor> weaponActorSubclass = Cast<AFishingGround>(fishingSpot)->GetFish();
-//	if (ps)
-//	{
-//		if (WeaponID) {
-//			UE_LOG(LogTemp, Error, TEXT("addweaponInPlayer!!!!!!!!!!!!!!!!!!!!!!!"));
-//			ps->Server_AddWeapon(WeaponID);
-//		}
-//	}
-//	else {
-//		UE_LOG(LogTemp, Error, TEXT("プレイヤーステートないけどどうする？"));
-//	}
-//}
+#pragma region オーバーライド
 
-void  AFishingBattleCharacter::Multi_AddWeaponInPlayer_Implementation(TSubclassOf<AActor> WeaponID) {
-	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
-	//TSubclassOf<AActor> weaponActorSubclass = Cast<AFishingGround>(fishingSpot)->GetFish();
-	if (ps)
+void AFishingBattleCharacter::NotifyControllerChanged()
+{
+	Super::NotifyControllerChanged();
+
+	// Add Input Mapping Context
+	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
 	{
-		if (WeaponID) {
-			UE_LOG(LogTemp, Error, TEXT("addweaponInPlayer!!!!!!!!!!!!!!!!!!!!!!!"));
-			ps->Server_AddWeapon(WeaponID);
-		}
-	}
-	else {
-		UE_LOG(LogTemp, Error, TEXT("プレイヤーステートないけどどうする？"));
-	}
-}
-
-void AFishingBattleCharacter::Server_EquipWeapon_Implementation(TSubclassOf<AActor> weaponID) {
-	//EquipWeapon(weaponID);
-	Multi_EquipWeapon(weaponID);
-}
-
-void AFishingBattleCharacter::Multi_EquipWeapon_Implementation(TSubclassOf<AActor> weaponID) {
-	EquipWeapon(weaponID);
-}
-
-void AFishingBattleCharacter::Server_EquipSlotIndex_Implementation(int slotIndex) {
-	//EquipSlotIndex(slotIndex);
-	Multi_EquipSlotIndex(slotIndex);
-}
-
-void AFishingBattleCharacter::Multi_EquipSlotIndex_Implementation(int slotIndex) {
-	EquipSlotIndex(slotIndex);
-}
-
-void AFishingBattleCharacter::Server_TrueInGamePlay_Implementation()
-{
-	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
-	if (ps) {
-		ps->InGamePlay = true;
-	}
-}
-
-void AFishingBattleCharacter::Server_BeginAddFishrot_Implementation(){
-	//Multi_BeginAddFishrot();
-	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
-	if (ps)
-	{
-			UE_LOG(LogTemp, Error, TEXT("addweaponInPlayer!!!!!!!!!!!!!!!!!!!!!!!"));
-			ps->Server_AddWeapon(FishRod);
-	}
-	else {
-		UE_LOG(LogTemp, Error, TEXT("プレイヤーステートないけどどうする？"));
-	}
-}
-
-void AFishingBattleCharacter::Multi_BeginAddFishrot_Implementation()
-{
-	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
-	if (ps)
-	{
-		UE_LOG(LogTemp, Error, TEXT("addweaponInPlayer!!!!!!!!!!!!!!!!!!!!!!!"));
-		ps->Server_AddWeapon(FishRod);
-	}
-	else {
-		UE_LOG(LogTemp, Error, TEXT("プレイヤーステートないけどどうする？"));
-	}
-}
-
-void AFishingBattleCharacter::EquipSlotIndex(int slotIndex)
-{
-	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
-	if (!ps)return;
-
-	const FInventoryWeapon* weapon = ps->GetweaponSlot(slotIndex);
-	if (weapon) {
-		Server_EquipWeapon(weapon->weaponActor);
-		//if (!HasAuthority()) {
-		//	Server_EquipWeapon(weapon->weaponName);
-		//}
-		//else {
-		//	Multi_EquipWeapon(weapon->weaponName);
-		//}
-	}
-	else {
-
-		if (weaponActor) {
-			weaponActor->Destroy();
-			weaponActor = nullptr;
-		}
-
-		FTimerHandle WeaponCheckTimer;
-		GetWorld()->GetTimerManager().SetTimer(
-			WeaponCheckTimer,
-			this,
-			&AFishingBattleCharacter::DelayedCheckWeaponType,
-			0.1f, // 100ms の遅延
-			false
-		);
-	}
-}
-
-
-void AFishingBattleCharacter::OnRep_EquipWeapon()
-{
-	if (weaponActor) {
-		weaponActor->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("wepon"));
-	}
-}
-
-void AFishingBattleCharacter::EquipSlot1()
-{
-	UE_LOG(LogTemp, Warning, TEXT("weapon1"));
-	//EquipSlotIndex(1);
-	if (!HasAuthority())
-	{
-		Server_EquipSlotIndex(1);
-	}
-	else {
-		Multi_EquipSlotIndex(1);
-	}
-	ChangeMappingContext(HasweaponMappingContext);
-}
-
-void AFishingBattleCharacter::EquipSlot2()
-{
-	UE_LOG(LogTemp, Warning, TEXT("weapon2"));
-	//EquipSlotIndex(2);
-	if (!HasAuthority())
-	{
-		Server_EquipSlotIndex(2);
-	}
-	else {
-		Multi_EquipSlotIndex(2);
-	}
-	ChangeMappingContext(HasweaponMappingContext);
-}
-
-void AFishingBattleCharacter::EquipSlot3()
-{
-	UE_LOG(LogTemp, Warning, TEXT("weapon3"));
-	//EquipSlotIndex(3);
-	if (!HasAuthority())
-	{
-		Server_EquipSlotIndex(3);
-	}
-	else {
-		Multi_EquipSlotIndex(3);
-	}
-	ChangeMappingContext(HasweaponMappingContext);
-}
-
-void AFishingBattleCharacter::EquipFishlot()
-{
-	UE_LOG(LogTemp, Warning, TEXT("fishing"));
-	//EquipSlotIndex(0);
-	if (!HasAuthority())
-	{
-		Server_EquipSlotIndex(0);
-		//Multi_EquipSlotIndex(0);
-	}
-	else {
-		Multi_EquipSlotIndex(0);
-		//Server_EquipSlotIndex(0);
-	}
-	ChangeMappingContext(HasFishrotMappingContext);
-}
-
-void AFishingBattleCharacter::EquipWeapon(TSubclassOf<AActor> weaponID)
-{
-	if (weaponActor) {
-		weaponActor->Destroy();
-		weaponActor = nullptr;
-	}
-
-
-	//AGameMode_T* gm = Cast<AGameMode_T>(UGameplayStatics::GetGameMode(this));
-	//if (!gm)return;
-
-	//TSubclassOf<AActor> weaponClass = gm->GetWeaponClass(weaponID);
-	//if (weaponClass) {
-	//	FActorSpawnParameters spawnParams;
-	//	spawnParams.Owner = this;
-	//AActor* newWeapon = GetWorld()->SpawnActor<AActor>(weaponClass, FVector::ZeroVector, FRotator::ZeroRotator, spawnParams);
-
-
-	//	if (newWeapon) {
-
-	//		UChildActorComponent* weaponChildComponent = nullptr;
-	//		TArray<UChildActorComponent*> ChildActorComponents;
-	//		GetComponents<UChildActorComponent>(ChildActorComponents);
-	//		for (UChildActorComponent* comp : ChildActorComponents)
-	//		{
-	//			if (comp->GetName() == TEXT("wepon"))
-	//			{
-	//				weaponChildComponent = comp;
-	//				break;
-	//			}
-	//		}
-	//		if (weaponChildComponent)
-	//		{
-	//			weaponActor = newWeapon;
-	//			weaponActor->SetOwner(this);
-	//			TSubclassOf<AActor> WeaponClass = newWeapon->GetClass();
-	//			weaponChildComponent->SetChildActorClass(weaponClass); // TSubclassOf<AActor>
-	//		}
-
-	//		//weaponActor = newWeapon;
-	//		//weaponActor->SetOwner(this);
-	//		//weaponActor->AttachToComponent(GetMesh(),FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("wepon"));
-	//	}
-	//}
-
-	//-----------------------------------------------------------------------
-
-
-	AGameMode_T* gm = Cast<AGameMode_T>(UGameplayStatics::GetGameMode(this));
-	if (!gm)return;
-
-	UE_LOG(LogTemp, Warning, TEXT("weaponClass is: %s"), *weaponID->GetName());
-	//if (weaponClass) {
-
-
-		UChildActorComponent* weaponChildComponent = nullptr;
-		TArray<UChildActorComponent*> ChildActorComponents;
-		GetComponents<UChildActorComponent>(ChildActorComponents);
-		for (UChildActorComponent* comp : ChildActorComponents)
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
-			if (comp->GetName() == TEXT("wepon"))
-			{
-				weaponChildComponent = comp;
-				break;
-			}
+			Subsystem->AddMappingContext(DefaultMappingContext, 0);
+			nowMappingContext = DefaultMappingContext;
+			//Subsystem->AddMappingContext(FishingMappingContext, 0);
+			//Subsystem->RemoveMappingContext(DefaultMappingContext);
 		}
-		if (weaponChildComponent)
-		{
-			if (weaponChildComponent->GetChildActor())
-			{
-				weaponChildComponent->GetChildActor()->Destroy();
-				weaponChildComponent->SetChildActorClass(nullptr); // 念のため明示的に外す
-			}
-			weaponChildComponent->SetChildActorClass(weaponID); // TSubclassOf<AActor>
+	}
+}
 
-			weaponActor = weaponChildComponent->GetChildActor();
-			if (weaponActor)
-			{
-				UE_LOG(LogTemp, Error, TEXT("setowner!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"));
-				weaponActor->SetOwner(this);
-			}
-		}
+void AFishingBattleCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(AFishingBattleCharacter, weaponActor);
+	DOREPLIFETIME(AFishingBattleCharacter, WeaponType);
+	// 2025.07.24 ウー start
+	DOREPLIFETIME(AFishingBattleCharacter, Health);
+	// 2025.07.24 ウー end
+}
 
-		FTimerHandle WeaponCheckTimer;
-		GetWorld()->GetTimerManager().SetTimer(
-			WeaponCheckTimer,
-			this,
-			&AFishingBattleCharacter::DelayedCheckWeaponType,
-			0.1f, // 100ms の遅延
-			false
-		);
+void AFishingBattleCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+	if (HasAuthority()) {
+		Multi_BeginAddFishrot();
+		UE_LOG(LogTemp, Warning, TEXT("addFishrod!!!!!!!!!!!!"));
 
+		Server_TrueInGamePlay();
+	}
 
-		////武器のタイプを取得
-		//ACPPBaseWeapon* Base = Cast<ACPPBaseWeapon>(weaponActor);
-		//if (Base)
-		//{
-		//	UE_LOG(LogTemp, Error, TEXT("GetWeaponTypeInCharacter!!!!!!"));
-		//	this->WeaponType = Base->WeaponType;
-		//	//OnRep_AnimInstance();
+}
+#pragma endregion
 
-		//}
+#pragma region Input
+void AFishingBattleCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
+	// Set up action bindings
+	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent)) {
 
-		//UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
-        //if (!animInstance)return;
-        //UMyAnimInstance* mAnim = Cast<UMyAnimInstance>(animInstance);
-        //if (!mAnim)return;
-        //mAnim->GetWeaponType(this->WeaponType);
+		// Jumping
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 
-		//weaponActor = newWeapon;
-		//weaponActor->SetOwner(this);
-		//weaponActor->AttachToComponent(GetMesh(),FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("wepon"));
+		// Moving
+		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AFishingBattleCharacter::Move);
 
-	//}
+		// Looking
+		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AFishingBattleCharacter::Look);
+
+		//Attack
+		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &AFishingBattleCharacter::Attack1);
+
+		//Roll
+		EnhancedInputComponent->BindAction(RollAction, ETriggerEvent::Started, this, &AFishingBattleCharacter::Roll);
+
+		//Fishing
+		EnhancedInputComponent->BindAction(FishingAction, ETriggerEvent::Started, this, &AFishingBattleCharacter::Fishing);
+
+		EnhancedInputComponent->BindAction(SwitchWeapon1, ETriggerEvent::Started, this, &AFishingBattleCharacter::EquipSlot1);
+
+		EnhancedInputComponent->BindAction(SwitchWeapon2, ETriggerEvent::Started, this, &AFishingBattleCharacter::EquipSlot2);
+
+		EnhancedInputComponent->BindAction(SwitchWeapon3, ETriggerEvent::Started, this, &AFishingBattleCharacter::EquipSlot3);
+
+		EnhancedInputComponent->BindAction(SwitchFishlot, ETriggerEvent::Started, this, &AFishingBattleCharacter::EquipFishlot);
+
+	}
+	else
+	{
+		UE_LOG(LogTemplateCharacter, Error, TEXT("'%s' Failed to find an Enhanced Input component! This template is built to use the Enhanced Input system. If you intend to use the legacy system, then you will need to update this C++ file."), *GetNameSafe(this));
+	}
 }
 
 void AFishingBattleCharacter::ChangeMappingContext(UInputMappingContext* context_)
@@ -1151,6 +746,63 @@ void AFishingBattleCharacter::ChangeMappingContext(UInputMappingContext* context
 		}
 	}
 }
+#pragma endregion
+
+#pragma region 外部呼出し
+// 2025.07.17 ウー start
+void AFishingBattleCharacter::Heal_Implementation(float healAmount)
+{
+	// サーバー側のみ実行する
+	if (!HasAuthority())
+		return;
+
+	if (IsDead)
+		return;
+
+	Health += healAmount;
+	if (Health > MaxHealth) {
+		Health = MaxHealth;
+	}
+
+	// 自分も更新する
+	UpdateHP(MaxHealth, Health);
+}
+
+void AFishingBattleCharacter::EnterSea(AActor* Actor)
+{
+	Sea = Actor;
+}
+
+float AFishingBattleCharacter::GetMaxHealth() const
+{
+	return MaxHealth;
+}
+// 2025.07.17 ウー end
+
+void AFishingBattleCharacter::EnterSpot(AActor* spot)
+{
+	canFishing = true;
+	if (spot)
+	{
+		fishingSpot = spot;
+	}
+}
+
+void AFishingBattleCharacter::ExitSpot()
+{
+	canFishing = false;
+	fishingSpot = NULL;
+}
+#pragma endregion
+
+#pragma region レプリケートRep
+
+void AFishingBattleCharacter::OnRep_EquipWeapon()
+{
+	if (weaponActor) {
+		weaponActor->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("wepon"));
+	}
+}
 
 void AFishingBattleCharacter::OnRep_AnimInstance()
 {
@@ -1161,23 +813,73 @@ void AFishingBattleCharacter::OnRep_AnimInstance()
 	mAnim->GetWeaponType(this->WeaponType);
 }
 
-void AFishingBattleCharacter::DelayedCheckWeaponType()
-{
-	//武器のタイプを取得
-	//ACPPBaseWeapon* Base = Cast<ACPPBaseWeapon>(weaponActor);
-	if (ACPPBaseWeapon* Base = Cast<ACPPBaseWeapon>(weaponActor))
-	{
-		UE_LOG(LogTemp, Error, TEXT("GetWeaponTypeInCharacter!!!!!!"));
-		this->WeaponType = Base->WeaponType;
-		OnRep_AnimInstance();
+#pragma endregion
 
-	}
-	else {
-		this->WeaponType = ECPPWeaponType::None;
-		OnRep_AnimInstance();
+#pragma region 体力UIで使用
+// 2025.07.24 ウー start
+
+void AFishingBattleCharacter::OnRep_Controller()
+{
+	Super::OnRep_Controller();
+
+	UpdateHP(MaxHealth, Health);
+}
+
+void AFishingBattleCharacter::UpdateHP(float MaxHP, float NewHP)
+{
+	if (AFisherController* PC = Cast<AFisherController>(GetController()))
+	{
+		PC->UpdateHP(MaxHP, NewHP);
 	}
 }
 
+void AFishingBattleCharacter::OnRep_UpdatedHealth()
+{
+	UpdateHP(MaxHealth, Health);
+}
+// 2025.07.24 ウー end
+#pragma endregion 
+
+#pragma region リスポーン
+void AFishingBattleCharacter::HandleDeath()
+{
+	// リスポーン要求
+	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
+	if (ps) {
+		ps->InventoryInitialize();
+		if (weaponActor) {
+			weaponActor->Destroy();
+		}
+	}
+
+	FTimerHandle RespawnTimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(
+		RespawnTimerHandle,
+		this,
+		&AFishingBattleCharacter::RequestRespawn,
+		2.0f,
+		false
+	);
+}
+
+void AFishingBattleCharacter::RequestRespawn()
+{
+	UE_LOG(LogTemp, Warning, TEXT("リクエストリスポーン"));
+
+	AController* MyController = GetController();
+	if (MyController)
+	{
+		if (AGameMode_T* GM = Cast<AGameMode_T>(UGameplayStatics::GetGameMode(this)))
+		{
+			GM->RespawnPlayerT(MyController);
+		}
+	}
+
+	Destroy(); // 消滅
+}
+#pragma endregion
+
+#pragma region ステータス
 void AFishingBattleCharacter::AddToDeadCounter()
 {
 	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
@@ -1186,28 +888,184 @@ void AFishingBattleCharacter::AddToDeadCounter()
 		UE_LOG(LogTemp, Warning, TEXT("DeadCounter %d"), ps->DeadCounter);
 	}
 }
+#pragma endregion
 
-//void AFishingBattleCharacter::OnRep_PlayerState()
-//{
-//	if (!HasAuthority()) {
-//		UE_LOG(LogTemp, Warning, TEXT("クライアントでうしょ"));
-//		Server_BeginAddFishrot();
-//	}
-//}
-
-void AFishingBattleCharacter::PossessedBy(AController* NewController)
+#pragma region アニメーションモンタージュ再生から終了までの処理(キー入力にバインド)
+void AFishingBattleCharacter::Move(const FInputActionValue& Value)
 {
-	Super::PossessedBy(NewController);
-	if (HasAuthority()) {
-		Multi_BeginAddFishrot();
-		UE_LOG(LogTemp, Warning, TEXT("addFishrod!!!!!!!!!!!!"));
+	if (IsFishing)return;
+	// input is a Vector2D
+	FVector2D MovementVector = Value.Get<FVector2D>();
 
-		Server_TrueInGamePlay();
+	if (Controller != nullptr)
+	{
+		// find out which way is forward
+		const FRotator Rotation = Controller->GetControlRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
+
+		// get forward vector
+		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+
+		// get right vector 
+		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+
+		// add movement 
+		AddMovementInput(ForwardDirection, MovementVector.Y);
+		AddMovementInput(RightDirection, MovementVector.X);
+	}
+}
+
+void AFishingBattleCharacter::Look(const FInputActionValue& Value)
+{
+	// input is a Vector2D
+	FVector2D LookAxisVector = Value.Get<FVector2D>();
+
+	if (Controller != nullptr)
+	{
+		// add yaw and pitch input to controller
+		AddControllerYawInput(LookAxisVector.X);
+		AddControllerPitchInput(LookAxisVector.Y);
+	}
+}
+
+void AFishingBattleCharacter::Attack1()
+{
+	if (!HasAuthority()) {
+		Server_Attack();
+		return;
+	}
+	else {
+		Multi_Attack();
+		return;
 	}
 
 }
 
-//void AFishingBattleCharacter::OnRep_DeadCounter()
-//{
-//	UE_LOG(LogTemp,Error,TEXT("AddDeadCounter"))
-//}
+void AFishingBattleCharacter::OnAttackEnded(UAnimMontage* Montage, bool in) {
+	UE_LOG(LogTemp, Warning, TEXT("attack!end"));
+	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
+	if (!animInstance)return;
+	UMyAnimInstance* mAnim = Cast<UMyAnimInstance>(animInstance);
+	if (!mAnim)return;
+
+
+
+	IsPlayAttack1 = false;
+	mAnim->attack1 = false;
+}
+
+void AFishingBattleCharacter::Roll()
+{
+
+	if (!HasAuthority())
+	{
+		Server_Roll();
+		return;
+	}
+	else {
+		Multi_Roll();
+		return;
+	}
+}
+
+void AFishingBattleCharacter::ReloadCanRoll()
+{
+	CanRoll = true;
+	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
+	if (ps) {
+		ps->CanRollInPS = CanRoll;
+	}
+}
+
+void AFishingBattleCharacter::OnRollEnded(UAnimMontage* Montage, bool in)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Roll!end"));
+	IsRoll = false;
+
+	// 海にいるなら
+	if (Sea)
+	{
+		UGameplayStatics::ApplyDamage(this, GetMaxHealth(), nullptr, Sea, UDamageType::StaticClass());
+	}
+
+	FTimerHandle ReloadRoll;
+	GetWorld()->GetTimerManager().SetTimer(
+		ReloadRoll,
+		this,
+		&AFishingBattleCharacter::ReloadCanRoll,
+		3.0f, // 100ms の遅延
+		false
+	);
+
+}
+
+void AFishingBattleCharacter::Jump()
+{
+	if (IsRoll)return;
+	if (IsFishing)return;
+
+	Super::Jump();
+}
+
+void AFishingBattleCharacter::Die()
+{
+	if (HasAuthority()) {
+		Multi_Dead();
+		return;
+	}
+	else {
+		Server_Dead();
+		return;
+	}
+}
+
+void AFishingBattleCharacter::OnDeadEnded(UAnimMontage* Montage, bool in)
+{
+	UE_LOG(LogTemp, Warning, TEXT("dead!end"));
+	SetActorHiddenInGame(true);
+	if (!HasAuthority())
+	{
+		Server_Die();  // クライアントならサーバーへ要求
+	}
+	else {
+		Multi_Die(); // サーバーならそのまま処理
+	}
+}
+
+
+
+
+void AFishingBattleCharacter::Fishing()
+{
+	//if (!canFishing)return;
+	if (!HasAuthority())
+	{
+		Server_Fishing();
+		return;
+	}
+	else {
+		Multi_Fishing();
+		return;
+	}
+}
+
+void AFishingBattleCharacter::OnFishingEnded(UAnimMontage* Montage, bool in)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Fishing!deligate"));
+
+
+	// Multi_AddWeaponInPlayerはNetMulticastを使ってるので、サーバーを含めた全員に飛ばしてる
+	if (HasAuthority()) {
+		if (fishingSpot)
+		{
+			if (TSubclassOf<AActor> weaponActorSubclass = Cast<AFishingGround>(fishingSpot)->GetFish())
+				Multi_AddWeaponInPlayer(weaponActorSubclass);
+		}
+	}
+
+	//マッピングコンテクストの入れ替えで操作を制限
+	ChangeMappingContext(HasFishrotMappingContext);
+
+	IsFishing = false;
+}
+#pragma endregion
