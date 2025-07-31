@@ -4,9 +4,6 @@
 #include "Tokumaru/PlayerState_T.h"
 #include "Net/UnrealNetwork.h"
 
-
-
-
 void APlayerState_T::Server_AddWeapon(TSubclassOf<AActor> WeaponID)
 {
 	//Multi_AddWeapon(WeaponID);
@@ -66,3 +63,12 @@ void APlayerState_T::OnRep_DeadCounter()
 	UE_LOG(LogTemp, Error, TEXT("AddDeadCounter"));
 }
 
+void APlayerState_T::SetName_Implementation(const FString& PlayerName)
+{
+	Name = PlayerName;
+}
+
+FString APlayerState_T::GetName() const
+{
+	return Name;
+}
