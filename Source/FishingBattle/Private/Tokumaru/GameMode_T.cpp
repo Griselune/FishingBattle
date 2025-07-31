@@ -108,7 +108,6 @@ void AGameMode_T::AddPlayerDatasToRecord()
     }
 
     TArray<TObjectPtr<APlayerState>> PlayerStates = GetGameState<AGameState>()->PlayerArray;
-    UE_LOG(LogTemp, Display, TEXT("Add Player to Record: %d"), PlayerStates.Num());
     for (APlayerState* PlayerState : PlayerStates)
     {
         if (APlayerState_T* PS = Cast<APlayerState_T>(PlayerState))
@@ -124,6 +123,7 @@ FPlayerRecord& AGameMode_T::MakeRecord(APlayerState_T* Player)
     Record->ID = Player->GetPlayerId();
     Record->DeathCount = Player->DeadCounter;
     Record->TotalDamage = 0.0f;
+    Record->Name = Player->GetName();
     return *Record;
 }
 

@@ -32,7 +32,10 @@ public:
 	UPROPERTY(BlueprintReadWrite)
 	bool CanRollInPS = true;
 
+	UFUNCTION(Server, Reliable)
+	void SetName(const FString& PlayerName);
 
+	FString GetName() const;
 
 	//プレイヤーステートクラスからレプリケート関数を動作させる意味がないので、
 	// クライアント・サーバーで分ける必要がないが、一応念のため残しておく。
@@ -80,4 +83,11 @@ protected:
 	UFUNCTION()
 	void OnRep_InGamePlay();
 	
+
+private:
+
+	/// <summary>
+	/// 名前
+	/// </summary>
+	FString Name;
 };

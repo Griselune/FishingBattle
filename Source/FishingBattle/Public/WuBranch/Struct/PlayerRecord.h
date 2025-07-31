@@ -30,4 +30,10 @@ struct FPlayerRecord
 	/// </summary>
 	UPROPERTY(EditAnyWhere, BlueprintReadOnly, Category = "Player Record")
 	float TotalDamage;
+
+	/// <summary>
+	/// 名前
+	/// </summary>
+	UPROPERTY(EditAnyWhere, BlueprintReadOnly, Category = "Player Record")
+	FString Name;
 };

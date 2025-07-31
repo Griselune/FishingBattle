@@ -413,7 +413,12 @@ protected:
 	/// <param name="NewController"></param>
 	virtual void PossessedBy(AController* NewController) override;
 
-
+	// 2025.07.30 ウー start
+	/// <summary>
+	/// プレイヤーがPlayerStateを与えた時
+	/// </summary>
+	virtual void OnRep_PlayerState() override;
+	// 2025.07.30 ウー end
 #pragma endregion
 
 #pragma region 武器装備
@@ -520,6 +525,14 @@ protected:
 	/// リスポーン要求
 	/// </summary>
 	void RequestRespawn(); //　リスポーンを要求
+#pragma endregion
+
+// 
+#pragma region データ設定
+	/// <summary>
+	/// 名前を設定
+	/// </summary>
+	void SetNameFromInstance();
 #pragma endregion
 };
 

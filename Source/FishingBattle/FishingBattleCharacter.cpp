@@ -14,6 +14,7 @@
 #include <Kismet/GameplayStatics.h>
 #include <WuBranch/Actor/FishingGround.h>
 #include <WuBranch/PlayerController/FisherController.h>
+#include <PrinzBranch/LANGameInstance.h>
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -107,6 +108,10 @@ void AFishingBattleCharacter::BeginPlay()
 	// 2025.07.24 ウー start
 	//healthUpdate.AddDynamic(this, &AFishingBattleCharacter::GetPlayerHealth);
 	Health = MaxHealth;
+
+	// サーバーのみ、
+	if(HasAuthority())
+		SetNameFromInstance();
 	// 2025.07.24 ウー end
 
 	//スポーンしてから5秒無敵にする
@@ -118,9 +123,6 @@ void AFishingBattleCharacter::BeginPlay()
 		false
 	);
 }
-
-
-
 
 #pragma region RPC関数
 
@@ -707,6 +709,14 @@ void AFishingBattleCharacter::PossessedBy(AController* NewController)
 	}
 
 }
+
+void AFishingBattleCharacter::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+
+	// 名前を保存する、クライアントのみ
+	SetNameFromInstance();
+}
 #pragma endregion
 
 #pragma region Input
@@ -894,6 +904,23 @@ void AFishingBattleCharacter::RequestRespawn()
 	Destroy(); // 消滅
 }
 #pragma endregion
+
+// 2025.07.24 ウー start
+#pragma region データ設定
+void AFishingBattleCharacter::SetNameFromInstance()
+{
+	if (IsControlled())
+	{
+		ULANGameInstance* GameInstance = GetGameInstance<ULANGameInstance>();
+		APlayerState_T* GameState = GetPlayerState<APlayerState_T>();
+		if (GameInstance && GameState)
+		{
+			GameState->SetName(GameInstance->GIPlayerName);
+		}
+	}
+}
+#pragma endregion
+// 2025.07.24 ウー end
 
 #pragma region ステータス
 void AFishingBattleCharacter::AddToDeadCounter()
