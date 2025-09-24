@@ -51,9 +51,11 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
 	ECPPWeaponType WeaponType;
 
+	//武器を食べた時の回復量(攻撃力と反比例)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	float HealingAmount;
 
+	//武器を釣るのにかかる時間(攻撃力が高い程時間がかかるようにする)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	float FishingTime;
 
