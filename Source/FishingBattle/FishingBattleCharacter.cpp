@@ -51,6 +51,10 @@ AFishingBattleCharacter::AFishingBattleCharacter()
 	CameraBoom->TargetArmLength = 400.0f; // The camera follows at this distance behind the character	
 	CameraBoom->bUsePawnControlRotation = true; // Rotate the arm based on the controller
 
+	effect = CreateDefaultSubobject<UNiagaraComponent>(TEXT("Effect"));
+	effect->SetupAttachment(RootComponent);
+
+
 	// Create a follow camera
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
@@ -357,6 +361,19 @@ void AFishingBattleCharacter::Multi_BeginAddFishrot_Implementation()
 		UE_LOG(LogTemp, Error, TEXT("プレイヤーステートないけどどうする？"));
 	}
 }
+
+void AFishingBattleCharacter::Server_DestructionWeapon_Implementation(int index) {
+	Multi_DestructionWeapon(index);
+}
+
+void AFishingBattleCharacter::Multi_DestructionWeapon_Implementation(int index) {
+	if (IsPlayAttack1)return;
+	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
+	if (!ps)return;
+	ps->Server_DestructionWeaponPS(index);
+	EquipSlotIndex(index);
+}
+
 #pragma endregion
 
 #pragma region 武器装備
@@ -370,7 +387,27 @@ void AFishingBattleCharacter::EquipSlotIndex(int slotIndex)
 	//インベントリに武器がなければ素手になる。
 	const FInventoryWeapon* weapon = ps->GetweaponSlot(slotIndex);
 	if (weapon) {
-		Server_EquipWeapon(weapon->weaponActor);
+		if (weapon->weaponActor) {
+			Server_EquipWeapon(weapon->weaponActor);
+			nowInventoryIndex = slotIndex;
+		}
+		else {
+			if (weaponActor) {
+				weaponActor->Destroy();
+			}
+
+			weaponActor = nullptr;
+
+			FTimerHandle WeaponCheckTimer;
+			GetWorld()->GetTimerManager().SetTimer(
+				WeaponCheckTimer,
+				this,
+				&AFishingBattleCharacter::DelayedCheckWeaponType,
+				0.1f, // 100ms の遅延
+				false
+			);
+			nowInventoryIndex = slotIndex;
+		}
 	}
 	else {
 
@@ -388,6 +425,18 @@ void AFishingBattleCharacter::EquipSlotIndex(int slotIndex)
 			0.1f, // 100ms の遅延
 			false
 		);
+		nowInventoryIndex = slotIndex;
+	}
+}
+
+void AFishingBattleCharacter::DestructionWeapon()
+{
+	if (!HasAuthority())
+	{
+		Server_DestructionWeapon(nowInventoryIndex);
+	}
+	else {
+		Multi_DestructionWeapon(nowInventoryIndex);
 	}
 }
 
@@ -591,6 +640,7 @@ void AFishingBattleCharacter::DelayedCheckWeaponType()
 		OnRep_AnimInstance();
 	}
 }
+
 #pragma endregion
 
 #pragma region Valiable
@@ -662,6 +712,14 @@ bool AFishingBattleCharacter::Server_TrueInGamePlay_Validate() {
 }
 
 bool AFishingBattleCharacter::Multi_BeginAddFishrot_Validate() {
+	return true;
+}
+
+bool AFishingBattleCharacter::Server_DestructionWeapon_Validate(int index) {
+	return true;
+}
+
+bool AFishingBattleCharacter::Multi_DestructionWeapon_Validate(int index) {
 	return true;
 }
 #pragma endregion
@@ -751,6 +809,8 @@ void AFishingBattleCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 		EnhancedInputComponent->BindAction(SwitchWeapon3, ETriggerEvent::Started, this, &AFishingBattleCharacter::EquipSlot3);
 
 		EnhancedInputComponent->BindAction(SwitchFishlot, ETriggerEvent::Started, this, &AFishingBattleCharacter::EquipFishlot);
+
+		EnhancedInputComponent->BindAction(DestructionWeaponInput, ETriggerEvent::Started, this, &AFishingBattleCharacter::DestructionWeapon);
 
 	}
 	else

@@ -7,11 +7,19 @@
 void APlayerState_T::Server_AddWeapon(TSubclassOf<AActor> WeaponID)
 {
 	//Multi_AddWeapon(WeaponID);
+
+
+	for (int i = 0; i < inventory.Num(); i++) {
+		if (inventory[i].weaponActor == nullptr) {
+			inventory[i].weaponActor = WeaponID;
+			return;
+		}
+	}
+
 	if (!HasEmptySlot()) {
 		UE_LOG(LogTemp, Error, TEXT("cantAddWeapon!"));
 		return;
 	}
-
 
 	FInventoryWeapon newWeapon;
 	newWeapon.weaponActor = WeaponID;
@@ -45,6 +53,20 @@ void APlayerState_T::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	DOREPLIFETIME(APlayerState_T, InGamePlay);
 	DOREPLIFETIME(APlayerState_T, DeadCounter);
 
+}
+
+void APlayerState_T::Server_DestructionWeaponPS(int index)
+{
+	if (index == 0) {
+		return;
+	}
+
+	if (inventory.Num() > index) {
+		inventory[index].weaponActor = nullptr;
+	}
+	else {
+		return;
+	}
 }
 
 void APlayerState_T::OnRep_Inventory()
