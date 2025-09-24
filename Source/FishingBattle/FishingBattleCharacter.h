@@ -10,6 +10,9 @@
 #include "Logging/LogMacros.h"
 #include "tokumaru/InventoryWeapon.h"
 #include "Net/UnrealNetwork.h"
+//#include "NiagaraComponent.h"
+//#include "NiagaraSystem.h"
+#include "NiagaraComponent.h"
 #include "TakimotoBranch/CPPBaseWeapon.h"
 #include "TakimotoBranch/CPPWeaponType.h"
 #include "FishingBattleCharacter.generated.h"
@@ -59,6 +62,11 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FollowCamera;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "FX")
+	TObjectPtr<UNiagaraComponent> effect;
+
+
+
 	/** MappingContext */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputMappingContext* DefaultMappingContext;
@@ -107,6 +115,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* SwitchFishlot;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* DestructionWeaponInput;
 
 protected:
 	/// <summary>
@@ -209,6 +220,11 @@ private:
 	/// 釣り場
 	/// </summary>
 	AActor* fishingSpot = nullptr;
+
+	/// <summary>
+	/// 今装備している武器のインベントリ番号
+	/// </summary>
+	int nowInventoryIndex = 0;
 #pragma endregion
 
 #pragma region アニメーションモンタージュ再生から終了までの処理
@@ -394,6 +410,13 @@ protected:
 	/// </summary>
 	UFUNCTION(NetMulticast, Reliable, WithValidation)
 	void Multi_BeginAddFishrot();//クライアント用
+
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_DestructionWeapon(int index);
+
+	UFUNCTION(NetMulticast, Reliable, WithValidation)
+	void Multi_DestructionWeapon(int index);
 #pragma endregion
 
 
@@ -490,6 +513,11 @@ protected:
 	/// </summary>
 	/// <param name="slotIndex"></param>
 	void EquipSlotIndex(int slotIndex);
+
+	/// <summary>
+	/// 武器の破棄
+	/// </summary>
+	void DestructionWeapon();
 #pragma endregion
 
 #pragma region 体力UIに使用
