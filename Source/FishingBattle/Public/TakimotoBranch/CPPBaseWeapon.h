@@ -47,6 +47,16 @@ protected:
 
 public:
 
+	//2025/07/15 ここに移動しました　得丸陽生
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
+	ECPPWeaponType WeaponType;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	float HealingAmount;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	float FishingTime;
+
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Weapon")
 	void Attack();
 
@@ -58,10 +68,6 @@ public:
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Weapon")
 	void Attack_Finish();
-
-	//2025/07/15 ここに移動しました　得丸陽生
-	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite, Category = "Weapon")
-	ECPPWeaponType WeaponType;
 
 	virtual void BeginPlay() override;
 };

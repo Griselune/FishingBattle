@@ -75,6 +75,9 @@ public:
 	UPROPERTY(Replicated, ReplicatedUsing = OnRep_InGamePlay)
 	bool InGamePlay = false;
 
+	UFUNCTION()
+	void Server_DestructionWeaponPS(int index);
+
 protected:
 
 	UFUNCTION()
