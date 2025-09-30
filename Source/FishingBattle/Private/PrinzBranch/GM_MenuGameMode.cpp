@@ -37,6 +37,7 @@ void AGM_MenuGameMode::Logout(AController* Exiting)
     AMenuPlayerController* PC = Cast<AMenuPlayerController>(Exiting);
     if (PC->IsLocalController())
     {
+        UE_LOG(LogTemp, Warning, TEXT("///// EXITING /////"));
         //ULANGameInstance* GI = Cast<ULANGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
         PC->SendLogoutToServer(PS);
     }

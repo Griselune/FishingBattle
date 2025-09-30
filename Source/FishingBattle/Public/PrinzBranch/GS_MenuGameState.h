@@ -56,21 +56,22 @@ public:
     /// <summary>
     /// Functions
     /// </summary>
-    void SendData();
+    UFUNCTION(BlueprintCallable, Server, Reliable)
+    void GetDataFromServer();
 
-    UFUNCTION(BlueprintCallable, NetMulticast, Reliable)
+    UFUNCTION(BlueprintCallable, NetMulticast, Reliable) //calls on every clients
     void AddPlayerToList(APlayerState* PS, const FString& PName);
 
-    UFUNCTION(BlueprintCallable, NetMulticast, Reliable)
+    UFUNCTION(BlueprintCallable, Client, Reliable)
     void RemovePlayerFromList(APlayerState* PS);
 
-    UFUNCTION(BlueprintCallable, NetMulticast, Reliable)
+    UFUNCTION(BlueprintCallable, Client, Reliable) //EXECUTES ON SERVER ONLY
     void HostAddPlayerList();
 
-    UFUNCTION(BlueprintCallable, NetMulticast, Reliable)
+    UFUNCTION(BlueprintCallable, Server, Reliable)
     void HostAddReadyPlayer();
 
-    UFUNCTION(BlueprintCallable, NetMulticast, Reliable)
+    UFUNCTION(BlueprintCallable, Server, Reliable)
     void HostRemoveReadyPlayer();
 
 private:
@@ -81,8 +82,8 @@ private:
     UFUNCTION(NetMulticast, Reliable)
     void SetSessionName(const FString& Name);
 
-    UFUNCTION(NetMulticast, Reliable)
-    void SetSessionPassword(const FString& Password);
+    //UFUNCTION(NetMulticast, Reliable)
+    //void SetSessionPassword(const FString& Password);
 
     UFUNCTION(NetMulticast, Reliable)
     void SetSessionPlayerLimit(const int32& PlayerLimit);

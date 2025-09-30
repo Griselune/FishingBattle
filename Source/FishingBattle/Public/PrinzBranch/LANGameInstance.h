@@ -39,7 +39,7 @@ public:
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
     bool GIisBattleRoyale = true;
 
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
+    UPROPERTY(BlueprintReadWrite, /*ReplicatedUsing = OnRep_PlayerName, */EditAnywhere, Category = "Shared Data")
     FString GIPlayerName;  //BluePrintで名前を保存する
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
@@ -49,8 +49,12 @@ public:
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
     bool GIisReady = false;
 
-    //UFUNCTION(BlueprintCallable, Category = "LAN Session")
-    //void CreateLANSession(const FString& SessionName, const FString& Password, const int32& PlayerLimit, const int32& TimeLimit); //added playerlimit and timelimit
+
+public:
+    //UFUNCTION(BlueprintCallable)
+    //void OnRep_PlayerName();
+
+  
 
     // 2025.07.26 ウー start
 

@@ -14,6 +14,6 @@ class FISHINGBATTLE_API APS_MenuPlayerState : public APlayerState
 {
 	GENERATED_BODY()
 	
-
-
+private:
+	//virtual void SetPlayerName(const FString& S);
 };

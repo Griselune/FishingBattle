@@ -12,7 +12,7 @@ void AMenuPlayerController::GetDataFromServer_Implementation(const FString& InNa
 	UE_LOG(LogTemp, Warning, TEXT("Server Send Data"));
 	AGS_MenuGameState* GS = GetWorld()->GetGameState<AGS_MenuGameState>();
 	if (GS) {
-		GS->SendData();
+		GS->GetDataFromServer();
 		GS->AddPlayerToList(PlayerState, InName);
 	}
 }

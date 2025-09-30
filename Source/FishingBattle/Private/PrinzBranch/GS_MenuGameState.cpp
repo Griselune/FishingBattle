@@ -25,13 +25,18 @@ void AGS_MenuGameState::BeginPlay()
 
 void AGS_MenuGameState::HostAddPlayerList_Implementation()
 {
-	//Server -- Serverは自身の名前を先にプレヤーリストに入れる
-	ULANGameInstance* GI = Cast<ULANGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
-	APlayerState* PS = GetWorld()->GetFirstPlayerController<APlayerState>();
-	if (GI)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Server adds it's own name in the list"));
-		AddPlayerToList(PS, GI->GIPlayerName);
+	if (HasAuthority()) {
+		//Server -- Serverは自身の名前を先にプレヤーリストに入れる
+		ULANGameInstance* GI = Cast<ULANGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
+		APlayerState* PS = GetWorld()->GetFirstPlayerController<APlayerState>();
+		if (GI)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Server adds it's own name in the list"));
+			AddPlayerToList(PS, GI->GIPlayerName);
+		}
+	}
+	else {
+		UE_LOG(LogTemp, Warning, TEXT("Not the server. Cannot add it's own name to list"));
 	}
 }
 
@@ -55,16 +60,25 @@ void AGS_MenuGameState::OnRep_SessionData()
 //		SendData();
 //}
 
-void AGS_MenuGameState::SendData()
+void AGS_MenuGameState::GetDataFromServer_Implementation()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Server Send Session Name"));
 	SetSessionName(GSSessionName);
-	//SetSessionPassword(GSSessionPassword);
-	//SetSessionPlayerLimit(GSSessionPlayerLimit);
-	//SetSessionTimeLimit(GSSessionTimeLimit);
-	//SetSessionIsDeathMatch(GSisDeathMatch);
-	//SetSessionIsBattleRoyale(GSisBattleRoyale);
 
+	//Gets player list from server
+	for (auto& list : GSPlayerList) {
+		AddPlayerToList(list.Key, list.Value);
+		UE_LOG(LogTemp, Warning, TEXT("Client added a name in the list"));
+		break;
+	}
+	//Client adds it's own name in the list
+	ULANGameInstance* GI = Cast<ULANGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
+	APlayerState* PS = GetWorld()->GetFirstPlayerController<APlayerState>();
+	if (GI)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Server adds it's own name in the list"));
+		AddPlayerToList(PS, GI->GIPlayerName);
+	}
 }
 
 void AGS_MenuGameState::SetSessionName_Implementation(const FString& Name)
@@ -73,11 +87,11 @@ void AGS_MenuGameState::SetSessionName_Implementation(const FString& Name)
 	UE_LOG(LogTemp, Warning, TEXT("Get Name: %s"), *GSSessionName);
 }
 
-void AGS_MenuGameState::SetSessionPassword_Implementation(const FString& Password)
-{
-	GSSessionPassword= Password;
-	UE_LOG(LogTemp, Warning, TEXT("Get Name: %s"), *GSSessionPassword);
-}
+//void AGS_MenuGameState::SetSessionPassword_Implementation(const FString& Password)
+//{
+//	GSSessionPassword= Password;
+//	UE_LOG(LogTemp, Warning, TEXT("Get Name: %s"), *GSSessionPassword);
+//}
 
 void AGS_MenuGameState::SetSessionPlayerLimit_Implementation(const int32& PlayerLimit)
 {
@@ -121,8 +135,6 @@ void AGS_MenuGameState::SetSessionIsBattleRoyale_Implementation(bool isBR)
 void AGS_MenuGameState::AddPlayerToList_Implementation(APlayerState* PS, const FString& PName)
 {
 	if (PS) {
-		//ULANGameInstance* GI = Cast<ULANGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
-		//FString PName = GI->GIPlayerName;
 		GSPlayerList.Add(PS, PName);
 		UE_LOG(LogTemp, Warning, TEXT("AddPlayerToList() executed"));
 	}
