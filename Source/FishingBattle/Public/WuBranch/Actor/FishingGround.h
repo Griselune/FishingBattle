@@ -11,6 +11,7 @@ class USphereComponent;
 class UFishableComponent;
 class UWidgetComponent;
 class ACPPBaseWeapon;
+class UNiagaraComponent;
 
 UCLASS()
 class FISHINGBATTLE_API AFishingGround : public AActor
@@ -27,7 +28,7 @@ protected:
 
 public:	
 	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	//virtual void Tick(float DeltaTime) override;
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
@@ -77,6 +78,18 @@ private:
 	void OnSeaAreaEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 	/// <summary>
+	/// エフェクトが見えない範囲に入ったら
+	/// </summary>
+	UFUNCTION()
+	void OnExistenceInvisibilityAreaBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	/// <summary>
+	/// エフェクトが見えない範囲を出たら
+	/// </summary>
+	UFUNCTION()
+	void OnExistenceInvisibilityAreaEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	/// <summary>
 	/// 地上範囲を同期する
 	/// </summary>
 	UFUNCTION()
@@ -99,6 +112,16 @@ private:
 	/// </summary>
 	UFUNCTION(Client, Reliable)
 	void CloseUI();
+	
+	/// <summary>
+	/// 存在エフェクトを表示
+	/// </summary>
+	void ShowExistenceEffect();
+
+	/// <summary>
+	/// 存在エフェクトを非表示
+	/// </summary>
+	void CloseExistenceEffect();
 
 	/// <summary>
 	/// 地上の釣り範囲
@@ -153,4 +176,16 @@ private:
 	/// </summary>
 	UPROPERTY(EditDefaultsOnly, meta = (AllowPrivateAccess = "true"))
 	class USoundBase* CatchSound;
+
+	/// <summary>
+	/// 存在エフェフクト
+	/// </summary>
+	UPROPERTY(EditDefaultsOnly,BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	UNiagaraComponent* ExistenceEffect;
+
+	/// <summary>
+	/// 存在エフェフクトが見えない範囲
+	/// </summary>
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	USphereComponent* ExistenceInvisibilityArea;
 };
