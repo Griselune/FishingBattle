@@ -12,5 +12,9 @@ enum class ECPPWeaponType : uint8
 	FishingRod,
 	WeaponTest1,
 	WeaponTest2,
-	WeaponTest3
+	WeaponTest3,
+	WeaponTest4,
+	WeaponTest5,
+	WeaponTest6,
+	WeaponTest7
 };
