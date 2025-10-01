@@ -60,9 +60,13 @@ public:
 	/*UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	float FishingTime;*/
 
-	//スキルチェックのバーの速さ(難易度)
+	//スキルチェックのバーの速さ(釣る難易度)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	float SkillCheckSpeed;
+
+	//アイコン画像
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	UTexture2D* Icon;
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Weapon")
 	void Attack();
