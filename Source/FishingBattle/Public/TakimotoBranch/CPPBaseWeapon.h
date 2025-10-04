@@ -55,9 +55,14 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	float HealingAmount;
 
-	//武器を釣るのにかかる時間(攻撃力が高い程時間がかかるようにする)
+	//武器を釣るのにかか1る時間(攻撃力が高い程時間がかかるようにする)
+	//スキルチェックの要素を入れたためコメントアウト　9月30日14時55分　滝本海大
+	/*UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	float FishingTime;*/
+
+	//スキルチェックのバーの速さ(難易度)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
-	float FishingTime;
+	float SkillCheckSpeed;
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Weapon")
 	void Attack();
