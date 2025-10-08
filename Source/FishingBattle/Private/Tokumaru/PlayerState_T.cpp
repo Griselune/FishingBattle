@@ -9,6 +9,7 @@ void APlayerState_T::Server_AddWeapon(TSubclassOf<AActor> WeaponID)
 	//Multi_AddWeapon(WeaponID);
 
 
+
 	for (int i = 0; i < inventory.Num(); i++) {
 		if (inventory[i].weaponActor == nullptr) {
 			inventory[i].weaponActor = WeaponID;

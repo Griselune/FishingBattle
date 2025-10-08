@@ -371,6 +371,13 @@ void AFishingBattleCharacter::Multi_DestructionWeapon_Implementation(int index) 
 	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
 	if (!ps)return;
 	ps->Server_DestructionWeaponPS(index);
+	
+	if (HasAuthority()) {
+		if (ACPPBaseWeapon* baseWeapon = Cast<ACPPBaseWeapon>(weaponActor)) {
+			Heal(baseWeapon->HealingAmount);
+		}
+	}
+
 	EquipSlotIndex(index);
 }
 
