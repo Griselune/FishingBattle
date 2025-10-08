@@ -849,9 +849,20 @@ void AFishingBattleCharacter::Heal_Implementation(float healAmount)
 	if (Health > MaxHealth) {
 		Health = MaxHealth;
 	}
-
+	//回復エフェクト再生
+	Multi_Heal();
 	// 自分も更新する
 	UpdateHP(MaxHealth, Health);
+}
+
+void AFishingBattleCharacter::Multi_Heal_Implementation()
+{
+	effect->Activate();
+}
+
+void AFishingBattleCharacter::Server_Heal_Implementation()
+{
+	Multi_Heal();
 }
 
 void AFishingBattleCharacter::EnterSea(AActor* Actor)

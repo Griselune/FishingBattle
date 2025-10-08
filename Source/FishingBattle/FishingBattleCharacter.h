@@ -190,6 +190,21 @@ public:
 	void Heal(float healAmount);
 
 	/// <summary>
+	/// ヒールエフェクト表示
+	/// </summary>
+	UFUNCTION(NetMulticast, Reliable)
+	void Multi_Heal();  // サーバー用
+
+	/// <summary>
+    /// ヒールエフェクト表示
+    /// </summary>
+	UFUNCTION(Server, Reliable)
+	void Server_Heal();  // クライアント用
+
+
+
+
+	/// <summary>
 	/// 釣り場侵入
 	/// </summary>
 	/// <param name="spot"></param>
