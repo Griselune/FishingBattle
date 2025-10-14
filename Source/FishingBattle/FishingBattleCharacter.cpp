@@ -258,6 +258,8 @@ void AFishingBattleCharacter::Multi_Fishing_Implementation()
 		SetActorRotation(angle);
 	}
 
+	EquipFishlot();
+
 	//アニメーション
 	if (IsRoll || !FishingMontage || IsPlayAttack1 || !GetCharacterMovement()->IsMovingOnGround())return;
 	UE_LOG(LogTemp, Warning, TEXT("Fishing!"));
@@ -554,7 +556,7 @@ void AFishingBattleCharacter::EquipFishlot()
 	else {
 		Multi_EquipSlotIndex(0);
 	}
-	ChangeMappingContext(HasFishrotMappingContext);
+	//ChangeMappingContext(HasFishrotMappingContext);
 }
 
 void AFishingBattleCharacter::EquipWeapon(TSubclassOf<AActor> weaponID)
