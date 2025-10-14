@@ -258,6 +258,8 @@ void AFishingBattleCharacter::Multi_Fishing_Implementation()
 		SetActorRotation(angle);
 	}
 
+	EquipFishlot();
+
 	//アニメーション
 	if (IsRoll || !FishingMontage || IsPlayAttack1 || !GetCharacterMovement()->IsMovingOnGround())return;
 	UE_LOG(LogTemp, Warning, TEXT("Fishing!"));
@@ -371,6 +373,13 @@ void AFishingBattleCharacter::Multi_DestructionWeapon_Implementation(int index) 
 	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
 	if (!ps)return;
 	ps->Server_DestructionWeaponPS(index);
+	
+	if (HasAuthority()) {
+		if (ACPPBaseWeapon* baseWeapon = Cast<ACPPBaseWeapon>(weaponActor)) {
+			Heal(baseWeapon->HealingAmount);
+		}
+	}
+
 	EquipSlotIndex(index);
 }
 
@@ -547,7 +556,7 @@ void AFishingBattleCharacter::EquipFishlot()
 	else {
 		Multi_EquipSlotIndex(0);
 	}
-	ChangeMappingContext(HasFishrotMappingContext);
+	//ChangeMappingContext(HasFishrotMappingContext);
 }
 
 void AFishingBattleCharacter::EquipWeapon(TSubclassOf<AActor> weaponID)
@@ -849,9 +858,20 @@ void AFishingBattleCharacter::Heal_Implementation(float healAmount)
 	if (Health > MaxHealth) {
 		Health = MaxHealth;
 	}
-
+	//回復エフェクト再生
+	Multi_Heal();
 	// 自分も更新する
 	UpdateHP(MaxHealth, Health);
+}
+
+void AFishingBattleCharacter::Multi_Heal_Implementation()
+{
+	effect->Activate();
+}
+
+void AFishingBattleCharacter::Server_Heal_Implementation()
+{
+	Multi_Heal();
 }
 
 void AFishingBattleCharacter::EnterSea(AActor* Actor)
