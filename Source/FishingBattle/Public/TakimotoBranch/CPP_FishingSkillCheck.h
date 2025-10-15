@@ -44,11 +44,17 @@ public:
 
 	//バーの動くスピード
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SkillCheck")
-	float Speed;
+	float Speed = 0.f;
 
 	//バーを止めるかどうか
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SkillCheck")
-	bool IsStop;
+	bool IsStop = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SkillCheck")
+	bool IsClear = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SkillCheck")
+	bool IsFishing = false;
 
 	UFUNCTION(BlueprintCallable, Category = "SkillCheck")
 	void BarMoving(float DeltaTime);
