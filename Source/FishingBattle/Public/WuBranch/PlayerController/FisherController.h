@@ -74,13 +74,12 @@ public:
 	/// <summary>
 	/// 釣る時のゲージを表示する
 	/// </summary>
-	void ShowFishingGauge();
+	void ShowFishingGauge(float SkillCheckSpeed);
 
 	/// <summary>
-	/// 釣る時のゲージを止める
+	/// FishingSkillCheckのIsClearを持ってくる関数
 	/// </summary>
-	void StopGauge();
-
+	bool GetStopFunction();
 private:
 
 	/// <summary>

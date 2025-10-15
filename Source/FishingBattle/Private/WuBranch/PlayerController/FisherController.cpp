@@ -102,6 +102,7 @@ void AFisherController::CreateUI()
 	if (!FishingGaugeUI) {
 		if (FishingGaugeUIClass) {
 			FishingGaugeUI = CreateWidget<UUserWidget>(GetWorld(), FishingGaugeUIClass);
+			FishingGaugeUI->AddToViewport();
 			UE_LOG(LogTemp, Display, TEXT("FishingGaugeUI set"));
 		}
 	}
@@ -112,14 +113,19 @@ void AFisherController::CreateUI()
 }
 
 //10月8日　滝本海大　開始
-void AFisherController::ShowFishingGauge()
+void AFisherController::ShowFishingGauge(float SkillCheckSpeed)
 {
 	if (HasAuthority()) { UE_LOG(LogTemp, Display, TEXT("Server ShowFishingGauge()")); }
 	else UE_LOG(LogTemp, Display, TEXT("Client ShowFishingGauge()"));
 
-	if (IsValid(FishingGaugeUI)) {
+	if (FishingGaugeUI) {
 		if (FishingGaugeUI->Implements<UUIActivity>())
 		{
+			UCPP_FishingSkillCheck* FSC = Cast<UCPP_FishingSkillCheck>(FishingGaugeUI);
+			FSC->IsFishing = true;
+			FSC->IsStop = false;
+			FSC->IsClear = false;
+			FSC->Speed = SkillCheckSpeed;
 			IUIActivity::Execute_ShowUI(FishingGaugeUI);
 		}
 	}
@@ -128,11 +134,14 @@ void AFisherController::ShowFishingGauge()
 	}
 }
 
-void AFisherController::StopGauge()
+bool AFisherController::GetStopFunction()
 {
-	/*if (UCPP_FishingSkillCheck* FishingSkillCheck = Cast<UCPP_FishingSkillCheck>(MyHUD))
+	if (UCPP_FishingSkillCheck* FishingSkillCheck = Cast<UCPP_FishingSkillCheck>(FishingGaugeUI))
 	{
-		FishingSkillCheck->Stop();
-	}*/
+		UE_LOG(LogTemp, Display, TEXT("GetStopFunction() Cast Collect!!!"));
+		return FishingSkillCheck->Stop();
+	}
+	UE_LOG(LogTemp, Error, TEXT("GetStopFunction() Cast Failed..."));
+	return false;
 }
 //10月8日　滝本海大　終了

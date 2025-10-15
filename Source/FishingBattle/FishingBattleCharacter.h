@@ -65,6 +65,8 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "FX")
 	TObjectPtr<UNiagaraComponent> effect;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "FX")
+	TObjectPtr<UNiagaraComponent> damageEffect;
 
 
 	/** MappingContext */
@@ -118,6 +120,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* DestructionWeaponInput;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* GaugeStop;
 
 protected:
 	/// <summary>
@@ -201,8 +206,17 @@ public:
 	UFUNCTION(Server, Reliable)
 	void Server_Heal();  // クライアント用
 
+	/// <summary>
+	/// ダメージエフェクト表示用
+	/// </summary>
+	UFUNCTION(NetMulticast, Reliable)
+	void Multi_DamageEffect();  // サーバー用
 
-
+	/// <summary>
+	/// ダメージエフェクト表示用
+	/// </summary>
+	UFUNCTION(Server, Reliable)
+	void Server_DamageEffect();  // クライアント用
 
 	/// <summary>
 	/// 釣り場侵入
@@ -308,7 +322,14 @@ protected:
 	/// <summary>
 	/// 釣りモーション終了
 	/// </summary>
-	void OnFishingEnded(UAnimMontage* Montage, bool in);
+	void OnFishingEnded(/*UAnimMontage* Montage, bool in*/);
+	//10月15日　滝本海大　開始
+	//釣り場から貰ってきた魚を保存する変数
+	TSubclassOf<AActor> weaponActorSubclass;
+		
+	//IA_GaugeStopにバインドする関数
+	void OnGaugeStop();
+	//10月15日　滝本海大　終了
 #pragma endregion
 
 #pragma region RPC関数
@@ -432,6 +453,15 @@ protected:
 
 	UFUNCTION(NetMulticast, Reliable, WithValidation)
 	void Multi_DestructionWeapon(int index);
+
+	//10月15日　滝本海大　開始
+	//釣りゲージの結果から魚を手に入れるかどうかを判定する
+	UFUNCTION(Server, Reliable)
+	void Server_GetFishByGauge();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multi_GetFishByGauge();
+	//10月15日　滝本海大　終了
 #pragma endregion
 
 

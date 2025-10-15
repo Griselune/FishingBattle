@@ -23,10 +23,12 @@ bool UCPP_FishingSkillCheck::Stop()
 
 	if (MinGreenArea <= CurrentValue && CurrentValue <= MaxGreenArea) {
 		UE_LOG(LogTemp, Warning, TEXT("Clear"));
-		return true;
+		IsClear = true;
 	}
 	else {
 		UE_LOG(LogTemp, Error, TEXT("Failed"));
-		return false;
+		IsClear = false;
 	}
+
+	return IsClear;
 }
