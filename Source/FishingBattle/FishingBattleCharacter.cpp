@@ -65,6 +65,8 @@ AFishingBattleCharacter::AFishingBattleCharacter()
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
+
+	this->Tags.Add(FName("Player"));
 }
 
 float AFishingBattleCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
@@ -277,9 +279,9 @@ void AFishingBattleCharacter::Multi_Fishing_Implementation()
 		UE_LOG(LogTemp, Warning, TEXT("Fishing!Play"));
 		IsFishing = true;
 
-		//FOnMontageEnded Delegate;
-		//Delegate.BindUObject(this, &AFishingBattleCharacter::OnFishingEnded);
-		//animInstance->Montage_SetEndDelegate(Delegate, FishingMontage);
+		FOnMontageEnded Delegate;
+		Delegate.BindUObject(this, &AFishingBattleCharacter::ShowFishingGauge);
+		animInstance->Montage_SetEndDelegate(Delegate, FishingMontage);
 
 		ChangeMappingContext(FishingMappingContext);
 
@@ -1192,17 +1194,6 @@ void AFishingBattleCharacter::Fishing()
 	if (!canFishing)return;
 	if (IsFishing)return;
 
-	//10月14日　滝本海大　開始
-	if (weaponActorSubclass = Cast<AFishingGround>(fishingSpot)->GetFish()) {
-		UE_LOG(LogTemp, Display, TEXT("weaponActorSubclass: %s"), *weaponActorSubclass->GetName());
-		UClass* WeaponClass = weaponActorSubclass;
-		if (ACPPBaseWeapon* BW = Cast<ACPPBaseWeapon>(WeaponClass->GetDefaultObject())) {
-			AFisherController* FC = Cast<AFisherController>(GetController());
-			FC->ShowFishingGauge(BW->SkillCheckSpeed);
-		}
-	}
-	//10月14日　滝本海大　終了
-
 	//動きを同期するためにサーバーに通知
 	//if (!canFishing)return;
 	if (!HasAuthority())
@@ -1245,4 +1236,20 @@ void AFishingBattleCharacter::OnGaugeStop()
 	if (HasAuthority()) Multi_GetFishByGauge();
 	else Server_GetFishByGauge();
 }
+
+//10月15日　滝本海大　開始
+void AFishingBattleCharacter::ShowFishingGauge(UAnimMontage* Montage, bool in)
+{	
+	if (HasAuthority()) {
+		if (weaponActorSubclass = Cast<AFishingGround>(fishingSpot)->GetFish()) {
+			UE_LOG(LogTemp, Display, TEXT("weaponActorSubclass: %s"), *weaponActorSubclass->GetName());
+			UClass* WeaponClass = weaponActorSubclass;
+			if (ACPPBaseWeapon* BW = Cast<ACPPBaseWeapon>(WeaponClass->GetDefaultObject())) {
+				AFisherController* FC = Cast<AFisherController>(GetController());
+				FC->ShowFishingGauge(BW->SkillCheckSpeed);
+			}
+		}
+	}
+}
+//10月15日　滝本海大　終了
 #pragma endregion

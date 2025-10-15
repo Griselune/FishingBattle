@@ -52,7 +52,8 @@ void ACPPBaseWeapon::Attack_Implementation()
 void ACPPBaseWeapon::OnHit_Implementation(AActor* HitActor)
 {
 	if (!HasAuthority()) return; //クライアントだったらreturnする
-	
+	if (!HitActor->ActorHasTag(FName("Player"))) return; //当たったのがプレイヤー以外だったらreturn
+
 	if (HitActor && HitActor != GetOwner()) {
 		if (NextHitTime <= 0){
 			UGameplayStatics::ApplyDamage(HitActor, Damage, GetInstigatorController(), this, UDamageType::StaticClass());

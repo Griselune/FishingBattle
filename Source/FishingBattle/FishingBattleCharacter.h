@@ -329,6 +329,10 @@ protected:
 		
 	//IA_GaugeStopにバインドする関数
 	void OnGaugeStop();
+
+	//釣りゲージを出す関数(アニメーションに通知するやつ)
+	UFUNCTION()
+	void ShowFishingGauge(UAnimMontage* Montage, bool in);
 	//10月15日　滝本海大　終了
 #pragma endregion
 
