@@ -54,6 +54,9 @@ AFishingBattleCharacter::AFishingBattleCharacter()
 	effect = CreateDefaultSubobject<UNiagaraComponent>(TEXT("Effect"));
 	effect->SetupAttachment(RootComponent);
 
+	damageEffect = CreateDefaultSubobject<UNiagaraComponent>(TEXT("DamageEffect"));
+	damageEffect->SetupAttachment(RootComponent);
+
 
 	// Create a follow camera
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
@@ -62,6 +65,8 @@ AFishingBattleCharacter::AFishingBattleCharacter()
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
+
+	this->Tags.Add(FName("Player"));
 }
 
 float AFishingBattleCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
@@ -69,6 +74,7 @@ float AFishingBattleCharacter::TakeDamage(float DamageAmount, FDamageEvent const
 	// 2025.07.24 ウー start
 	if (!HasAuthority())
 	{
+		Server_DamageEffect();
 		return 0.0f;
 	}
 	// 2025.07.24 ウー end
@@ -97,6 +103,7 @@ float AFishingBattleCharacter::TakeDamage(float DamageAmount, FDamageEvent const
 		//}
 	}
 
+	Multi_DamageEffect();
 	return DamageAmount;
 }
 
@@ -250,13 +257,14 @@ void AFishingBattleCharacter::Multi_Roll_Implementation()
 
 void AFishingBattleCharacter::Multi_Fishing_Implementation()
 {
-	if (!canFishing)return;
 	// 向きの調整
 	if (AFishingGround* Fishing = Cast<AFishingGround>(fishingSpot)) {
 		FVector Point = Fishing->GetFishingPointOnSea();
 		FRotator angle = (Point - GetActorLocation()).Rotation();
 		SetActorRotation(angle);
 	}
+
+	EquipFishlot();
 
 	//アニメーション
 	if (IsRoll || !FishingMontage || IsPlayAttack1 || !GetCharacterMovement()->IsMovingOnGround())return;
@@ -272,7 +280,7 @@ void AFishingBattleCharacter::Multi_Fishing_Implementation()
 		IsFishing = true;
 
 		FOnMontageEnded Delegate;
-		Delegate.BindUObject(this, &AFishingBattleCharacter::OnFishingEnded);
+		Delegate.BindUObject(this, &AFishingBattleCharacter::ShowFishingGauge);
 		animInstance->Montage_SetEndDelegate(Delegate, FishingMontage);
 
 		ChangeMappingContext(FishingMappingContext);
@@ -371,9 +379,28 @@ void AFishingBattleCharacter::Multi_DestructionWeapon_Implementation(int index) 
 	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
 	if (!ps)return;
 	ps->Server_DestructionWeaponPS(index);
+	
+	if (HasAuthority()) {
+		if (ACPPBaseWeapon* baseWeapon = Cast<ACPPBaseWeapon>(weaponActor)) {
+			Heal(baseWeapon->HealingAmount);
+		}
+	}
+
 	EquipSlotIndex(index);
 }
 
+//10月15日　滝本海大　開始
+void AFishingBattleCharacter::Server_GetFishByGauge_Implementation()
+{
+	Multi_GetFishByGauge();
+}
+
+void AFishingBattleCharacter::Multi_GetFishByGauge_Implementation()
+{
+	UE_LOG(LogTemp, Display, TEXT("Multi_GetFishByGauge inside"));
+	OnFishingEnded();
+}
+//10月15日　滝本海大　終了
 #pragma endregion
 
 #pragma region 武器装備
@@ -547,7 +574,7 @@ void AFishingBattleCharacter::EquipFishlot()
 	else {
 		Multi_EquipSlotIndex(0);
 	}
-	ChangeMappingContext(HasFishrotMappingContext);
+	//ChangeMappingContext(HasFishrotMappingContext);
 }
 
 void AFishingBattleCharacter::EquipWeapon(TSubclassOf<AActor> weaponID)
@@ -811,7 +838,8 @@ void AFishingBattleCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 		EnhancedInputComponent->BindAction(SwitchFishlot, ETriggerEvent::Started, this, &AFishingBattleCharacter::EquipFishlot);
 
 		EnhancedInputComponent->BindAction(DestructionWeaponInput, ETriggerEvent::Started, this, &AFishingBattleCharacter::DestructionWeapon);
-
+		
+		EnhancedInputComponent->BindAction(GaugeStop, ETriggerEvent::Triggered, this, &AFishingBattleCharacter::OnGaugeStop);
 	}
 	else
 	{
@@ -849,9 +877,32 @@ void AFishingBattleCharacter::Heal_Implementation(float healAmount)
 	if (Health > MaxHealth) {
 		Health = MaxHealth;
 	}
-
+	//回復エフェクト再生
+	Multi_Heal();
 	// 自分も更新する
 	UpdateHP(MaxHealth, Health);
+}
+
+void AFishingBattleCharacter::Multi_Heal_Implementation()
+{
+	//effect->Deactivate();
+	//effect->Activate();
+	effect->ActivateSystem();
+}
+
+void AFishingBattleCharacter::Server_Heal_Implementation()
+{
+	Multi_Heal();
+}
+
+void AFishingBattleCharacter::Multi_DamageEffect_Implementation()
+{
+	damageEffect->ActivateSystem();
+}
+
+void AFishingBattleCharacter::Server_DamageEffect_Implementation()
+{
+	Multi_DamageEffect();
 }
 
 void AFishingBattleCharacter::EnterSea(AActor* Actor)
@@ -1140,19 +1191,21 @@ void AFishingBattleCharacter::OnDeadEnded(UAnimMontage* Montage, bool in)
 
 void AFishingBattleCharacter::Fishing()
 {
+	if (!canFishing)return;
+	if (IsFishing)return;
+
+	//動きを同期するためにサーバーに通知
 	//if (!canFishing)return;
 	if (!HasAuthority())
 	{
 		Server_Fishing();
-		return;
 	}
 	else {
 		Multi_Fishing();
-		return;
 	}
 }
 
-void AFishingBattleCharacter::OnFishingEnded(UAnimMontage* Montage, bool in)
+void AFishingBattleCharacter::OnFishingEnded(/*UAnimMontage* Montage, bool in*/)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Fishing!deligate"));
 
@@ -1161,8 +1214,14 @@ void AFishingBattleCharacter::OnFishingEnded(UAnimMontage* Montage, bool in)
 	if (HasAuthority()) {
 		if (fishingSpot)
 		{
-			if (TSubclassOf<AActor> weaponActorSubclass = Cast<AFishingGround>(fishingSpot)->GetFish())
-				Multi_AddWeaponInPlayer(weaponActorSubclass);
+			UClass* WeaponClass = weaponActorSubclass;
+			if (ACPPBaseWeapon* BW = Cast<ACPPBaseWeapon>(WeaponClass->GetDefaultObject())) {
+				if (true == Cast<AFisherController>(GetController())->GetStopFunction()) {
+					Multi_AddWeaponInPlayer(weaponActorSubclass);
+					UE_LOG(LogTemp, Display, TEXT("GetFish!!!!!!!"));
+				}
+				else UE_LOG(LogTemp, Error, TEXT("FishingFailed..."));
+			}
 		}
 	}
 
@@ -1171,4 +1230,26 @@ void AFishingBattleCharacter::OnFishingEnded(UAnimMontage* Montage, bool in)
 
 	IsFishing = false;
 }
+
+void AFishingBattleCharacter::OnGaugeStop()
+{
+	if (HasAuthority()) Multi_GetFishByGauge();
+	else Server_GetFishByGauge();
+}
+
+//10月15日　滝本海大　開始
+void AFishingBattleCharacter::ShowFishingGauge(UAnimMontage* Montage, bool in)
+{	
+	if (HasAuthority()) {
+		if (weaponActorSubclass = Cast<AFishingGround>(fishingSpot)->GetFish()) {
+			UE_LOG(LogTemp, Display, TEXT("weaponActorSubclass: %s"), *weaponActorSubclass->GetName());
+			UClass* WeaponClass = weaponActorSubclass;
+			if (ACPPBaseWeapon* BW = Cast<ACPPBaseWeapon>(WeaponClass->GetDefaultObject())) {
+				AFisherController* FC = Cast<AFisherController>(GetController());
+				FC->ShowFishingGauge(BW->SkillCheckSpeed);
+			}
+		}
+	}
+}
+//10月15日　滝本海大　終了
 #pragma endregion
