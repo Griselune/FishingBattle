@@ -12,11 +12,11 @@
 UCLASS()
 class FISHINGBATTLE_API AGS_MenuGameState : public AGameState
 {
-	GENERATED_BODY()
-	
+    GENERATED_BODY()
+
 protected:
 
-    virtual void BeginPlay();
+    virtual void BeginPlay() override;
 
 public:
 
@@ -27,9 +27,6 @@ public:
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data", Replicated, ReplicatedUsing = OnRep_SessionData)
     FString GSSessionName;
-
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data", Replicated, ReplicatedUsing = OnRep_SessionData)
-    FString GSSessionPassword;
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data", Replicated, ReplicatedUsing = OnRep_SessionData)
     int32 GSSessionPlayerLimit = 2;
@@ -56,34 +53,25 @@ public:
     /// <summary>
     /// Functions
     /// </summary>
-    UFUNCTION(BlueprintCallable, Server, Reliable)
-    void GetDataFromServer();
+   /* UFUNCTION(BlueprintCallable, Server, Reliable)
+    void GetDataFromServer(AController* NewPlayer);*/
 
-    UFUNCTION(BlueprintCallable, NetMulticast, Reliable) //calls on every clients
-    void AddPlayerToList(APlayerState* PS, const FString& PName);
+    UFUNCTION(BlueprintCallable)
+    void AddPlayerToList(APlayerState* PS);
 
-    UFUNCTION(BlueprintCallable, Client, Reliable)
-    void RemovePlayerFromList(APlayerState* PS);
+    //UFUNCTION(BlueprintCallable, NetMulticast, Reliable)
+    //void RemovePlayerFromList(APlayerState* PS);
 
-    UFUNCTION(BlueprintCallable, Client, Reliable) //EXECUTES ON SERVER ONLY
-    void HostAddPlayerList();
+    //UFUNCTION(BlueprintCallable, Server, Reliable)
+    //void HostAddReadyPlayer();
 
-    UFUNCTION(BlueprintCallable, Server, Reliable)
-    void HostAddReadyPlayer();
+    //UFUNCTION(BlueprintCallable, Server, Reliable)
+    //void HostRemoveReadyPlayer();
 
-    UFUNCTION(BlueprintCallable, Server, Reliable)
-    void HostRemoveReadyPlayer();
-
-private:
-
-    //UFUNCTION(Server, Reliable)
-    //void GetDataFromServer();
+public:
 
     UFUNCTION(NetMulticast, Reliable)
     void SetSessionName(const FString& Name);
-
-    //UFUNCTION(NetMulticast, Reliable)
-    //void SetSessionPassword(const FString& Password);
 
     UFUNCTION(NetMulticast, Reliable)
     void SetSessionPlayerLimit(const int32& PlayerLimit);
@@ -99,7 +87,6 @@ private:
 
     UFUNCTION(NetMulticast, Reliable)
     void SetSessionIsBattleRoyale(bool isBR);
-
-
-
 };
+
+

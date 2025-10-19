@@ -1,18 +1,14 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "PrinzBranch/LANGameInstance.h"
-//#include "OnlineSessionSettings.h"
-//#include "OnlineSubsystem.h"
-//#include "Interfaces/OnlineSessionInterface.h"
 #include "Kismet/GameplayStatics.h"
 #include <WuBranch/Struct/PlayerRecord.h>
 
 
-//void ULANGameInstance::OnRep_PlayerName()
-//{
-//    UE_LOG(LogTemp, Log, TEXT("Player name updated: %s"), *GIPlayerName);
-//}
-
+void ULANGameInstance::SetPlayerName(FString NewName)
+{
+    GIPlayerName = NewName;
+}
 
 // 2025.07.26 ウー start
 TArray<FPlayerRecord> ULANGameInstance::GetRecords() const

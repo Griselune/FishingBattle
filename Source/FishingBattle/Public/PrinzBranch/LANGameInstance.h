@@ -22,9 +22,6 @@ public:
     FString GISessionName;
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
-    FString GISessionPassword;
-
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
     int32 GISessionPlayerLimit = 1;
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
@@ -39,8 +36,8 @@ public:
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
     bool GIisBattleRoyale = true;
 
-    UPROPERTY(BlueprintReadWrite, /*ReplicatedUsing = OnRep_PlayerName, */EditAnywhere, Category = "Shared Data")
-    FString GIPlayerName;  //BluePrintで名前を保存する
+    UPROPERTY(BlueprintReadWrite, EditAnywhere)
+    FString GIPlayerName = "";  //BluePrintで名前を保存する
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
     TMap<APlayerState*, FString> GIPlayerList; //Serverが持っているプレヤーリストのコピー
@@ -54,7 +51,9 @@ public:
     //UFUNCTION(BlueprintCallable)
     //void OnRep_PlayerName();
 
-  
+    UFUNCTION(BlueprintCallable)
+    void SetPlayerName(FString NewName);
+
 
     // 2025.07.26 ウー start
 

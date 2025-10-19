@@ -6,40 +6,18 @@
 #include "PrinzBranch/LANGameInstance.h"
 #include "Kismet/GameplayStatics.h"
 #include "PrinzBranch/MenuPlayerController.h"
+#include "PrinzBranch/PS_MenuPlayerState.h"
 
+#pragma region Initialize
 void AGS_MenuGameState::BeginPlay()
 {
-	////Server -- Serverは自身の名前を先にプレヤーリストに入れる
-	//if (HasAuthority())
-	//{
-	////	ULANGameInstance* GI = UGameplayStatics::GetGameInstance(this)->GetSubsystem<ULANGameInstance>();
+	Super::BeginPlay();
 
-	//	ULANGameInstance* GI = Cast<ULANGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
-	//	AMenuPlayerController* PC = GetWorld()->GetFirstPlayerController<AMenuPlayerController>();
-	//	if (GI && PC)
-	//	{
-	//		AddPlayerToList(PC, GI->GIPlayerName);
-	//	}
-	//}
+
 }
+#pragma endregion
 
-void AGS_MenuGameState::HostAddPlayerList_Implementation()
-{
-	if (HasAuthority()) {
-		//Server -- Serverは自身の名前を先にプレヤーリストに入れる
-		ULANGameInstance* GI = Cast<ULANGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
-		APlayerState* PS = GetWorld()->GetFirstPlayerController<APlayerState>();
-		if (GI)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Server adds it's own name in the list"));
-			AddPlayerToList(PS, GI->GIPlayerName);
-		}
-	}
-	else {
-		UE_LOG(LogTemp, Warning, TEXT("Not the server. Cannot add it's own name to list"));
-	}
-}
-
+#pragma region Replication
 void AGS_MenuGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
@@ -47,40 +25,76 @@ void AGS_MenuGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	// レプリケーションするプロパティを追加
 	DOREPLIFETIME(AGS_MenuGameState, GSSessionName);
 	DOREPLIFETIME(AGS_MenuGameState, GSReadyPlayers);
+	DOREPLIFETIME(AGS_MenuGameState, GSPlayerName);
 }
 
 void AGS_MenuGameState::OnRep_SessionData()
 {
 	UE_LOG(LogTemp, Warning, TEXT("OnRep trigger - Name: %s"), *GSSessionName);
 }
+#pragma endregion
 
-//void AGS_MenuGameState::GetDataFromServer_Implementation()
-//{
-//		UE_LOG(LogTemp, Warning, TEXT("Server Send Data"));
-//		SendData();
-//}
-
-void AGS_MenuGameState::GetDataFromServer_Implementation()
+void AGS_MenuGameState::AddPlayerToList(APlayerState* PS)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Server Send Session Name"));
-	SetSessionName(GSSessionName);
+	if (!HasAuthority() || !PS)
+		return;
 
-	//Gets player list from server
-	for (auto& list : GSPlayerList) {
-		AddPlayerToList(list.Key, list.Value);
-		UE_LOG(LogTemp, Warning, TEXT("Client added a name in the list"));
-		break;
-	}
-	//Client adds it's own name in the list
-	ULANGameInstance* GI = Cast<ULANGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
-	APlayerState* PS = GetWorld()->GetFirstPlayerController<APlayerState>();
-	if (GI)
+	APS_MenuPlayerState* MyPS = Cast<APS_MenuPlayerState>(PS);
+	if (MyPS)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Server adds it's own name in the list"));
-		AddPlayerToList(PS, GI->GIPlayerName);
+		GSPlayerList.Add(MyPS, MyPS->PSPlayerName);
+		UE_LOG(LogTemp, Warning, TEXT("Player added to GS list: %s"), *MyPS->PSPlayerName);
 	}
 }
 
+
+
+
+
+
+
+
+
+
+
+
+//void AGS_MenuGameState::GetDataFromServer_Implementation(AController* NewPlayer)
+//{
+////	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+//	ULANGameInstance* GIserver = Cast<ULANGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
+//
+//	APlayerState* PS = NewPlayer->GetPlayerState<APlayerState>();
+//	ULANGameInstance* GIclient = Cast<ULANGameInstance>(UGameplayStatics::GetGameInstance(NewPlayer->GetWorld()));
+//
+//	// server
+//	//if(HasAuthority())
+//		
+//
+//	UE_LOG(LogTemp, Warning, TEXT("Server Send Session Name"));
+//	SetSessionName(GSSessionName);
+//
+////	GIclient->GIPlayerList.Append(GIserver->GIPlayerList);
+////	UE_LOG(LogTemp, Warning, TEXT("GIserver last name : %s"), *GIserver->GIPlayerList[0]);
+//
+//	//Gets player list from server
+//	UE_LOG(LogTemp, Warning, TEXT("GI PlayerList: %d"), GIserver->GIPlayerList.Num());
+//	for (auto& list : GIserver->GIPlayerList) {
+//		AddPlayerToList(list.Key, list.Value);  //crash
+//		UE_LOG(LogTemp, Warning, TEXT("Get Player list from Server"));
+//	}
+//
+//	//Client adds it's own name in the list
+//	UE_LOG(LogTemp, Warning, TEXT("GI2 PlayerList: %d"), GIclient->GIPlayerList.Num());
+//	if (GIclient)
+//	{
+//		UE_LOG(LogTemp, Warning, TEXT("Add Client name in the Player List"));
+//		AddPlayerToList(PS, GIclient->GIPlayerName);
+//	}
+//	UE_LOG(LogTemp, Warning, TEXT("GI server PlayerList: %d"), GIserver->GIPlayerList.Num());
+//}
+
+
+#pragma region Setter
 void AGS_MenuGameState::SetSessionName_Implementation(const FString& Name)
 {
 	GSSessionName = Name;
@@ -126,38 +140,46 @@ void AGS_MenuGameState::SetSessionIsBattleRoyale_Implementation(bool isBR)
 		UE_LOG(LogTemp, Warning, TEXT("Get mode: Battleroyale"));
 	}
 }
+#pragma endregion
 
-
+#pragma region Player List Functions
 /// <summary>
 /// プレヤーのリストの管理。各プレヤーのID（APlayerState）と名前を記入する。
 /// </summary>
+//void AGS_MenuGameState::AddPlayerToList_Implementation(APlayerState* PS, const FString& PName)
+//{
+//	ULANGameInstance* GI = Cast<ULANGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
+//	if (PS && GI) {
+//		GI->GIPlayerList.Add(PS, PName);
+//		GSPlayerList.Add(PS, PName);
+//		UE_LOG(LogTemp, Warning, TEXT("AddPlayerToList() executed"));
+//	}
+//}
 
-void AGS_MenuGameState::AddPlayerToList_Implementation(APlayerState* PS, const FString& PName)
-{
-	if (PS) {
-		GSPlayerList.Add(PS, PName);
-		UE_LOG(LogTemp, Warning, TEXT("AddPlayerToList() executed"));
-	}
-}
+//void AGS_MenuGameState::RemovePlayerFromList_Implementation(APlayerState* PS)
+//{
+//	UE_LOG(LogTemp, Warning, TEXT("RemovePlayerFromList() executed"));
+//	for (auto& list : GSPlayerList) {
+//		if (list.Key == PS) {
+//			GSPlayerList.Remove(list.Key);  //リストからプレヤーを取り消す
+//			UE_LOG(LogTemp, Warning, TEXT("A player has been removed"));
+//			break;
+//		}
+//	}
+//	
+//}
 
-void AGS_MenuGameState::RemovePlayerFromList_Implementation(APlayerState* PS)
-{
-	UE_LOG(LogTemp, Warning, TEXT("RemovePlayerFromList() executed"));
-	for (auto& list : GSPlayerList) {
-		if (list.Key == PS) {
-			GSPlayerList.Remove(list.Key);  //リストからプレヤーを取り消す
-			UE_LOG(LogTemp, Warning, TEXT("A player has been removed"));
-			break;
-		}
-	}
-}
 
-void AGS_MenuGameState::HostAddReadyPlayer_Implementation()
-{
-	GSReadyPlayers += 1;
-}
+#pragma endregion
 
-void AGS_MenuGameState::HostRemoveReadyPlayer_Implementation()
-{
-	GSReadyPlayers -=1 ;
-}
+#pragma region Ready players functions
+//void AGS_MenuGameState::HostAddReadyPlayer_Implementation()
+//{
+//	GSReadyPlayers += 1;
+//}
+//
+//void AGS_MenuGameState::HostRemoveReadyPlayer_Implementation()
+//{
+//	GSReadyPlayers -=1 ;
+//}
+#pragma endregion
