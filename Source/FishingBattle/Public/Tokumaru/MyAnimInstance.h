@@ -23,6 +23,9 @@ public :
 	UPROPERTY(BlueprintReadWrite)
 	bool Isjump;
 
+	UPROPERTY(BlueprintReadWrite)
+	bool IsFishing;
+
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
 	UPROPERTY(BlueprintReadWrite, Category = "Weapon")

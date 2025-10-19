@@ -51,11 +51,22 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
 	ECPPWeaponType WeaponType;
 
+	//武器を食べた時の回復量(攻撃力と反比例)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	float HealingAmount;
 
+	//武器を釣るのにかか1る時間(攻撃力が高い程時間がかかるようにする)
+	//スキルチェックの要素を入れたためコメントアウト　9月30日14時55分　滝本海大
+	/*UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	float FishingTime;*/
+
+	//スキルチェックのバーの速さ(釣る難易度)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
-	float FishingTime;
+	float SkillCheckSpeed;
+
+	//アイコン画像
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	UTexture2D* Icon;
 
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Weapon")
 	void Attack();

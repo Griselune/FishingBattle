@@ -43,7 +43,6 @@ public:
 
 	void OnRep_Pawn() override;
 
-
 private:
 
 	/// <summary>
@@ -68,4 +67,30 @@ private:
 	TSubclassOf<UUserWidget> HPUIClass;
 	UUserWidget* HPUI;
 
+#pragma region 釣りゲージ
+	//10月8日　滝本海大　開始
+public:
+
+	/// <summary>
+	/// 釣る時のゲージを表示する
+	/// </summary>
+	void ShowFishingGauge(float SkillCheckSpeed);
+
+	/// <summary>
+	/// FishingSkillCheckのIsClearを持ってくる関数
+	/// </summary>
+	bool GetStopFunction();
+private:
+
+	/// <summary>
+	/// 釣りゲージのUI　
+	/// </summary>
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<UUserWidget> FishingGaugeUIClass;
+
+	UPROPERTY()
+	TObjectPtr<UUserWidget> FishingGaugeUI;
+
+	//10月8日　滝本海大　終了
+#pragma endregion
 };

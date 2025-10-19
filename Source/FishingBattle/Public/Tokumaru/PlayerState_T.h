@@ -76,7 +76,7 @@ public:
 	bool InGamePlay = false;
 
 	UFUNCTION()
-	void Server_DestructionWeaponPS(int index);
+    void Server_DestructionWeaponPS(int index);
 
 protected:
 
