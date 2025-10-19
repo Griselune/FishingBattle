@@ -15,17 +15,7 @@ class FISHINGBATTLE_API AMenuPlayerController : public APlayerController
 	GENERATED_BODY()
 	
 public:
-	UFUNCTION(Server, Reliable)
-	void GetDataFromServer(const FString& InName);
 
-	UFUNCTION(BlueprintCallable, Server, Reliable)
-	void SendDataToServer(const FString& InName);
-
-	UFUNCTION(BlueprintCallable, Server, Reliable)
-	void SendLogoutToServer(APlayerState* Exiting);
-
-	UFUNCTION(BlueprintCallable, Server, Reliable)
-	void SendReadyToServer(bool isReady);
 
 protected:
 
