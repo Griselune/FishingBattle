@@ -9,7 +9,7 @@ void UMatchMakingWidget::SetButtonReadyColor(bool bIsReady)
 {
     if (!BTN_ReadyHost) return;
 
-    FLinearColor Color = bIsReady ? FColor::FromHex("2DFF44FF") : FColor::FromHex("FF7152FF");
+    FLinearColor Color = bIsReady ? FColor::FromHex("74FF8DFF") : FColor::FromHex("FFB19AFF");
     // Changes the button’s background tint (UMG)
     BTN_ReadyHost->WidgetStyle.Normal.TintColor = FSlateColor(Color);
     BTN_ReadyHost->WidgetStyle.Hovered.TintColor = FSlateColor(Color);
@@ -20,7 +20,7 @@ void UMatchMakingWidget::SetButtonPlayNowColor(bool bIsReady)
 {
     if (!BTN_PlayNow) return;
 
-    FLinearColor Color = bIsReady ? FColor::FromHex("2DFF44FF") : FColor::FromHex("FF7152FF");
+    FLinearColor Color = bIsReady ? FColor::FromHex("74FF8DFF") : FColor::FromHex("FFB19AFF");
      
     // Changes the button’s background tint (UMG)
     BTN_PlayNow->WidgetStyle.Normal.TintColor = FSlateColor(Color);

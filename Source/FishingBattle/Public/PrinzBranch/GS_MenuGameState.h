@@ -69,7 +69,7 @@ public:
     int32 GSReadyPlayers = 0;
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data", Replicated, ReplicatedUsing = OnRep_CurrentPlayers)
-    int32 GSCurrentPlayers = 1;
+    int32 GSCurrentPlayers = 0;
 
 
     /// <summary>

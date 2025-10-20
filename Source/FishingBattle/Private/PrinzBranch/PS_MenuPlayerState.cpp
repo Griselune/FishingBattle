@@ -35,56 +35,11 @@ void APS_MenuPlayerState::OnRep_PlayerReady()
 	if (PC && PC->MatchMakingWidget)
 	{
 		PC->MatchMakingWidget->SetButtonReadyColor(PSisPlayerReady);
+		if (GS) {
+			PC->MatchMakingWidget->SetTextReadyPlayers(GS->GSReadyPlayers, GS->GSCurrentPlayers);
+		}
 	}
-
-	//GS->Server_UpdateAllCurrentPlayers();
-	//GS->Server_UpdateAllReadyButtonColor();
-
-	//AMenuPlayerController* PC = Cast<AMenuPlayerController>(GetOwner());
-	//if (Server_CheckAllPlayersReady()) {
-	//	if (PC) {
-	//		if (PC->MatchMakingWidget) {
-	//			PC->MatchMakingWidget->SetButtonColor(true);
-	//		}
-	//	}
-	//}
-	//else {
-	//	if (PC) {
-	//		if (PC->MatchMakingWidget) {
-	//			PC->MatchMakingWidget->SetButtonColor(false);
-	//		}
-	//	}
-	//}
 }
-
-//***MOVED TO MENUGAMESTATE***
-//bool APS_MenuPlayerState::Server_CheckAllPlayersReady()
-//{
-//	bool bAllReady = true;
-//	AGS_MenuGameState* GS = GetWorld()->GetGameState<AGS_MenuGameState>();
-//
-//	for (APlayerState* PS : GS->PlayerArray)
-//	{
-//		APS_MenuPlayerState* MyPS = Cast<APS_MenuPlayerState>(PS);
-//		if (MyPS && !MyPS->PSisPlayerReady)
-//		{
-//			bAllReady = false;
-//			break;
-//		}
-//	}
-//
-//	if (bAllReady)
-//	{
-//		UE_LOG(LogTemp, Log, TEXT("✅ All players are ready!"));
-//		// Example: Tell GameMode to start the match
-//		// AMyGameMode* GM = GetWorld()->GetAuthGameMode<AMyGameMode>();
-//		// if (GM) GM->StartMatch();
-//		return true;
-//	}
-//	return false;
-//}
-
-
 
 /// <summary>
 /// 各レベルで各プレヤーの名前を更新する
@@ -97,6 +52,12 @@ void APS_MenuPlayerState::BeginPlay()
 	AMenuPlayerController* PC = Cast<AMenuPlayerController>(GetOwner());
 	if (PC && PC->IsLocalController())
 	{
+		if (PC->MatchMakingWidget) {
+			AGS_MenuGameState* GS = GetWorld()->GetGameState<AGS_MenuGameState>();
+			if (GS) {
+				PC->MatchMakingWidget->SetTextReadyPlayers(GS->GSReadyPlayers, GS->GSCurrentPlayers);
+			}
+		}
 		ULANGameInstance* GI = GetGameInstance<ULANGameInstance>();
 		if (GI)
 		{
@@ -110,95 +71,3 @@ void APS_MenuPlayerState::Server_SetPlayerName_Implementation(const FString& New
 {
 	PSPlayerName = NewName;
 }
-
-
-//***MOVED TO MENUPLAYERCONTROLLER***
-//void APS_MenuPlayerState::Server_SetPlayerReady_Implementation(bool IsPlayerReady)
-//{
-//	PSisPlayerReady = IsPlayerReady;
-//
-//
-//	AMenuPlayerController* PC = Cast<AMenuPlayerController>(GetOwner());
-//	if (Server_CheckAllPlayersReady()) {
-//		if (PC) {
-//			if (PC->MatchMakingWidget) {
-//				PC->MatchMakingWidget->SetButtonColor(true);
-//			}
-//		}
-//	}
-//	else {
-//		if (PC) {
-//			if (PC->MatchMakingWidget) {
-//				PC->MatchMakingWidget->SetButtonColor(false);
-//			}
-//		}
-//	}
-//}
-
-
-
-
-//void APS_MenuPlayerState::GetDataFromServer_Implementation(AController* NewPlayer)
-//{
-//	//	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-//	ULANGameInstance* GI = Cast<ULANGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
-//	AGS_MenuGameState* GS = Cast<AGS_MenuGameState>(GetWorld()->GetGameState());
-//
-//	APlayerState* PS = NewPlayer->GetPlayerState<APlayerState>();
-//
-//	// server
-//	//if(HasAuthority())
-//
-//
-//	UE_LOG(LogTemp, Warning, TEXT("Server Send Session Name"));
-//	GS->SetSessionName(GS->GSSessionName);
-//
-//	//	GIclient->GIPlayerList.Append(GIserver->GIPlayerList);
-//	//	UE_LOG(LogTemp, Warning, TEXT("GIserver last name : %s"), *GIserver->GIPlayerList[0]);
-//
-//		//Gets player list from server
-//	UE_LOG(LogTemp, Warning, TEXT("GI PlayerList: %d"), GI->GIPlayerList.Num());
-	//for (auto& list : GI->GIPlayerList) {
-	//	AddPlayerToList(list.Key, list.Value);  //crash
-	//	UE_LOG(LogTemp, Warning, TEXT("Get Player list from Server"));
-	//}
-
-	////Client adds it's own name in the list
-	//UE_LOG(LogTemp, Warning, TEXT("GI2 PlayerList: %d"), GIclient->GIPlayerList.Num());
-	//if (GIclient)
-	//{
-	//	UE_LOG(LogTemp, Warning, TEXT("Add Client name in the Player List"));
-	//	AddPlayerToList(PS, GIclient->GIPlayerName);
-	//}
-	//UE_LOG(LogTemp, Warning, TEXT("GI server PlayerList: %d"), GIserver->GIPlayerList.Num());
-//}
-
-#pragma region Player List Functions
-/// <summary>
-/// プレヤーのリストの管理。各プレヤーのID（APlayerState）と名前を記入する。
-/// </summary>
-//void APS_MenuPlayerState::AddPlayerToList_Implementation(APlayerState* PS, const FString& PName)
-//{
-//	ULANGameInstance* GI = Cast<ULANGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
-//	if (PS && GI) {
-//		GI->GIPlayerList.Add(PS, PName);
-//		GSPlayerList.Add(PS, PName);
-//		UE_LOG(LogTemp, Warning, TEXT("AddPlayerToList() executed"));
-//	}
-//}
-//
-//void AGS_MenuGameState::RemovePlayerFromList_Implementation(APlayerState* PS)
-//{
-//	UE_LOG(LogTemp, Warning, TEXT("RemovePlayerFromList() executed"));
-//	for (auto& list : GSPlayerList) {
-//		if (list.Key == PS) {
-//			GSPlayerList.Remove(list.Key);  //リストからプレヤーを取り消す
-//			UE_LOG(LogTemp, Warning, TEXT("A player has been removed"));
-//			break;
-//		}
-//	}
-//
-//}
-
-
-#pragma endregion
