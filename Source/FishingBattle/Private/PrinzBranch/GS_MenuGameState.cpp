@@ -19,36 +19,37 @@ void AGS_MenuGameState::BeginPlay()
 
 bool AGS_MenuGameState::Server_CheckAllPlayersReady()
 {
-	bool bAllReady = true;
-	int32 readyCnt = 0;
+//	bool bAllReady = true;
+//	int32 readyCnt = 0;
 
 	for (APlayerState* PS : PlayerArray)
 	{
 		APS_MenuPlayerState* MenuPS = Cast<APS_MenuPlayerState>(PS);
-		if (MenuPS && !MenuPS->PSisPlayerReady)
-		{
-			bAllReady = false;
+		if (MenuPS && !MenuPS->PSisPlayerReady){
+		//	bAllReady = false;
 		//	break;
+			return false;
 		}
-		else if (MenuPS && MenuPS->PSisPlayerReady) {
-			readyCnt++;
-		}
+		//else if (MenuPS && MenuPS->PSisPlayerReady) {
+		//	readyCnt++;
+		//}
 	}
+	return true;
 
-	GSReadyPlayers = readyCnt;
-	GSCurrentPlayers = PlayerArray.Num();
+//	GSReadyPlayers = readyCnt;
+//	GSCurrentPlayers = PlayerArray.Num();
 
 
-	if (bAllReady)
-	{
-		UE_LOG(LogTemp, Log, TEXT("✅ All players are ready!"));
-		bEveryoneReady = bAllReady;
-		OnRep_AllReady();
-		return true;
-	}
-	bEveryoneReady = bAllReady;
-	OnRep_AllReady();
-	return false;
+//	if (bAllReady)
+	//{
+	//	UE_LOG(LogTemp, Log, TEXT("✅ All players are ready!"));
+	//	bEveryoneReady = bAllReady;
+	//	OnRep_AllReady(); //change playnow button color
+	//	return true;
+	//}
+	//bEveryoneReady = bAllReady;
+	//OnRep_AllReady(); //change playnow button color
+	//return false;
 }
 
 void AGS_MenuGameState::Server_UpdateAllCurrentPlayers()
@@ -58,6 +59,7 @@ void AGS_MenuGameState::Server_UpdateAllCurrentPlayers()
 		AMenuPlayerController* PC = Cast<AMenuPlayerController>(*It);
 		if (PC && PC->MatchMakingWidget)
 		{
+			
 			PC->MatchMakingWidget->SetTextReadyPlayers(GSReadyPlayers, GSCurrentPlayers);
 		}
 	}
@@ -71,7 +73,10 @@ void AGS_MenuGameState::Server_UpdateAllReadyButtonColor()
 		AMenuPlayerController* PC = Cast<AMenuPlayerController>(*It);
 		if (PC && PC->MatchMakingWidget)
 		{
-			PC->MatchMakingWidget->SetButtonPlayNowColor(bEveryoneReady);
+			APS_MenuPlayerState* PS = Cast<APS_MenuPlayerState>(PC);
+			if (PS) {
+				PC->MatchMakingWidget->SetButtonReadyColor(PS->PSisPlayerReady);
+			}
 		}
 	}
 }
@@ -98,7 +103,14 @@ void AGS_MenuGameState::OnRep_SessionData()
 
 void AGS_MenuGameState::OnRep_AllReady()
 {
-	////各プレヤーのUIを更新する
+	AMenuPlayerController* PC = Cast<AMenuPlayerController>(GetOwner());
+
+	//Server's button turns green if all ready
+	if (PC && PC->MatchMakingWidget) {
+		PC->MatchMakingWidget->SetButtonPlayNowColor(bEveryoneReady);
+	}
+
+	//各プレヤーのUIを更新する
 	//for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
 	//{
 	//	AMenuPlayerController* PC = Cast<AMenuPlayerController>(*It);

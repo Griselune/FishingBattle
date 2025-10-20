@@ -26,11 +26,19 @@ void APS_MenuPlayerState::OnRep_MenuPlayerName()
 
 void APS_MenuPlayerState::OnRep_PlayerReady()
 {
-	UE_LOG(LogTemp, Warning, TEXT("OnRep trigger - Player Ready"));
+	UE_LOG(LogTemp, Warning, TEXT("OnRep trigger - Player Ready = %s"), PSisPlayerReady ? TEXT("true") : TEXT("false"));
 
 	AGS_MenuGameState* GS = GetWorld()->GetGameState<AGS_MenuGameState>();
-	GS->Server_UpdateAllCurrentPlayers();
-	GS->Server_UpdateAllReadyButtonColor();
+
+	// Update local UI
+	AMenuPlayerController* PC = Cast<AMenuPlayerController>(GetOwner());
+	if (PC && PC->MatchMakingWidget)
+	{
+		PC->MatchMakingWidget->SetButtonReadyColor(PSisPlayerReady);
+	}
+
+	//GS->Server_UpdateAllCurrentPlayers();
+	//GS->Server_UpdateAllReadyButtonColor();
 
 	//AMenuPlayerController* PC = Cast<AMenuPlayerController>(GetOwner());
 	//if (Server_CheckAllPlayersReady()) {
