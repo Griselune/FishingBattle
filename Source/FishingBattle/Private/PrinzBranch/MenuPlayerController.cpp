@@ -30,24 +30,17 @@ void AMenuPlayerController::Server_SetPlayerReady_Implementation(bool IsPlayerRe
 		for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
 		{
 			AMenuPlayerController* PC = Cast<AMenuPlayerController>(*It);
-			if (PC && PC->IsLocalController() && PC->HasAuthority()) //If server
+			if (PC && PC->IsLocalController() && PC->HasAuthority() && PC->MatchMakingWidget) //If server
 			{
 				PC->MatchMakingWidget->SetButtonPlayNowColor(bAllReady);
 			}
+
+			if (PC->MatchMakingWidget) {
+				//update all numbers
+				PC->MatchMakingWidget->SetTextReadyPlayers(GS->GSReadyPlayers, GS->GSCurrentPlayers);
+			}
 		}
 	}
-
-
-
-
-	//	if (MatchMakingWidget) {
-	//		if (GS->Server_CheckAllPlayersReady()) {
-	//			MatchMakingWidget->SetButtonPlayNowColor(true);
-	//		}
-	//		else {
-	//			MatchMakingWidget->SetButtonPlayNowColor(false);
-	//		}
-	//	}
 }
 
 
@@ -57,90 +50,8 @@ void AMenuPlayerController::BeginPlay()
 	Super::BeginPlay();
 
 	AGS_MenuGameState* GS = GetWorld()->GetGameState<AGS_MenuGameState>();
-	if (MatchMakingWidget) {
+	if (MatchMakingWidget && IsLocalController()) {
 		MatchMakingWidget->SetTextReadyPlayers(GS->GSReadyPlayers, GS->GSCurrentPlayers);
 	}
-	// client
-	//if (!HasAuthority())
-	//{
-	//if (HasAuthority())			//ONLY SERVER
-	//{
-	//	ULANGameInstance* GI = Cast<ULANGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
-	//	if (GI) {
-	//		UE_LOG(LogTemp, Warning, TEXT("Client Ask Server Data"));
-	//	//	GetDataFromServer(GI->GIPlayerName);
-	//		AGS_MenuGameState* GS = GetWorld()->GetGameState<AGS_MenuGameState>();
-	//		if (GS) {
-	//			GS->AddPlayerToList(PlayerState, GS->GSPlayerName);
-	//		}
-	//	}
-
-		//UE_LOG(LogTemp, Warning, TEXT("Client Send Server Data"));
-		//SendDataToServer();
-	//}
-	/*}*/
 }
 #pragma endregion
-
-#pragma region Send and Get Data to/from Server
-//void AMenuPlayerController::GetDataFromServer_Implementation(const FString& InName)
-//{
-//	if (!HasAuthority()) {
-//		UE_LOG(LogTemp, Warning, TEXT("Server Send Data"));
-//		AGS_MenuGameState* GS = GetWorld()->GetGameState<AGS_MenuGameState>();
-//		if (GS) {
-//			GS->GetDataFromServer();
-//			GS->AddPlayerToList(PlayerState, InName);
-//		}
-//	}
-//}
-
-//void AMenuPlayerController::SendDataToServer_Implementation(const FString& InName)
-//{
-//	if (HasAuthority()) {
-//		UE_LOG(LogTemp, Warning, TEXT("Client Send Data"));
-//		//	ULANGameInstance* GI = Cast<ULANGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
-//		AGS_MenuGameState* GS = GetWorld()->GetGameState<AGS_MenuGameState>();
-//		APlayerState* PS = GetWorld()->GetFirstPlayerController<APlayerState>();
-//		GS->AddPlayerToList_Implementation(PS, InName); //Serverのプレヤーリストに自身を追加する
-//	}
-//}
-
-
-//void AMenuPlayerController::SendReadyToServer_Implementation(bool isReady)
-//{
-//	AGS_MenuGameState* GS = GetWorld()->GetGameState<AGS_MenuGameState>();
-//	if (isReady) {
-//		GS->HostAddReadyPlayer_Implementation();
-//	}
-//	else {
-//		GS->HostRemoveReadyPlayer_Implementation();
-//	}
-//}
-//
-//void AMenuPlayerController::SendLogoutToServer_Implementation(APlayerState* Exiting)
-//{
-//	UE_LOG(LogTemp, Warning, TEXT("Client Notify Logout"));
-//	AGS_MenuGameState* GS = GetWorld()->GetGameState<AGS_MenuGameState>();
-//	//APlayerState* PS = GetWorld()->GetFirstPlayerController<APlayerState>();
-//	GS->RemovePlayerFromList_Implementation(Exiting); //Serverのプレヤーリストに自身を追加する
-//}
-
-#pragma endregion
-
-
-/// <summary>
-/// ログアウトした途端にサーバーに知らせる
-/// </summary>
-/// <param name="Exiting"></param>
-//void AMenuPlayerController::Logout(AController* Exiting)
-//{
-//	Super::Logout(Exiting);
-//
-//	APlayerState* PS = GetWorld()->GetFirstPlayerController<APlayerState>();
-//	//AMenuPlayerController* PC = Cast<AMenuPlayerController>(Exiting);
-//	if (IsLocalController())
-//	{
-//		SendLogoutToServer(PS);
-//	}
-//}
