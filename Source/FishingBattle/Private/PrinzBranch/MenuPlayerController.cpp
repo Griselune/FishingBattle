@@ -6,11 +6,42 @@
 #include "GameFramework/GameModeBase.h"
 #include "GameFramework/GameMode.h"
 #include "Kismet/GameplayStatics.h"
+#include "PrinzBranch/PS_MenuPlayerState.h"
+
+
+//server only
+void AMenuPlayerController::Server_SetPlayerReady_Implementation(bool IsPlayerReady)
+{
+
+	APS_MenuPlayerState* PS = GetPlayerState<APS_MenuPlayerState>();
+	PS->PSisPlayerReady = IsPlayerReady;
+
+	AGS_MenuGameState* GS = GetWorld()->GetGameState<AGS_MenuGameState>();
+	
+	if (MatchMakingWidget) {
+		if (GS->Server_CheckAllPlayersReady()) {
+			MatchMakingWidget->SetButtonReadyColor(true);
+			MatchMakingWidget->SetButtonPlayNowColor(true);
+		}
+		else {
+			MatchMakingWidget->SetButtonReadyColor(false);
+			MatchMakingWidget->SetButtonPlayNowColor(false);
+		}
+	//	GS->Server_UpdateAllCurrentPlayers();
+	//	MatchMakingWidget->SetTextReadyPlayers(GS->GSReadyPlayers, GS->GSCurrentPlayers);
+	}
+}
+
 
 #pragma region Initialize
 void AMenuPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
+
+	AGS_MenuGameState* GS = GetWorld()->GetGameState<AGS_MenuGameState>();
+	if (MatchMakingWidget) {
+		MatchMakingWidget->SetTextReadyPlayers(GS->GSReadyPlayers, GS->GSCurrentPlayers);
+	}
 	// client
 	//if (!HasAuthority())
 	//{

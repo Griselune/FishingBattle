@@ -7,6 +7,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "PrinzBranch/MenuPlayerController.h"
 #include "PrinzBranch/GS_MenuGameState.h"
+#include "PrinzBranch/MatchMakingWidget.h"
 
 
 void APS_MenuPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -15,12 +16,66 @@ void APS_MenuPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& 
 
 	// レプリケーションするプロパティを追加
 	DOREPLIFETIME(APS_MenuPlayerState, PSPlayerName);
+	DOREPLIFETIME(APS_MenuPlayerState, PSisPlayerReady);
 }
 
-void APS_MenuPlayerState::OnRep_PName()
+void APS_MenuPlayerState::OnRep_MenuPlayerName()
 {
 	UE_LOG(LogTemp, Warning, TEXT("OnRep trigger - Name: %s"), *PSPlayerName);
 }
+
+void APS_MenuPlayerState::OnRep_PlayerReady()
+{
+	UE_LOG(LogTemp, Warning, TEXT("OnRep trigger - Player Ready"));
+
+	AGS_MenuGameState* GS = GetWorld()->GetGameState<AGS_MenuGameState>();
+	GS->Server_UpdateAllCurrentPlayers();
+	GS->Server_UpdateAllReadyButtonColor();
+
+	//AMenuPlayerController* PC = Cast<AMenuPlayerController>(GetOwner());
+	//if (Server_CheckAllPlayersReady()) {
+	//	if (PC) {
+	//		if (PC->MatchMakingWidget) {
+	//			PC->MatchMakingWidget->SetButtonColor(true);
+	//		}
+	//	}
+	//}
+	//else {
+	//	if (PC) {
+	//		if (PC->MatchMakingWidget) {
+	//			PC->MatchMakingWidget->SetButtonColor(false);
+	//		}
+	//	}
+	//}
+}
+
+//***MOVED TO MENUGAMESTATE***
+//bool APS_MenuPlayerState::Server_CheckAllPlayersReady()
+//{
+//	bool bAllReady = true;
+//	AGS_MenuGameState* GS = GetWorld()->GetGameState<AGS_MenuGameState>();
+//
+//	for (APlayerState* PS : GS->PlayerArray)
+//	{
+//		APS_MenuPlayerState* MyPS = Cast<APS_MenuPlayerState>(PS);
+//		if (MyPS && !MyPS->PSisPlayerReady)
+//		{
+//			bAllReady = false;
+//			break;
+//		}
+//	}
+//
+//	if (bAllReady)
+//	{
+//		UE_LOG(LogTemp, Log, TEXT("✅ All players are ready!"));
+//		// Example: Tell GameMode to start the match
+//		// AMyGameMode* GM = GetWorld()->GetAuthGameMode<AMyGameMode>();
+//		// if (GM) GM->StartMatch();
+//		return true;
+//	}
+//	return false;
+//}
+
 
 
 /// <summary>
@@ -48,6 +103,29 @@ void APS_MenuPlayerState::Server_SetPlayerName_Implementation(const FString& New
 	PSPlayerName = NewName;
 }
 
+
+//***MOVED TO MENUPLAYERCONTROLLER***
+//void APS_MenuPlayerState::Server_SetPlayerReady_Implementation(bool IsPlayerReady)
+//{
+//	PSisPlayerReady = IsPlayerReady;
+//
+//
+//	AMenuPlayerController* PC = Cast<AMenuPlayerController>(GetOwner());
+//	if (Server_CheckAllPlayersReady()) {
+//		if (PC) {
+//			if (PC->MatchMakingWidget) {
+//				PC->MatchMakingWidget->SetButtonColor(true);
+//			}
+//		}
+//	}
+//	else {
+//		if (PC) {
+//			if (PC->MatchMakingWidget) {
+//				PC->MatchMakingWidget->SetButtonColor(false);
+//			}
+//		}
+//	}
+//}
 
 
 
