@@ -25,6 +25,25 @@ public:
     UFUNCTION()
     void OnRep_SessionData();
 
+    UPROPERTY(ReplicatedUsing = OnRep_AllReady)
+    bool bEveryoneReady = false;
+
+    UFUNCTION()
+    void OnRep_AllReady();
+
+    UFUNCTION()
+    void OnRep_CurrentPlayers();
+
+    UFUNCTION(BlueprintCallable)
+    bool Server_CheckAllPlayersReady();
+
+    UFUNCTION(BlueprintCallable)
+    void Server_UpdateAllCurrentPlayers();
+
+    UFUNCTION(BlueprintCallable)
+    void Server_UpdateAllReadyButtonColor();
+
+
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data", Replicated, ReplicatedUsing = OnRep_SessionData)
     FString GSSessionName;
 
@@ -46,8 +65,11 @@ public:
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
     TMap<APlayerState*, FString> GSPlayerList;
 
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data", Replicated, ReplicatedUsing = OnRep_SessionData)
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data", Replicated, ReplicatedUsing = OnRep_CurrentPlayers)
     int32 GSReadyPlayers = 0;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data", Replicated, ReplicatedUsing = OnRep_CurrentPlayers)
+    int32 GSCurrentPlayers = 1;
 
 
     /// <summary>

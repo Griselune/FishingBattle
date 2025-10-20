@@ -21,11 +21,25 @@ protected:
 public:
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 
+    /// <summary>
+    /// 名前の処理
+    /// </summary>
     UFUNCTION()
-    void OnRep_PName();
+    void OnRep_MenuPlayerName();
 
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player Name", Replicated, ReplicatedUsing = OnRep_PName)
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player data", Replicated, ReplicatedUsing = OnRep_MenuPlayerName)
     FString PSPlayerName;
+
+    /// <summary>
+    /// 準備の処理
+    /// </summary>
+    UFUNCTION()
+    void OnRep_PlayerReady();
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Player data", Replicated, ReplicatedUsing = OnRep_PlayerReady)
+    bool PSisPlayerReady = false;
+
+
 
     //  UPROPERTY(BlueprintReadWrite, EditAnywhere)
      // TMap<APlayerState*, FString> PSPlayerList;
@@ -39,6 +53,16 @@ public:
 
     UFUNCTION(BlueprintCallable, Server, Reliable)
     void Server_SetPlayerName(const FString& NewName);
+
+
+    //***MOVED TO MENUPLAYERCONTROLLER***
+    //UFUNCTION(BlueprintCallable, Server, Reliable)
+    //void Server_SetPlayerReady(bool IsPlayerReady);
+
+
+    //***MOVED TO MENUGAMESTATE***
+    //UFUNCTION(BlueprintCallable)
+    //bool Server_CheckAllPlayersReady();
 
     //UFUNCTION(BlueprintCallable, NetMulticast, Reliable)
     //void AddPlayerToList(APlayerState* PS, const FString& PName);

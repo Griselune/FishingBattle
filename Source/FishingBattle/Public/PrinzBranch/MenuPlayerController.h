@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
-//#include "GameFramework/GameModeBase.h"
+#include "PrinzBranch/MatchMakingWidget.h"
 //#include "GameFramework/GameMode.h"
 //#include "PrinzBranch/GM_MenuGameMode.h"
 
@@ -15,7 +15,11 @@ class FISHINGBATTLE_API AMenuPlayerController : public APlayerController
 	GENERATED_BODY()
 	
 public:
+	UPROPERTY(BlueprintReadWrite)
+	UMatchMakingWidget* MatchMakingWidget;
 
+	UFUNCTION(BlueprintCallable, Server, Reliable)
+	void Server_SetPlayerReady(bool IsPlayerReady);
 
 protected:
 
