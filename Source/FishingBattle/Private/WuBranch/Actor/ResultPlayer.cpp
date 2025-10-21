@@ -8,6 +8,7 @@
 #include <EnhancedInputSubsystems.h>
 #include <WuBranch/PlayerState/ResultPlayerState.h>
 #include <Net/UnrealNetwork.h>
+#include "WuBranch/Interface/NameUI.h"
 
 // Sets default values
 AResultPlayer::AResultPlayer()
@@ -36,6 +37,11 @@ void AResultPlayer::BeginPlay()
 	Super::BeginPlay();
 	
 	CurrentState = EResultState::Wait;
+
+	if(NameWidgetComp && NameWidgetComp->GetWidget())
+	{
+		UpdateNameWidget();
+	}
 }
 
 void AResultPlayer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -43,12 +49,22 @@ void AResultPlayer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLif
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(AResultPlayer, UUID);
+	DOREPLIFETIME(AResultPlayer, Name);
 }
+
+// Called every frame
+//void AResultPlayer::Tick(float DeltaTime)
+//{
+//	Super::Tick(DeltaTime);
+//
+//}
 
 float AResultPlayer::GetCollisionWidth() const
 {
 	return BodyCollision->GetScaledCapsuleRadius();
 }
+
+#pragma region UUID
 
 void AResultPlayer::SetUUID(int ID)
 {
@@ -60,9 +76,18 @@ int AResultPlayer::GetUUID() const
 	return UUID;
 }
 
+void AResultPlayer::OnRep_UpdatedUUID()
+{
+
+}
+
+#pragma endregion
+
+#pragma region 名前
 void AResultPlayer::SetName(const FString& NewName)
 {
 	Name = NewName;
+	UpdateNameWidget();
 }
 
 FString AResultPlayer::GetName() const
@@ -70,17 +95,23 @@ FString AResultPlayer::GetName() const
 	return Name;
 }
 
-void AResultPlayer::OnRep_UpdatedUUID()
+void AResultPlayer::OnRep_UpdatedName()
 {
-	
+	UpdateNameWidget();
 }
 
-// Called every frame
-//void AResultPlayer::Tick(float DeltaTime)
-//{
-//	Super::Tick(DeltaTime);
-//
-//}
+void AResultPlayer::UpdateNameWidget()
+{
+	// 名前ウィジェットを更新
+	if (UUserWidget* Widget = NameWidgetComp->GetWidget())
+	{
+		if (Widget->Implements<UNameUI>())
+		{
+			INameUI::Execute_SetName(Widget, Name);
+		}
+	}
+}
+#pragma endregion
 
 void AResultPlayer::SetResultState_Implementation(EResultState NewState)
 {

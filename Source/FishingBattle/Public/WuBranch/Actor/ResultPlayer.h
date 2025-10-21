@@ -37,6 +37,23 @@ public:
 	/// <returns></returns>
 	float GetCollisionWidth() const;
 
+private:
+
+	/// <summary>
+	/// 体のコリジョーン
+	/// </summary>
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	UCapsuleComponent* BodyCollision;
+
+	/// <summary>
+	/// メッシュ
+	/// </summary>
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	USkeletalMeshComponent* Mesh;
+
+#pragma region UUID
+public:
+
 	/// <summary>
 	/// UUIDを設定
 	/// </summary>
@@ -49,6 +66,24 @@ public:
 	/// <returns>ID</returns>
 	UFUNCTION(BlueprintCallable)
 	int GetUUID() const;
+
+private:
+
+	/// <summary>
+	/// UUIDが更新されたとき
+	/// </summary>
+	UFUNCTION()
+	void OnRep_UpdatedUUID();
+
+	/// <summary>
+	/// ゲーム中のUUID
+	/// </summary>
+	UPROPERTY(Replicated, ReplicatedUsing = OnRep_UpdatedUUID)
+	int UUID;
+#pragma endregion
+
+#pragma region 名前
+public:
 
 	/// <summary>
 	/// 名前を設定
@@ -65,32 +100,20 @@ public:
 private:
 
 	/// <summary>
-	/// UUIDが更新されたとき
+	/// 名前が更新されたとき
 	/// </summary>
 	UFUNCTION()
-	void OnRep_UpdatedUUID();
+	void OnRep_UpdatedName();
 
 	/// <summary>
-	/// 体のコリジョーン
+	/// 名前ウィジェットを更新
 	/// </summary>
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	UCapsuleComponent* BodyCollision;
-
-	/// <summary>
-	/// メッシュ
-	/// </summary>
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	USkeletalMeshComponent* Mesh;
-
-	/// <summary>
-	/// ゲーム中のUUID
-	/// </summary>
-	UPROPERTY(Replicated, ReplicatedUsing = OnRep_UpdatedUUID)
-	int UUID;
+	void UpdateNameWidget();
 
 	/// <summary>
 	/// プレイヤ名
 	/// </summary>
+	UPROPERTY(Replicated, ReplicatedUsing = OnRep_UpdatedName)
 	FString Name;
 
 	/// <summary>
@@ -98,6 +121,7 @@ private:
 	/// </summary>
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	UWidgetComponent* NameWidgetComp;
+#pragma endregion
 
 #pragma region 状態
 
