@@ -113,6 +113,7 @@ void AFisherController::CreateUI()
 		UE_LOG(LogTemp, Display, TEXT("FishingGaugeUI already set"));
 	}
 	//10月8日　滝本海大　終了
+
 }
 
 //10月8日　滝本海大　開始

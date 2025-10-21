@@ -15,6 +15,8 @@
 #include <WuBranch/Actor/FishingGround.h>
 #include <WuBranch/PlayerController/FisherController.h>
 #include <PrinzBranch/LANGameInstance.h>
+#include "Components/WidgetComponent.h" //プリンス 追加 2025/10/21　ネームタグに使う
+#include "WuBranch/Interface/NameUI.h" //プリンス 追加 2025/10/21　ネームタグに使う
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -65,6 +67,12 @@ AFishingBattleCharacter::AFishingBattleCharacter()
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
+
+	//プリンス START 2025/10/21
+	NameTagWidgetComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("NameTagWidget"));
+	NameTagWidgetComp->SetupAttachment(RootComponent);
+
+	//プリンス END 2025/10/21
 
 	this->Tags.Add(FName("Player"));
 }
@@ -785,6 +793,10 @@ void AFishingBattleCharacter::GetLifetimeReplicatedProps(TArray<FLifetimePropert
 	// 2025.07.24 ウー start
 	DOREPLIFETIME(AFishingBattleCharacter, Health);
 	// 2025.07.24 ウー end
+	// 
+	//プリンス START 2025/10/21
+	DOREPLIFETIME(AFishingBattleCharacter, Name);
+	//プリンス END 2025/10/21
 }
 
 //プレイヤーがコントローラーを取得したときに呼ばれる
@@ -1273,4 +1285,37 @@ void AFishingBattleCharacter::ShowFishingGauge(UAnimMontage* Montage, bool in)
 	}
 }
 //10月15日　滝本海大　終了
+#pragma endregion
+
+#pragma region 名前表示（ネームタグ）
+//プリンス START 2025/10/21
+void AFishingBattleCharacter::SetName(const FString& NewName)
+{
+	Name = NewName;
+	UpdateNameWidget();
+}
+
+FString AFishingBattleCharacter::GetName() const
+{
+	return Name;
+}
+
+void AFishingBattleCharacter::OnRep_UpdatedName()
+{
+	UpdateNameWidget();
+}
+
+void AFishingBattleCharacter::UpdateNameWidget()
+{
+	// 名前ウィジェットを更新
+	if (UUserWidget* Widget = NameTagWidgetComp->GetWidget())
+	{
+		if (Widget->Implements<UNameUI>())
+		{
+			INameUI::Execute_SetName(Widget, Name);
+			INameUI::Execute_ShowName(Widget);
+		}
+	}
+}
+//プリンス END 2025/10/21
 #pragma endregion

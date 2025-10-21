@@ -8,7 +8,6 @@
 
 
 
-
 UCLASS()
 class FISHINGBATTLE_API APS_MenuPlayerState : public APlayerState
 {
