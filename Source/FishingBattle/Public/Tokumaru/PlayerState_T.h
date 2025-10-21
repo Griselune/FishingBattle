@@ -11,12 +11,18 @@
 /**
  * 
  */
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInventoryUpdated);
+
+
 UCLASS()
 class FISHINGBATTLE_API APlayerState_T : public APlayerState
 {
 	GENERATED_BODY()
 
 public:
+	UPROPERTY(BlueprintAssignable, Category = "Inventory")
+	FOnInventoryUpdated OnInventoryUpdated;
+
 
 	static const int slotMax = 4;
 
