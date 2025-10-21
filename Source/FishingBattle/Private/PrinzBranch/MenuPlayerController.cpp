@@ -35,7 +35,7 @@ void AMenuPlayerController::Server_SetPlayerReady_Implementation(bool IsPlayerRe
 				PC->MatchMakingWidget->SetButtonPlayNowColor(bAllReady);
 			}
 
-			if (PC->MatchMakingWidget) {
+			if (PC && PC->MatchMakingWidget) {
 				//update all numbers
 				PC->MatchMakingWidget->SetTextReadyPlayers(GS->GSReadyPlayers, GS->GSCurrentPlayers);
 			}
@@ -45,13 +45,27 @@ void AMenuPlayerController::Server_SetPlayerReady_Implementation(bool IsPlayerRe
 
 
 #pragma region Initialize
+void AMenuPlayerController::SessionDataInitialize()
+{
+	if (!MatchMakingWidget) return;
+
+	AGS_MenuGameState* GS = GetWorld()->GetGameState<AGS_MenuGameState>();
+	FString GameMode = GS->GSisDeathMatch ? "Death Match" : "Battle Royale";
+
+	MatchMakingWidget->SetTextReadyPlayers(GS->GSReadyPlayers, GS->GSCurrentPlayers);
+	MatchMakingWidget->SetTextPlayerMax(FString::FromInt(GS->GSSessionPlayerLimit));
+	MatchMakingWidget->SetTextSessionName(GS->GSSessionName);
+	MatchMakingWidget->SetTextSessionGameMode(GameMode);
+	MatchMakingWidget->SetTextSessionTimeLimit(FString::FromInt(GS->GSSessionTimeLimit));
+}
 void AMenuPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	AGS_MenuGameState* GS = GetWorld()->GetGameState<AGS_MenuGameState>();
-	if (MatchMakingWidget && IsLocalController()) {
-		MatchMakingWidget->SetTextReadyPlayers(GS->GSReadyPlayers, GS->GSCurrentPlayers);
+//	AGS_MenuGameState* GS = GetWorld()->GetGameState<AGS_MenuGameState>();
+	if (/*MatchMakingWidget && */IsLocalController()) {
+	//	MatchMakingWidget->SetTextReadyPlayers(GS->GSReadyPlayers, GS->GSCurrentPlayers);
+		SessionDataInitialize();
 	}
 }
 #pragma endregion

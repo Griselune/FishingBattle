@@ -78,8 +78,8 @@ public:
    /* UFUNCTION(BlueprintCallable, Server, Reliable)
     void GetDataFromServer(AController* NewPlayer);*/
 
-    UFUNCTION(BlueprintCallable)
-    void AddPlayerToList(APlayerState* PS);
+    //UFUNCTION(BlueprintCallable)
+    //void AddPlayerToList(APlayerState* PS);
 
     //UFUNCTION(BlueprintCallable, NetMulticast, Reliable)
     //void RemovePlayerFromList(APlayerState* PS);
@@ -91,6 +91,11 @@ public:
     //void HostRemoveReadyPlayer();
 
 public:
+
+    UFUNCTION(Server, Reliable)
+    void Server_SetDataSession();
+
+
 
     UFUNCTION(NetMulticast, Reliable)
     void SetSessionName(const FString& Name);

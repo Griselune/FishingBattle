@@ -14,7 +14,7 @@ void AGM_MenuGameMode::BeginPlay()
 {
     Super::BeginPlay();
 
-    if (HasAuthority())
+   /* if (HasAuthority())
     {
         for (APlayerState* PS : GameState->PlayerArray)
         {
@@ -25,7 +25,7 @@ void AGM_MenuGameMode::BeginPlay()
                 GS->GSPlayerList.Add(MyPS, MyPS->PSPlayerName);
             }
         }
-    }
+    }*/
 }
 
 
@@ -38,13 +38,13 @@ void AGM_MenuGameMode::OnPostLogin(AController* NewPlayer)
 {
     Super::OnPostLogin(NewPlayer);
 
-    APlayerState* PS = NewPlayer->PlayerState;
-    AGS_MenuGameState* GS = GetGameState<AGS_MenuGameState>();
+    //APlayerState* PS = NewPlayer->PlayerState;
+    //AGS_MenuGameState* GS = GetGameState<AGS_MenuGameState>();
 
-    if (GS && PS)
-    {
-        GS->AddPlayerToList(PS);
-    }
+    //if (GS && PS)
+    //{
+    //    GS->AddPlayerToList(PS);
+    //}
 
     ////get server's controller and gamestate
     //APlayerController* LocalPlayerController = UGameplayStatics::GetPlayerController(this, 0);

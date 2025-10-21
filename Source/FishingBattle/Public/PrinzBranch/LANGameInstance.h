@@ -31,16 +31,16 @@ public:
     int32 GISessionTimeLimit = 3;
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
-    bool GIisDeathMatch = false;
+    bool GIisDeathMatch = true;
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
-    bool GIisBattleRoyale = true;
+    bool GIisBattleRoyale = false;
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere)
     FString GIPlayerName = "";  //BluePrintで名前を保存する
 
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
-    TMap<APlayerState*, FString> GIPlayerList; //Serverが持っているプレヤーリストのコピー
+    //UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
+    //TMap<APlayerState*, FString> GIPlayerList; //Serverが持っているプレヤーリストのコピー
 
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
