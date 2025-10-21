@@ -105,6 +105,9 @@ void AFisherController::CreateUI()
 			FishingGaugeUI->AddToViewport();
 			UE_LOG(LogTemp, Display, TEXT("FishingGaugeUI set"));
 		}
+		else {
+			UE_LOG(LogTemp, Error, TEXT("FisherController: FishingGaugeUIClass is nullptr"));
+		}
 	}
 	else {
 		UE_LOG(LogTemp, Display, TEXT("FishingGaugeUI already set"));
@@ -127,6 +130,7 @@ void AFisherController::ShowFishingGauge(float SkillCheckSpeed)
 			FSC->IsClear = false;
 			FSC->Speed = SkillCheckSpeed;
 			IUIActivity::Execute_ShowUI(FishingGaugeUI);
+			UE_LOG(LogTemp, Display, TEXT("AFisherController::ShowFishingGauge() correct"));
 		}
 	}
 	else {
