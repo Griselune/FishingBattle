@@ -9,6 +9,30 @@
 #include "PrinzBranch/GS_MenuGameState.h"
 #include "PrinzBranch/MatchMakingWidget.h"
 
+/// <summary>
+/// 各レベルで各プレヤーの名前を更新する
+/// </summary>
+void APS_MenuPlayerState::BeginPlay()
+{
+	Super::BeginPlay();
+
+	//Localクライアントのみ
+	AMenuPlayerController* PC = Cast<AMenuPlayerController>(GetOwner());
+	if (PC && PC->IsLocalController())
+	{
+		if (PC->MatchMakingWidget) {
+			AGS_MenuGameState* GS = GetWorld()->GetGameState<AGS_MenuGameState>();
+			if (GS) {
+				PC->MatchMakingWidget->SetTextReadyPlayers(GS->GSReadyPlayers, GS->GSCurrentPlayers);
+			}
+		}
+		ULANGameInstance* GI = GetGameInstance<ULANGameInstance>();
+		if (GI)
+		{
+			Server_SetPlayerName(GI->GIPlayerName);
+		}
+	}
+}
 
 void APS_MenuPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -41,30 +65,6 @@ void APS_MenuPlayerState::OnRep_PlayerReady()
 	}
 }
 
-/// <summary>
-/// 各レベルで各プレヤーの名前を更新する
-/// </summary>
-void APS_MenuPlayerState::BeginPlay()
-{
-	Super::BeginPlay();
-
-	//Localクライアントのみ
-	AMenuPlayerController* PC = Cast<AMenuPlayerController>(GetOwner());
-	if (PC && PC->IsLocalController())
-	{
-		if (PC->MatchMakingWidget) {
-			AGS_MenuGameState* GS = GetWorld()->GetGameState<AGS_MenuGameState>();
-			if (GS) {
-				PC->MatchMakingWidget->SetTextReadyPlayers(GS->GSReadyPlayers, GS->GSCurrentPlayers);
-			}
-		}
-		ULANGameInstance* GI = GetGameInstance<ULANGameInstance>();
-		if (GI)
-		{
-			Server_SetPlayerName(GI->GIPlayerName);
-		}
-	}
-}
 
 
 void APS_MenuPlayerState::Server_SetPlayerName_Implementation(const FString& NewName)

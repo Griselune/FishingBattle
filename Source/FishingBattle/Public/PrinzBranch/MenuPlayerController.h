@@ -21,6 +21,9 @@ public:
 	UFUNCTION(BlueprintCallable, Server, Reliable)
 	void Server_SetPlayerReady(bool IsPlayerReady);
 
+	UFUNCTION()
+	void SessionDataInitialize();
+
 protected:
 
 	virtual void BeginPlay() override;
