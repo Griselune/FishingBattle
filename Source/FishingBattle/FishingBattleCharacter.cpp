@@ -1247,8 +1247,12 @@ void AFishingBattleCharacter::ShowFishingGauge(UAnimMontage* Montage, bool in)
 			if (ACPPBaseWeapon* BW = Cast<ACPPBaseWeapon>(WeaponClass->GetDefaultObject())) {
 				AFisherController* FC = Cast<AFisherController>(GetController());
 				FC->ShowFishingGauge(BW->SkillCheckSpeed);
+				UE_LOG(LogTemp, Display, TEXT("AFishingBattleCharacter::ShowFishingGauge() correct"));
 			}
 		}
+	}
+	else {
+		UE_LOG(LogTemp, Error, TEXT("AFishingBattleCharacter::ShowFishingGauge() failed"));
 	}
 }
 //10月15日　滝本海大　終了
