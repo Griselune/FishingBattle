@@ -25,6 +25,8 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 public:	
 	// Called every frame
 	//virtual void Tick(float DeltaTime) override;
@@ -45,6 +47,7 @@ public:
 	/// UUIDをゲット
 	/// </summary>
 	/// <returns>ID</returns>
+	UFUNCTION(BlueprintCallable)
 	int GetUUID() const;
 
 	/// <summary>
@@ -62,6 +65,12 @@ public:
 private:
 
 	/// <summary>
+	/// UUIDが更新されたとき
+	/// </summary>
+	UFUNCTION()
+	void OnRep_UpdatedUUID();
+
+	/// <summary>
 	/// 体のコリジョーン
 	/// </summary>
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
@@ -76,6 +85,7 @@ private:
 	/// <summary>
 	/// ゲーム中のUUID
 	/// </summary>
+	UPROPERTY(Replicated, ReplicatedUsing = OnRep_UpdatedUUID)
 	int UUID;
 
 	/// <summary>
@@ -96,7 +106,7 @@ public:
 	/// プレイヤーの結果を設定する
 	/// </summary>
 	/// <param name="NewState">結果</param>
-	UFUNCTION(BlueprintCallable)
+	UFUNCTION(NetMulticast, Reliable)
 	void SetResultState(EResultState NewState);
 
 	/// <summary>

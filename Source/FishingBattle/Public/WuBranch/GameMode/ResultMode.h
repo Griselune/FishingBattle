@@ -78,6 +78,11 @@ private:
 	void ShowWinnerName();
 
 	/// <summary>
+	/// プレイヤキャラクタのアニメーション状態を開始
+	/// </summary>
+	void StartPlayerAnimationState();
+
+	/// <summary>
 	/// ゲームインスタンス
 	/// </summary>
 	ULANGameInstance* MyGameInstance;
@@ -114,6 +119,11 @@ private:
 	/// </summary>
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	FVector PlayerSpawnHalfSize;
+
+	/// <summary>
+	/// プレイヤーキャラクター達
+	/// </summary>
+	TArray<AResultPlayer*> PlayerCharacters;
 
 	/// <summary>
 	/// 照明灯

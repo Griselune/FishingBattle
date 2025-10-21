@@ -144,6 +144,7 @@ void AResultMode::SpawnPlayer()
 		{
 			Character->SetUUID(Record.ID);
 			Character->SetName(Record.Name);
+			PlayerCharacters.Add(Character);
 		}
 	}
 }
@@ -201,6 +202,9 @@ void AResultMode::OnPointedWinner()
 
 		// 勝者の名前を表示
 		ShowWinnerName();
+
+		// プレイヤーのアニメーション状態を開始
+		StartPlayerAnimationState();
 	}
 }
 
@@ -231,5 +235,16 @@ void AResultMode::ShowWinnerName()
 				ResultPC->ShowWinnerName();
 			}
 		}
+	}
+}
+
+void AResultMode::StartPlayerAnimationState()
+{
+	for (AResultPlayer* Character : PlayerCharacters)
+	{
+		if (Character->GetUUID() == WinnerID)
+			Character->SetResultState(EResultState::Winner);
+		else
+			Character->SetResultState(EResultState::Loser);
 	}
 }

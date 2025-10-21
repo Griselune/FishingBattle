@@ -7,6 +7,7 @@
 #include <EnhancedInputComponent.h>
 #include <EnhancedInputSubsystems.h>
 #include <WuBranch/PlayerState/ResultPlayerState.h>
+#include <Net/UnrealNetwork.h>
 
 // Sets default values
 AResultPlayer::AResultPlayer()
@@ -37,6 +38,13 @@ void AResultPlayer::BeginPlay()
 	CurrentState = EResultState::Wait;
 }
 
+void AResultPlayer::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(AResultPlayer, UUID);
+}
+
 float AResultPlayer::GetCollisionWidth() const
 {
 	return BodyCollision->GetScaledCapsuleRadius();
@@ -62,6 +70,11 @@ FString AResultPlayer::GetName() const
 	return Name;
 }
 
+void AResultPlayer::OnRep_UpdatedUUID()
+{
+	
+}
+
 // Called every frame
 //void AResultPlayer::Tick(float DeltaTime)
 //{
@@ -69,7 +82,7 @@ FString AResultPlayer::GetName() const
 //
 //}
 
-void AResultPlayer::SetResultState(EResultState NewState)
+void AResultPlayer::SetResultState_Implementation(EResultState NewState)
 {
 	CurrentState = NewState;
 }
