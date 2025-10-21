@@ -12,9 +12,27 @@
 void AGS_MenuGameState::BeginPlay()
 {
 	Super::BeginPlay();
-	GSCurrentPlayers = PlayerArray.Num();
+//	GSCurrentPlayers = PlayerArray.Num();
+	Server_SetDataSession();
 	Server_UpdateAllCurrentPlayers();
 }
+
+/// <summary>
+/// LANGameInstanceに保存されたデータをMenuGameStateにコピーする
+/// </summary>
+void AGS_MenuGameState::Server_SetDataSession_Implementation()
+{
+	GSCurrentPlayers = PlayerArray.Num();
+
+	ULANGameInstance* GI = Cast<ULANGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
+	if (!GI) return;
+	GSSessionName = GI->GISessionName;
+	GSSessionTimeLimit = GI->GISessionTimeLimit;
+	GSisDeathMatch = GI->GIisDeathMatch;
+	GSisBattleRoyale = GI->GIisBattleRoyale;
+	GSSessionPlayerLimit = GI->GISessionPlayerLimit;
+}
+
 #pragma endregion
 
 bool AGS_MenuGameState::Server_CheckAllPlayersReady()
@@ -57,9 +75,12 @@ void AGS_MenuGameState::Server_UpdateAllCurrentPlayers()
 	}
 }
 
+/// <summary>
+/// 各プレヤーのUIを更新する
+/// </summary>
 void AGS_MenuGameState::Server_UpdateAllReadyButtonColor()
 {
-	//各プレヤーのUIを更新する
+
 	for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
 	{
 		AMenuPlayerController* PC = Cast<AMenuPlayerController>(*It);
@@ -81,10 +102,15 @@ void AGS_MenuGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	// レプリケーションするプロパティを追加
-	DOREPLIFETIME(AGS_MenuGameState, GSSessionName);
 	DOREPLIFETIME(AGS_MenuGameState, GSPlayerName);
+
 	DOREPLIFETIME(AGS_MenuGameState, GSReadyPlayers);
 	DOREPLIFETIME(AGS_MenuGameState, GSCurrentPlayers);
+	DOREPLIFETIME(AGS_MenuGameState, GSSessionPlayerLimit);
+
+	DOREPLIFETIME(AGS_MenuGameState, GSSessionName);
+	DOREPLIFETIME(AGS_MenuGameState, GSSessionTimeLimit);
+	DOREPLIFETIME(AGS_MenuGameState, GSisDeathMatch);
 }
 
 void AGS_MenuGameState::OnRep_SessionData()
@@ -109,18 +135,18 @@ void AGS_MenuGameState::OnRep_CurrentPlayers()
 }
 #pragma endregion
 
-void AGS_MenuGameState::AddPlayerToList(APlayerState* PS)
-{
-	if (!HasAuthority() || !PS)
-		return;
-
-	APS_MenuPlayerState* MyPS = Cast<APS_MenuPlayerState>(PS);
-	if (MyPS)
-	{
-		GSPlayerList.Add(MyPS, MyPS->PSPlayerName);
-		UE_LOG(LogTemp, Warning, TEXT("Player added to GS list: %s"), *MyPS->PSPlayerName);
-	}
-}
+//void AGS_MenuGameState::AddPlayerToList(APlayerState* PS)
+//{
+//	if (!HasAuthority() || !PS)
+//		return;
+//
+//	APS_MenuPlayerState* MyPS = Cast<APS_MenuPlayerState>(PS);
+//	if (MyPS)
+//	{
+//		GSPlayerList.Add(MyPS, MyPS->PSPlayerName);
+//		UE_LOG(LogTemp, Warning, TEXT("Player added to GS list: %s"), *MyPS->PSPlayerName);
+//	}
+//}
 
 
 

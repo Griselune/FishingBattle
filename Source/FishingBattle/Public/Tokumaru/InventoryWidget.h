@@ -17,27 +17,15 @@ class FISHINGBATTLE_API UInventoryWidget : public UUserWidget
 {
 	GENERATED_BODY()
 public:
-
 	/// <summary>
-	/// インベントリ表示UIの1番目変更
+	/// インベントリ表示UI更新
 	/// </summary>
-	/// <param name="weaponID"></param>
+	/// <param name="number"></param>
+	/// <returns></returns>
 	UFUNCTION(BlueprintCallable)
-	UTexture2D* SetInventory1();
+	UTexture2D* SetInventory(int number);
 
-	/// <summary>
-    /// インベントリ表示UIの2番目変更
-    /// </summary>
-    /// <param name="weaponID"></param>
-	UFUNCTION(BlueprintCallable)
-	UTexture2D* SetInventory2();
 
-	/// <summary>
-    /// インベントリ表示UIの3番目変更
-    /// </summary>
-    /// <param name="weaponID"></param>
-	UFUNCTION(BlueprintCallable)
-	UTexture2D* SetInventory3();
 
 	/// <summary>
 	/// 回避できるかどうかのUIの更新に使う
@@ -45,6 +33,15 @@ public:
 	/// <returns></returns>
 	UFUNCTION(BlueprintCallable)
 	bool CanRollState();
+
+	UFUNCTION(BlueprintCallable)
+	int GetWeaponArrayIndex();
+
+	UFUNCTION(BlueprintImplementableEvent,BlueprintCallable)
+	void SetTextureUpdate();
+
+	UFUNCTION(BlueprintCallable)
+	void WidgetBegin();
 
 	//UIの画像の入れ替えで使うテクスチャ
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Texture")
@@ -58,7 +55,6 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Texture")
 	UTexture2D* non;
-
 
 	//インベントリの配列がアクターの実体になったので、武器タイプを参照してテキスト（イメージ）を変えるようにすること
 	//得丸

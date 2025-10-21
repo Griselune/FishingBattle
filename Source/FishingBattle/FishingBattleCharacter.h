@@ -150,6 +150,9 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Anim")
 	UAnimMontage* FishingMontage;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Anim")
+	UAnimMontage* UpLot;
 #pragma endregion
 
 

@@ -64,6 +64,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	float SkillCheckSpeed;
 
+	//2025 10/25 得丸　start
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
+	float AttackSpeed;
+	//2025 10/25 得丸　end
+
 	//アイコン画像
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon")
 	UTexture2D* Icon;

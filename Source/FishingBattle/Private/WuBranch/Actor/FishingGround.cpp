@@ -11,12 +11,13 @@
 #include "TakimotoBranch/CPPBaseWeapon.h"
 #include <WuBranch/UI/MyBaseWidget.h>
 #include <Kismet/GameplayStatics.h>
+#include "NiagaraComponent.h"
 
 // Sets default values
 AFishingGround::AFishingGround()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	//PrimaryActorTick.bCanEverTick = true;
 	bReplicates = true;
 
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root Component"));
@@ -32,6 +33,12 @@ AFishingGround::AFishingGround()
 	InteractionUI = CreateDefaultSubobject<UWidgetComponent>(TEXT("Interaction UI"));
 	InteractionUI->SetupAttachment(RootComponent);
 
+	ExistenceEffect = CreateDefaultSubobject<UNiagaraComponent>(TEXT("Existence Effect"));
+	ExistenceEffect->SetupAttachment(RootComponent);
+
+	ExistenceInvisibilityArea = CreateDefaultSubobject<USphereComponent>(TEXT("Existence Invisibility Area"));
+	ExistenceInvisibilityArea->SetupAttachment(RootComponent);
+
 	Fishable = CreateDefaultSubobject<UFishableComponent>(TEXT("Fishable"));
 }
 
@@ -44,16 +51,19 @@ void AFishingGround::BeginPlay()
 	FishableAreaOnGround->OnComponentEndOverlap.AddDynamic(this, &AFishingGround::OnGroundAreaEndOverlap);
 	FishableAreaOnSea->OnComponentBeginOverlap.AddDynamic(this, &AFishingGround::OnSeaAreaBeginOverlap);
 	FishableAreaOnSea->OnComponentEndOverlap.AddDynamic(this, &AFishingGround::OnSeaAreaEndOverlap);
+	ExistenceInvisibilityArea->OnComponentBeginOverlap.AddDynamic(this, &AFishingGround::OnExistenceInvisibilityAreaBeginOverlap);
+	ExistenceInvisibilityArea->OnComponentEndOverlap.AddDynamic(this, &AFishingGround::OnExistenceInvisibilityAreaEndOverlap);
 
 	CloseUI();
+	ShowExistenceEffect();
 }
 
 // Called every frame
-void AFishingGround::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}
+//void AFishingGround::Tick(float DeltaTime)
+//{
+//	Super::Tick(DeltaTime);
+//
+//}
 
 void AFishingGround::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -128,6 +138,22 @@ void AFishingGround::OnSeaAreaEndOverlap(UPrimitiveComponent* OverlappedComp, AA
 	}
 }
 
+void AFishingGround::OnExistenceInvisibilityAreaBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (OtherActor && OtherActor->IsA(AFishingBattleCharacter::StaticClass()))
+	{
+		CloseExistenceEffect();
+	}
+}
+
+void AFishingGround::OnExistenceInvisibilityAreaEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (OtherActor && OtherActor->IsA(AFishingBattleCharacter::StaticClass()))
+	{
+		ShowExistenceEffect();
+	}
+}
+
 void AFishingGround::OnRep_AsyncGround()
 {
 	FishableAreaOnGround->SetRelativeLocation(GroundLocation);
@@ -137,6 +163,18 @@ void AFishingGround::OnRep_AsyncGround()
 void AFishingGround::OnRep_AsyncSea()
 {
 	FishableAreaOnSea->SetSphereRadius(SeaRadius);
+}
+
+void AFishingGround::ShowExistenceEffect()
+{
+	ExistenceEffect->Activate(true);
+	ExistenceEffect->SetVisibility(true);
+}
+
+void AFishingGround::CloseExistenceEffect()
+{
+	ExistenceEffect->Deactivate();
+	ExistenceEffect->SetVisibility(false);
 }
 
 void AFishingGround::ShowUI_Implementation()
