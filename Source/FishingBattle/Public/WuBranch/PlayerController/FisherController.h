@@ -48,6 +48,7 @@ private:
 	/// <summary>
 	/// UIを生成
 	/// </summary>
+	UFUNCTION(Client, Reliable)
 	void CreateUI();
 
 

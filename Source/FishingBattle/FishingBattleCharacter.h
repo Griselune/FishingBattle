@@ -325,7 +325,7 @@ protected:
 	/// <summary>
 	/// 釣りモーション終了
 	/// </summary>
-	void OnFishingEnded(/*UAnimMontage* Montage, bool in*/);
+	void OnFishingEnded(bool Result);
 	//10月15日　滝本海大　開始
 	//釣り場から貰ってきた魚を保存する変数
 	TSubclassOf<AActor> weaponActorSubclass;
@@ -464,10 +464,10 @@ protected:
 	//10月15日　滝本海大　開始
 	//釣りゲージの結果から魚を手に入れるかどうかを判定する
 	UFUNCTION(Server, Reliable)
-	void Server_GetFishByGauge();
+	void Server_GetFishByGauge(bool Result);
 
 	UFUNCTION(NetMulticast, Reliable)
-	void Multi_GetFishByGauge();
+	void Multi_GetFishByGauge(bool Result);
 	//10月15日　滝本海大　終了
 #pragma endregion
 

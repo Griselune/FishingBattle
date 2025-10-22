@@ -72,7 +72,7 @@ void AFisherController::OnRep_Pawn()
 	}
 }
 
-void AFisherController::CreateUI()
+void AFisherController::CreateUI_Implementation()
 {
 	// インベントリのUI
 	if (!InventoryUI && InventoryUIClass)
