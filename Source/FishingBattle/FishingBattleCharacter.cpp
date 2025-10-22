@@ -279,12 +279,16 @@ void AFishingBattleCharacter::Multi_Fishing_Implementation()
 		UE_LOG(LogTemp, Warning, TEXT("Fishing!Play"));
 		IsFishing = true;
 
-		FOnMontageEnded Delegate;
-		Delegate.BindUObject(this, &AFishingBattleCharacter::ShowFishingGauge);
-		animInstance->Montage_SetEndDelegate(Delegate, FishingMontage);
+		// 2025.10.21 ウー start
+		if (IsLocallyControlled())
+		{
+			FOnMontageEnded Delegate;
+			Delegate.BindUObject(this, &AFishingBattleCharacter::ShowFishingGauge);
+			animInstance->Montage_SetEndDelegate(Delegate, FishingMontage);
 
-		ChangeMappingContext(FishingMappingContext);
-
+			ChangeMappingContext(FishingMappingContext);
+		}
+		// 2025.10.21 ウー end
 	}
 }
 
@@ -390,15 +394,15 @@ void AFishingBattleCharacter::Multi_DestructionWeapon_Implementation(int index) 
 }
 
 //10月15日　滝本海大　開始
-void AFishingBattleCharacter::Server_GetFishByGauge_Implementation()
+void AFishingBattleCharacter::Server_GetFishByGauge_Implementation(bool Result)
 {
-	Multi_GetFishByGauge();
+	Multi_GetFishByGauge(Result);
 }
 
-void AFishingBattleCharacter::Multi_GetFishByGauge_Implementation()
+void AFishingBattleCharacter::Multi_GetFishByGauge_Implementation(bool Result)
 {
 	UE_LOG(LogTemp, Display, TEXT("Multi_GetFishByGauge inside"));
-	OnFishingEnded();
+	OnFishingEnded(Result);
 }
 //10月15日　滝本海大　終了
 #pragma endregion
@@ -839,7 +843,7 @@ void AFishingBattleCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 
 		EnhancedInputComponent->BindAction(DestructionWeaponInput, ETriggerEvent::Started, this, &AFishingBattleCharacter::DestructionWeapon);
 		
-		EnhancedInputComponent->BindAction(GaugeStop, ETriggerEvent::Triggered, this, &AFishingBattleCharacter::OnGaugeStop);
+		EnhancedInputComponent->BindAction(GaugeStop, ETriggerEvent::Started, this, &AFishingBattleCharacter::OnGaugeStop);
 	}
 	else
 	{
@@ -1020,7 +1024,7 @@ void AFishingBattleCharacter::RequestRespawn()
 #pragma region データ設定
 void AFishingBattleCharacter::SetNameFromInstance()
 {
-	if (IsControlled())
+	if (IsLocallyControlled())
 	{
 		ULANGameInstance* GameInstance = GetGameInstance<ULANGameInstance>();
 		APlayerState_T* GameState = GetPlayerState<APlayerState_T>();
@@ -1205,42 +1209,57 @@ void AFishingBattleCharacter::Fishing()
 	}
 }
 
-void AFishingBattleCharacter::OnFishingEnded(/*UAnimMontage* Montage, bool in*/)
+void AFishingBattleCharacter::OnFishingEnded(bool Result)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Fishing!deligate"));
 
-
 	// Multi_AddWeaponInPlayerはNetMulticastを使ってるので、サーバーを含めた全員に飛ばしてる
-	if (HasAuthority()) {
+	// 2025.10.15 ウー start
+	//if (HasAuthority()) {
+	if (IsLocallyControlled()) {
+	
 		if (fishingSpot)
 		{
 			UClass* WeaponClass = weaponActorSubclass;
-			if (ACPPBaseWeapon* BW = Cast<ACPPBaseWeapon>(WeaponClass->GetDefaultObject())) {
-				if (true == Cast<AFisherController>(GetController())->GetStopFunction()) {
-					Multi_AddWeaponInPlayer(weaponActorSubclass);
-					UE_LOG(LogTemp, Display, TEXT("GetFish!!!!!!!"));
-				}
-				else UE_LOG(LogTemp, Error, TEXT("FishingFailed..."));
+			if (WeaponClass)
+			{
+				//if (ACPPBaseWeapon* BW = Cast<ACPPBaseWeapon>(WeaponClass->GetDefaultObject())) {
+					if (Result) {
+					//if (true == Cast<AFisherController>(GetController())->GetStopFunction()) {
+						Multi_AddWeaponInPlayer(weaponActorSubclass);
+						UE_LOG(LogTemp, Display, TEXT("GetFish!!!!!!!"));
+					}
+					else UE_LOG(LogTemp, Error, TEXT("FishingFailed..."));
+				//}
 			}
 		}
+
+		//マッピングコンテクストの入れ替えで操作を制限
+		ChangeMappingContext(HasFishrotMappingContext);
 	}
 
-	//マッピングコンテクストの入れ替えで操作を制限
-	ChangeMappingContext(HasFishrotMappingContext);
-
+	// 2025.10.15 ウー end
 	IsFishing = false;
 }
 
 void AFishingBattleCharacter::OnGaugeStop()
 {
-	if (HasAuthority()) Multi_GetFishByGauge();
-	else Server_GetFishByGauge();
+	bool Result = Cast<AFisherController>(GetController())->GetStopFunction();
+	if (HasAuthority())
+	{
+		Multi_GetFishByGauge(Result);
+	}
+	else
+	{
+		Server_GetFishByGauge(Result);
+	}
 }
 
 //10月15日　滝本海大　開始
 void AFishingBattleCharacter::ShowFishingGauge(UAnimMontage* Montage, bool in)
-{	
-	if (HasAuthority()) {
+{
+	// 2025.10.15 ウー start
+	//if (HasAuthority()) {
 		if (weaponActorSubclass = Cast<AFishingGround>(fishingSpot)->GetFish()) {
 			UE_LOG(LogTemp, Display, TEXT("weaponActorSubclass: %s"), *weaponActorSubclass->GetName());
 			UClass* WeaponClass = weaponActorSubclass;
@@ -1250,10 +1269,11 @@ void AFishingBattleCharacter::ShowFishingGauge(UAnimMontage* Montage, bool in)
 				UE_LOG(LogTemp, Display, TEXT("AFishingBattleCharacter::ShowFishingGauge() correct"));
 			}
 		}
-	}
-	else {
-		UE_LOG(LogTemp, Error, TEXT("AFishingBattleCharacter::ShowFishingGauge() failed"));
-	}
+	//}
+	//else {
+		//UE_LOG(LogTemp, Error, TEXT("MyLog| AFishingBattleCharacter::ShowFishingGauge() failed"));
+	//}
+	// 2025.10.15 ウー end
 }
 //10月15日　滝本海大　終了
 #pragma endregion
