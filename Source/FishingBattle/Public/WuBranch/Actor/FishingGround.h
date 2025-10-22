@@ -116,11 +116,13 @@ private:
 	/// <summary>
 	/// 存在エフェクトを表示
 	/// </summary>
+	UFUNCTION(Client, Reliable)
 	void ShowExistenceEffect();
 
 	/// <summary>
 	/// 存在エフェクトを非表示
 	/// </summary>
+	UFUNCTION(Client, Reliable)
 	void CloseExistenceEffect();
 
 	/// <summary>
