@@ -29,6 +29,11 @@ void AFisherController::BeginPlay()
 {
 	MyHUD = GetHUD<ABaseHUD>();
 
+	//PRINZ test
+	//if (AFishingBattleCharacter* MyChara = GetPawn<AFishingBattleCharacter>())
+	//{
+	//	MyChara->UpdateNameWidget();
+	//}
 }
 
 void AFisherController::OnPossess(APawn* aPawn)

@@ -638,6 +638,13 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	UWidgetComponent* NameTagWidgetComp;
+
+
+public:
+	virtual void PostNetInit() override;
+
+	UFUNCTION(Server, Reliable)
+	void ServerSetPlayerName(const FString& NewName);
 	//プリンス END 2025/10/21
 
 public:
@@ -652,6 +659,12 @@ public:
 	/// </summary>
 	/// <returns></returns>
 	FString GetName() const;
+#pragma endregion
+
+#pragma region 王冠
+private:
+		UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+		UStaticMeshComponent* Crown;
 #pragma endregion
 };
 
