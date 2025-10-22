@@ -186,33 +186,37 @@ void AFishingBattleCharacter::Multi_Attack_Implementation()
 		//ジャンプ攻撃をできるようにする。
 		//if (mAnim->Isjump) return;
 		FOnMontageEnded Delegate;
-		switch (this->WeaponType) {
-		case ECPPWeaponType::WeaponTest3:
+		if (weaponActor) {
+			if (ACPPBaseWeapon* bw = Cast<ACPPBaseWeapon>(weaponActor)) {
+				switch (this->WeaponType) {
+				case ECPPWeaponType::WeaponTest3:
 
-			mAnim->attack1 = true;
-			IsPlayAttack1 = true;
-			animInstance->Montage_Play(HeavyAttackMontage, 1.0f);
+					mAnim->attack1 = true;
+					IsPlayAttack1 = true;
+					animInstance->Montage_Play(HeavyAttackMontage, 1.0f);
 
-			Delegate.BindUObject(this, &AFishingBattleCharacter::OnAttackEnded);
-			animInstance->Montage_SetEndDelegate(Delegate, HeavyAttackMontage);
-			break;
-		case ECPPWeaponType::WeaponTest2:
-			mAnim->attack1 = true;
-			IsPlayAttack1 = true;
-			animInstance->Montage_Play(HeavyAttackMontage, 1.3f);
+					Delegate.BindUObject(this, &AFishingBattleCharacter::OnAttackEnded);
+					animInstance->Montage_SetEndDelegate(Delegate, HeavyAttackMontage);
+					break;
+				case ECPPWeaponType::WeaponTest6:
+					mAnim->attack1 = true;
+					IsPlayAttack1 = true;
+					animInstance->Montage_Play(HeavyAttackMontage, 1.0f);
 
-			Delegate.BindUObject(this, &AFishingBattleCharacter::OnAttackEnded);
-			animInstance->Montage_SetEndDelegate(Delegate, HeavyAttackMontage);
-			break;
-		default:
+					Delegate.BindUObject(this, &AFishingBattleCharacter::OnAttackEnded);
+					animInstance->Montage_SetEndDelegate(Delegate, HeavyAttackMontage);
+					break;
+				default:
 
-			mAnim->attack1 = true;
-			IsPlayAttack1 = true;
-			animInstance->Montage_Play(AttackMontage, 2.3f);
+					mAnim->attack1 = true;
+					IsPlayAttack1 = true;
+					animInstance->Montage_Play(AttackMontage, bw->AttackSpeed);
 
-			Delegate.BindUObject(this, &AFishingBattleCharacter::OnAttackEnded);
-			animInstance->Montage_SetEndDelegate(Delegate, AttackMontage);
-			break;
+					Delegate.BindUObject(this, &AFishingBattleCharacter::OnAttackEnded);
+					animInstance->Montage_SetEndDelegate(Delegate, AttackMontage);
+					break;
+				}
+			}
 		}
 	}
 	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
@@ -276,6 +280,7 @@ void AFishingBattleCharacter::Multi_Fishing_Implementation()
 	if (!IsFishing) {
 		if (mAnim->Isjump) return;
 		animInstance->Montage_Play(FishingMontage);
+		mAnim->IsFishing = true;
 		UE_LOG(LogTemp, Warning, TEXT("Fishing!Play"));
 		IsFishing = true;
 
@@ -1212,6 +1217,7 @@ void AFishingBattleCharacter::Fishing()
 void AFishingBattleCharacter::OnFishingEnded(bool Result)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Fishing!deligate"));
+	if (!weaponActorSubclass)return;
 
 	// Multi_AddWeaponInPlayerはNetMulticastを使ってるので、サーバーを含めた全員に飛ばしてる
 	// 2025.10.15 ウー start
@@ -1237,8 +1243,17 @@ void AFishingBattleCharacter::OnFishingEnded(bool Result)
 		//マッピングコンテクストの入れ替えで操作を制限
 		ChangeMappingContext(HasFishrotMappingContext);
 	}
-
 	// 2025.10.15 ウー end
+
+	weaponActorSubclass = nullptr;
+
+	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
+	if (!animInstance)return;
+	UMyAnimInstance* mAnim = Cast<UMyAnimInstance>(animInstance);
+	if (!mAnim)return;
+	mAnim->IsFishing = false;
+	animInstance->Montage_Play(UpLot);
+
 	IsFishing = false;
 }
 

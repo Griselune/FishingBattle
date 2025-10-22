@@ -26,7 +26,7 @@ void APlayerState_T::Server_AddWeapon(TSubclassOf<AActor> WeaponID)
 	newWeapon.weaponActor = WeaponID;
 	inventory.Add(newWeapon);
 	//OnRep_Inventory();
-
+	OnInventoryUpdated.Broadcast();
 }
 
 void APlayerState_T::InventoryInitialize()
