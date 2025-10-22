@@ -222,6 +222,36 @@ public:
 	void Server_DamageEffect();  // クライアント用
 
 	/// <summary>
+    /// 無敵エフェクト表示用
+    /// </summary>
+	UFUNCTION(NetMulticast, Reliable)
+	void Multi_UndeadEffect();  // サーバー用
+
+	/// <summary>
+	/// 無敵エフェクト表示用
+	/// </summary>
+	UFUNCTION(Server, Reliable)
+	void Server_UndeadEffect();  // クライアント用
+
+	/// <summary>
+    /// エフェクト停止用
+    /// </summary>
+	UFUNCTION(NetMulticast, Reliable)
+	void Multi_StopBodyEffect();  // サーバー用
+
+	/// <summary>
+	/// エフェクト停止用
+	/// </summary>
+	UFUNCTION(Server, Reliable)
+	void Server_StopBodyEffect();  // クライアント用
+
+	UPROPERTY(EditAnywhere, Category = "effect")
+	UNiagaraSystem* damageAsset;
+
+	UPROPERTY(EditAnywhere, Category = "effect")
+	UNiagaraSystem* unDeadAsset;
+
+	/// <summary>
 	/// 釣り場侵入
 	/// </summary>
 	/// <param name="spot"></param>
@@ -260,6 +290,9 @@ private:
 #pragma endregion
 
 #pragma region アニメーションモンタージュ再生から終了までの処理
+public:
+
+	bool IsFishing = false;
 protected:
 
 	/** Called for movement input */
@@ -320,7 +353,6 @@ protected:
 	/// 釣りモーション再生
 	/// </summary>
 	void Fishing();
-	bool IsFishing = false;
 
 	/// <summary>
 	/// 釣りモーション終了

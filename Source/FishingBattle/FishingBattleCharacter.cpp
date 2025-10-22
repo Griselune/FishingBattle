@@ -121,8 +121,15 @@ void AFishingBattleCharacter::BeginPlay()
 	Health = MaxHealth;
 
 	// サーバーのみ、
-	if(HasAuthority())
+	if (HasAuthority()) {
 		SetNameFromInstance();
+		//Multi_UndeadEffect();
+	}
+	else {
+		//Server_UndeadEffect();
+	}
+
+	
 	// 2025.07.24 ウー end
 
 	//スポーンしてから5秒無敵にする
@@ -792,6 +799,7 @@ void AFishingBattleCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
 	if (HasAuthority()) {
+		//釣り竿取得
 		Multi_BeginAddFishrot();
 		UE_LOG(LogTemp, Warning, TEXT("addFishrod!!!!!!!!!!!!"));
 
@@ -902,10 +910,32 @@ void AFishingBattleCharacter::Server_Heal_Implementation()
 
 void AFishingBattleCharacter::Multi_DamageEffect_Implementation()
 {
+	damageEffect->SetAsset(damageAsset);
 	damageEffect->ActivateSystem();
 }
 
 void AFishingBattleCharacter::Server_DamageEffect_Implementation()
+{
+	Multi_DamageEffect();
+}
+
+void AFishingBattleCharacter::Multi_UndeadEffect_Implementation()
+{
+	damageEffect->SetAsset(unDeadAsset);
+	damageEffect->ActivateSystem();
+}
+
+void AFishingBattleCharacter::Server_UndeadEffect_Implementation()
+{
+	Multi_UndeadEffect();
+}
+
+void AFishingBattleCharacter::Multi_StopBodyEffect_Implementation()
+{
+	damageEffect->Deactivate();
+}
+
+void AFishingBattleCharacter::Server_StopBodyEffect_Implementation()
 {
 	Multi_DamageEffect();
 }
@@ -1224,6 +1254,10 @@ void AFishingBattleCharacter::OnFishingEnded(/*UAnimMontage* Montage, bool in*/)
 				if (true == Cast<AFisherController>(GetController())->GetStopFunction()) {
 					Multi_AddWeaponInPlayer(weaponActorSubclass);
 					UE_LOG(LogTemp, Display, TEXT("GetFish!!!!!!!"));
+					if (UnDead) {
+						UnDead = false;
+						//Multi_StopBodyEffect();
+					}
 				}
 				else UE_LOG(LogTemp, Error, TEXT("FishingFailed..."));
 			}
