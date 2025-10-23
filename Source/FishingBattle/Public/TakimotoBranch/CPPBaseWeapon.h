@@ -86,4 +86,21 @@ public:
 	void Attack_Finish();
 
 	virtual void BeginPlay() override;
+
+	// 2025.10.22 ウー start
+
+	/// <summary>
+	/// ポイントをゲット
+	/// </summary>
+	/// <returns>ポイント</returns>
+	float GetPoint() const;
+
+private:
+
+	/// <summary>
+	/// ポイント
+	/// </summary>
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
+	float Point;
+	// 2025.10.22 ウー end
 };

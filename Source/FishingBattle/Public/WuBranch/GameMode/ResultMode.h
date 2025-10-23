@@ -34,17 +34,6 @@ public:
 private:
 
 	/// <summary>
-	/// 勝者を探す
-	/// </summary>
-	void FindWinner();
-
-	/// <summary>
-	/// 候補者を見つける
-	/// </summary>
-	/// <returns>候補者達</returns>
-	TArray<FPlayerRecord> FindPotentials();
-
-	/// <summary>
 	/// 記録と同じ数のプレイヤーキャラクターを生成
 	/// </summary>
 	void SpawnPlayer();

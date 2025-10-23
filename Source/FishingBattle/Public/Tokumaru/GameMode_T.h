@@ -8,6 +8,7 @@
 
 class APlayerState_T;
 struct FPlayerRecord;
+class AFishingBattleCharacter;
 
 /**
  *
@@ -55,4 +56,34 @@ private:
 	FPlayerRecord& MakeRecord(APlayerState_T* Player);
 
 	// 2025.07.26 ウー end
+
+	// 2025.10.22 ウー start
+#pragma region 勝者の更新
+public:
+
+	/// <summary>
+	/// 勝者の更新
+	/// </summary>
+	void UpdateWinner();
+
+private:
+
+	/// <summary>
+	/// 王冠の更新
+	/// </summary>
+	/// <param name="NewWinner">勝者</param>
+	void UpdateCrown(const FPlayerRecord* NewWinner);
+
+	/// <summary>
+	///　プレイヤーを見つける
+	/// </summary>
+	/// <param name="TargetID">対象ID</param>
+	AFishingBattleCharacter* FindPlayer(const int32& TargetID);
+
+	/// <summary>
+	/// 現在の勝者ID
+	/// </summary>
+	int32 CurrentWinnerID;
+#pragma endregion
+	// 2025.10.22 ウー end
 };

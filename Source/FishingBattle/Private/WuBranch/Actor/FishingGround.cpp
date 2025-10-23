@@ -105,8 +105,11 @@ void AFishingGround::OnGroundAreaBeginOverlap(UPrimitiveComponent* OverlappedCom
 	//　自分自身もプレイヤーに渡す
 	if (AFishingBattleCharacter* Player = Cast<AFishingBattleCharacter>(OtherActor))
 	{
-		Player->EnterSpot(this);
-		ShowUI();
+		if (Player && Player->IsLocallyControlled())
+		{
+			Player->EnterSpot(this);
+			ShowUI();
+		}
 	}
 }
 
@@ -115,8 +118,11 @@ void AFishingGround::OnGroundAreaEndOverlap(UPrimitiveComponent* OverlappedComp,
 	// プレイヤーの釣れるフラグを変更
 	if (AFishingBattleCharacter* Player = Cast<AFishingBattleCharacter>(OtherActor))
 	{
-		Player->ExitSpot();
-		CloseUI();
+		if (Player && Player->IsLocallyControlled())
+		{
+			Player->ExitSpot();
+			CloseUI();
+		}
 	}
 }
 
@@ -140,17 +146,23 @@ void AFishingGround::OnSeaAreaEndOverlap(UPrimitiveComponent* OverlappedComp, AA
 
 void AFishingGround::OnExistenceInvisibilityAreaBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (OtherActor && OtherActor->IsA(AFishingBattleCharacter::StaticClass()))
+	if (AFishingBattleCharacter* Player = Cast<AFishingBattleCharacter>(OtherActor))
 	{
-		CloseExistenceEffect();
+		if (Player && Player->IsLocallyControlled())
+		{
+			CloseExistenceEffect();
+		}
 	}
 }
 
 void AFishingGround::OnExistenceInvisibilityAreaEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	if (OtherActor && OtherActor->IsA(AFishingBattleCharacter::StaticClass()))
+	if (AFishingBattleCharacter* Player = Cast<AFishingBattleCharacter>(OtherActor))
 	{
-		ShowExistenceEffect();
+		if (Player && Player->IsLocallyControlled())
+		{
+			ShowExistenceEffect();
+		}
 	}
 }
 
@@ -165,13 +177,13 @@ void AFishingGround::OnRep_AsyncSea()
 	FishableAreaOnSea->SetSphereRadius(SeaRadius);
 }
 
-void AFishingGround::ShowExistenceEffect()
+void AFishingGround::ShowExistenceEffect_Implementation()
 {
 	ExistenceEffect->Activate(true);
 	ExistenceEffect->SetVisibility(true);
 }
 
-void AFishingGround::CloseExistenceEffect()
+void AFishingGround::CloseExistenceEffect_Implementation()
 {
 	ExistenceEffect->Deactivate();
 	ExistenceEffect->SetVisibility(false);

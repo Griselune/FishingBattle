@@ -191,12 +191,14 @@ public:
 	/// <returns>最大HP</returns>
 	float GetMaxHealth() const;
 
+	// 2025.10.23 ウー start
 	/// <summary>
 	/// ヒールする
 	/// </summary>
 	/// <param name="healAmount">回復量</param>
 	UFUNCTION(Server, Reliable)
-	void Heal(float healAmount);
+	void Heal(float healAmount, float Point);
+	// 2025.10.23 ウー end
 
 	/// <summary>
 	/// ヒールエフェクト表示
@@ -326,7 +328,7 @@ protected:
 	/// <summary>
 	/// 釣りモーション終了
 	/// </summary>
-	void OnFishingEnded(/*UAnimMontage* Montage, bool in*/);
+	void OnFishingEnded(bool Result);
 	//10月15日　滝本海大　開始
 	//釣り場から貰ってきた魚を保存する変数
 	TSubclassOf<AActor> weaponActorSubclass;
@@ -465,10 +467,10 @@ protected:
 	//10月15日　滝本海大　開始
 	//釣りゲージの結果から魚を手に入れるかどうかを判定する
 	UFUNCTION(Server, Reliable)
-	void Server_GetFishByGauge();
+	void Server_GetFishByGauge(bool Result);
 
 	UFUNCTION(NetMulticast, Reliable)
-	void Multi_GetFishByGauge();
+	void Multi_GetFishByGauge(bool Result);
 	//10月15日　滝本海大　終了
 #pragma endregion
 
@@ -666,5 +668,22 @@ private:
 		UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 		UStaticMeshComponent* Crown;
 #pragma endregion
+
+// 2025.10.22 ウー start
+#pragma region ポイント
+public:
+
+	/// <summary>
+	/// ポイント加算
+	/// </summary>
+	/// <param name="Point">ポイント</param>
+	void AddPoint(float Point);
+
+private:
+
+	UPROPERTY(EditDefaultsOnly, Category = "Point", meta = (AllowPrivateAccess = "true"))
+	float AttackPoint;
+#pragma endregion
+// 2025.10.22 ウー end
 };
 
