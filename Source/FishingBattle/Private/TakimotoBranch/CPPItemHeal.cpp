@@ -38,7 +38,7 @@ void ACPPItemHeal::Heal(AActor* Player)
 			if (!HasAuthority()) return;
 			// 2025.07.17 ウー start
 			//fbc->Health += 10.f;
-			fbc->Heal(10.0f);
+			fbc->Heal(10.0f, Point);
 			// 2025.07.17 ウー end
 
 			if (HealSound) UGameplayStatics::PlaySoundAtLocation(this, HealSound, GetActorLocation());

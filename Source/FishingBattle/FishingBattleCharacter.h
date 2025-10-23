@@ -190,12 +190,14 @@ public:
 	/// <returns>最大HP</returns>
 	float GetMaxHealth() const;
 
+	// 2025.10.23 ウー start
 	/// <summary>
 	/// ヒールする
 	/// </summary>
 	/// <param name="healAmount">回復量</param>
 	UFUNCTION(Server, Reliable)
-	void Heal(float healAmount);
+	void Heal(float healAmount, float Point);
+	// 2025.10.23 ウー end
 
 	/// <summary>
 	/// ヒールエフェクト表示
@@ -614,5 +616,22 @@ protected:
 	/// </summary>
 	void SetNameFromInstance();
 #pragma endregion
+
+// 2025.10.22 ウー start
+#pragma region ポイント
+public:
+
+	/// <summary>
+	/// ポイント加算
+	/// </summary>
+	/// <param name="Point">ポイント</param>
+	void AddPoint(float Point);
+
+private:
+
+	UPROPERTY(EditDefaultsOnly, Category = "Point", meta = (AllowPrivateAccess = "true"))
+	float AttackPoint;
+#pragma endregion
+// 2025.10.22 ウー end
 };
 

@@ -3,6 +3,7 @@
 
 #include "Tokumaru/PlayerState_T.h"
 #include "Net/UnrealNetwork.h"
+#include <Tokumaru/GameMode_T.h>
 
 void APlayerState_T::Server_AddWeapon(TSubclassOf<AActor> WeaponID)
 {
@@ -94,4 +95,19 @@ void APlayerState_T::SetName_Implementation(const FString& PlayerName)
 FString APlayerState_T::GetName() const
 {
 	return Name;
+}
+
+void APlayerState_T::AddPoint_Implementation(float AddPoint)
+{
+	Point += AddPoint;
+	// 王冠のチェック
+	if (AGameMode_T* CurrentGameMode = GetWorld()->GetAuthGameMode<AGameMode_T>())
+	{
+		CurrentGameMode->UpdateWinner();
+	}
+}
+
+float APlayerState_T::GetPoint() const
+{
+	return Point;
 }

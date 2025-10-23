@@ -2,6 +2,7 @@
 
 
 #include "WuBranch/GameMode/ResultMode.h"
+#include "WuBranch/Library/MyGameplaySystemLibrary.h"
 #include <Kismet/GameplayStatics.h>
 #include "GameFramework/PlayerStart.h"
 #include "PrinzBranch/LANGameInstance.h"
@@ -30,7 +31,17 @@ void AResultMode::StartPlay()
 	MyGameInstance->AddRecord(FPlayerRecord{ 3, 0, 5, "ccc" });*/
 
 	// 勝者を探す
-	FindWinner();
+	TArray<FPlayerRecord> Records = MyGameInstance->GetRecords();
+	FPlayerRecord* Winner = UMyGameplaySystemLibrary::FindWinner(Records);
+	if(!Winner)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Did not find Winner"));
+	}
+	else
+	{
+		WinnerID = Winner->ID;
+		WinnerName = Winner->Name;
+	}
 
 	Super::StartPlay();
 
@@ -51,66 +62,6 @@ void AResultMode::StartPlay()
 FString AResultMode::GetWinnerName() const
 {
 	return WinnerName;
-}
-
-void AResultMode::FindWinner()
-{
-	TArray<FPlayerRecord> Potentials = FindPotentials();
-	// 誰もいない
-	if(Potentials.Num() == 0)
-	{
-		UE_LOG(LogTemp, Error, TEXT("Did not find Potentials"));
-		WinnerID = 0;
-		WinnerName = "";
-		return;
-	}
-	// 二人以上の場合
-	if (Potentials.Num() >= 2)
-	{
-		// ダメージで並べ替え(降順)
-		Potentials.Sort([](const FPlayerRecord& Record1, const FPlayerRecord& Record2) {
-			return Record1.TotalDamage > Record2.TotalDamage;
-			});
-	}
-
-	// １人目が勝者
-	FPlayerRecord Winner = Potentials.HeapTop();
-	WinnerID = Winner.ID;
-	WinnerName = Winner.Name;
-}
-
-TArray<FPlayerRecord> AResultMode::FindPotentials()
-{	
-	if (!MyGameInstance || MyGameInstance->GetRecords().Num() == 0)
-		return TArray<FPlayerRecord>();
-	
-	TArray<FPlayerRecord> Potentials;
-	TArray<FPlayerRecord> Records = MyGameInstance->GetRecords();
-
-	// 死んだ回数で並べ替え(昇順)
-	Records.Sort([](const FPlayerRecord& Record1, const FPlayerRecord& Record2) {
-		return Record1.DeathCount < Record2.DeathCount;
-	});
-
-	// 一番死んだ回数が少ない記録を見つけ出す、同じの場合も出しておく
-	for (const FPlayerRecord& Record : Records)
-	{
-		// すでにデータが入ってる場合
-		if (Potentials.Num() > 0)
-		{
-			// 今の記録の死亡回数がより多い場合
-			if (Record.DeathCount > Potentials[0].DeathCount)
-				break;
-			else
-				Potentials.Add(Record);
-		}
-		else
-		{
-			Potentials.Add(Record);
-		}
-	}
-
-	return Potentials;
 }
 
 void AResultMode::SpawnPlayer()
