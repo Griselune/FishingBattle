@@ -38,4 +38,21 @@ protected:
 public:
 
 	void Tick(float DeltaTime) override;
+
+	// 2025.10.23 ウー start
+
+	/// <summary>
+	/// ポイントを取得
+	/// </summary>
+	/// <returns>ポイント</returns>
+	float GetPoint() const;
+
+private:
+
+	/// <summary>
+	/// ポイント
+	/// </summary>
+	UPROPERTY(EditDefaultsOnly, Category = "Item", meta = (AllowPrivateAccess = "true"))
+	float Point;
+	// 2025.10.23 ウー end
 };

@@ -84,6 +84,21 @@ public:
 	UFUNCTION()
     void Server_DestructionWeaponPS(int index);
 
+	// 2025.10.22 ウー start
+	/// <summary>
+	/// ポイント追加
+	/// </summary>
+	/// <param name="Value">量</param>
+	UFUNCTION(Server, Reliable)
+	void AddPoint(float Value);
+
+	/// <summary>
+	/// ポイント取得
+	/// </summary>
+	/// <returns></returns>
+	float GetPoint() const;
+	// 2025.10.22 ウー start
+
 protected:
 
 	UFUNCTION()
@@ -99,4 +114,11 @@ private:
 	/// 名前
 	/// </summary>
 	FString Name;
+
+	// 2025.10.22 ウー start
+	/// <summary>
+	/// ポイント
+	/// </summary>
+	float Point;
+	// 2025.10.22 ウー start
 };

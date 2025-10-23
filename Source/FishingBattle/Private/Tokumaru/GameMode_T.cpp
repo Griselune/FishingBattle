@@ -7,6 +7,8 @@
 #include <Tokumaru/PlayerState_T.h>
 #include <PrinzBranch/LANGameInstance.h>
 #include <WuBranch/Struct/PlayerRecord.h>
+#include "WuBranch/Library/MyGameplaySystemLibrary.h"
+#include "FishingBattle/FishingBattleCharacter.h"
 
 AGameMode_T::AGameMode_T()
 {
@@ -84,6 +86,10 @@ void AGameMode_T::StartPlay()
     {
         GS->Server_OnGameStateChanged.AddDynamic(this, &AGameMode_T::OnStateChanged);
     }
+
+    // 2025.10.22 ウー start
+    CurrentWinnerID = -1;
+	// 2025.10.22 ウー end
 }
 
 void AGameMode_T::OnStateChanged(EGameStateList State)
@@ -124,7 +130,69 @@ FPlayerRecord& AGameMode_T::MakeRecord(APlayerState_T* Player)
     Record->DeathCount = Player->DeadCounter;
     Record->TotalDamage = 0.0f;
     Record->Name = Player->GetName();
+	Record->Point = Player->GetPoint();
     return *Record;
 }
 
 // 2025.07.26 ウー end
+
+// 2025.10.22 ウー start
+#pragma region 勝者の更新
+
+void AGameMode_T::UpdateWinner()
+{
+    // 新しい情報をゲット
+    TArray<FPlayerRecord> Records;
+    TArray<TObjectPtr<APlayerState>> PlayerStates = GetGameState<AGameState>()->PlayerArray;
+    for (APlayerState* PlayerState : PlayerStates)
+    {
+        if (APlayerState_T* PS = Cast<APlayerState_T>(PlayerState))
+        {
+            Records.Add(MakeRecord(PS));
+        }
+    }
+    // 新しい勝者を見つける
+    FPlayerRecord* NewWinner = UMyGameplaySystemLibrary::FindWinner(Records);
+	// 勝者を更新する
+    if(CurrentWinnerID == -1 || (NewWinner && CurrentWinnerID != NewWinner->ID))
+    {
+        UpdateCrown(NewWinner);
+        CurrentWinnerID = NewWinner->ID;
+	}
+}
+
+void AGameMode_T::UpdateCrown(const FPlayerRecord* NewWinner)
+{
+    AFishingBattleCharacter* Winner;
+	// 前回の王冠を外す
+    if (CurrentWinnerID != -1)
+    {
+        // 今王冠持っている人
+        Winner = FindPlayer(CurrentWinnerID);
+        if (Winner)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Pre Winner: %s"), *Winner->GetActorNameOrLabel());
+        }
+    }
+	// 新しい王冠をつける
+    Winner = FindPlayer(NewWinner->ID);
+    if (Winner)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Current Winner: %s"), *Winner->GetActorNameOrLabel());
+    }
+}
+
+AFishingBattleCharacter* AGameMode_T::FindPlayer(const int32& TargetID)
+{
+    TArray<TObjectPtr<APlayerState>> PlayerStates = GetGameState<AGameState>()->PlayerArray;
+    for (const APlayerState* PlayerState : PlayerStates)
+    {
+        if (PlayerState->GetPlayerId() == TargetID)
+        {
+            return PlayerState->GetPawn<AFishingBattleCharacter>();
+        }
+    }
+    return nullptr;
+}
+#pragma endregion
+// 2025.10.22 ウー end
