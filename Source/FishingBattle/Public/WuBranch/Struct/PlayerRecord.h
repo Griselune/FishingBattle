@@ -36,4 +36,10 @@ struct FPlayerRecord
 	/// </summary>
 	UPROPERTY(EditAnyWhere, BlueprintReadOnly, Category = "Player Record")
 	FString Name;
+
+	/// <summary>
+	/// ポイント
+	/// </summary>
+	UPROPERTY(EditAnyWhere, BlueprintReadOnly, Category = "Player Record")
+	float Point;
 };

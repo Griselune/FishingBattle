@@ -56,7 +56,10 @@ void ACPPBaseWeapon::OnHit_Implementation(AActor* HitActor)
 
 	if (HitActor && HitActor != GetOwner()) {
 		if (NextHitTime <= 0){
-			UGameplayStatics::ApplyDamage(HitActor, Damage, GetInstigatorController(), this, UDamageType::StaticClass());
+			// 2025.10.23 ウー start
+			//UGameplayStatics::ApplyDamage(HitActor, Damage, GetInstigatorController(), this, UDamageType::StaticClass());
+			UGameplayStatics::ApplyDamage(HitActor, Damage, GetInstigatorController(), GetOwner(), UDamageType::StaticClass());
+			// 2025.10.23 ウー end
 			if(HitSound) UGameplayStatics::PlaySoundAtLocation(this, HitSound, GetActorLocation());
 			UE_LOG(LogTemp, Error, TEXT("Hit!"));
 			NextHitTime = 30.f;
@@ -73,3 +76,10 @@ void ACPPBaseWeapon::Attack_Finish_Implementation()
 {
 	BoxCollision->SetCollisionProfileName(TEXT("NoCollision"));
 }
+
+// 2025.10.22 ウー start
+float ACPPBaseWeapon::GetPoint() const
+{
+	return Point;
+}
+// 2025.10.22 ウー end
