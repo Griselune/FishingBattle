@@ -18,8 +18,7 @@ void UCPP_FishingSkillCheck::BarMoving(float DeltaTime)
 
 bool UCPP_FishingSkillCheck::Stop()
 {
-	if (IsStop)IsStop = false;
-	else IsStop = true;
+	IsStop = true;
 
 	if (MinGreenArea <= CurrentValue && CurrentValue <= MaxGreenArea) {
 		UE_LOG(LogTemp, Warning, TEXT("Clear"));
