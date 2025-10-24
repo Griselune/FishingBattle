@@ -103,8 +103,8 @@ void ADeathMatchGameState::CreateTimer()
 		Time = GameInstance->GISessionTimeLimit;
 	}
 	UE_LOG(LogTemp, Warning, TEXT("Game Time: %d"), Time);
-//	GameTimer->Init(GetWorld(), Time * 60.0f, 0.0f, UTimer::ETimerType::CountDown, 1.0f);
-	GameTimer->Init(GetWorld(), 10.0f, 0.0f, UTimer::ETimerType::CountDown, 1.0f);
+	GameTimer->Init(GetWorld(), Time * 60.0f, 0.0f, UTimer::ETimerType::CountDown, 1.0f);
+	//GameTimer->Init(GetWorld(), 10.0f, 0.0f, UTimer::ETimerType::CountDown, 1.0f);
 	// タイマーの更新と終了イベントを登録
 	GameTimer->OnUpdated.AddDynamic(this, &ADeathMatchGameState::Server_OnTimeChanged);
 	GameTimer->OnFinished.AddDynamic(this, &ADeathMatchGameState::Server_OnTimeFinished);
