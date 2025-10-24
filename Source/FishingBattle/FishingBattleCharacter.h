@@ -23,6 +23,7 @@ class UInputMappingContext;
 class UInputAction;
 class UMyAnimInstance;
 struct FInputActionValue;
+class UWidgetComponent; //プリンス 追加 2025/10/21　ネームタグに使う
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
@@ -669,6 +670,57 @@ protected:
 	/// 名前を設定
 	/// </summary>
 	void SetNameFromInstance();
+#pragma endregion
+
+#pragma region 名前表示（ネームタグ）
+	//プリンス START 2025/10/21
+private:
+	/// <summary>
+	/// 名前が更新されたとき
+	/// </summary>
+	UFUNCTION()
+	void OnRep_UpdatedName();
+
+	/// <summary>
+	/// 名前ウィジェットを更新
+	/// </summary>
+	void UpdateNameWidget();
+
+	/// <summary>
+	/// プレイヤ名
+	/// </summary>
+	UPROPERTY(Replicated, ReplicatedUsing = OnRep_UpdatedName)
+	FString Name;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	UWidgetComponent* NameTagWidgetComp;
+
+
+public:
+	virtual void PostNetInit() override;
+
+	UFUNCTION(Server, Reliable)
+	void ServerSetPlayerName(const FString& NewName);
+	//プリンス END 2025/10/21
+
+public:
+	/// <summary>
+	/// 名前を設定
+	/// </summary>
+	/// <param name="NewName"></param>
+	void SetName(const FString& NewName);
+
+	/// <summary>
+	/// 名前をゲット
+	/// </summary>
+	/// <returns></returns>
+	FString GetName() const;
+#pragma endregion
+
+#pragma region 王冠
+private:
+		UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+		UStaticMeshComponent* Crown;
 #pragma endregion
 
 // 2025.10.22 ウー start

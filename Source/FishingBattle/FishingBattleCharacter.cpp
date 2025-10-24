@@ -15,6 +15,8 @@
 #include <WuBranch/Actor/FishingGround.h>
 #include <WuBranch/PlayerController/FisherController.h>
 #include <PrinzBranch/LANGameInstance.h>
+#include "Components/WidgetComponent.h" //プリンス 追加 2025/10/21　ネームタグに使う
+#include "WuBranch/Interface/NameUI.h" //プリンス 追加 2025/10/21　ネームタグに使う
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -65,6 +67,20 @@ AFishingBattleCharacter::AFishingBattleCharacter()
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
+
+	//プリンス START 2025/10/21
+	NameTagWidgetComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("NameTagWidget"));
+	NameTagWidgetComp->SetupAttachment(RootComponent);
+	NameTagWidgetComp->SetDrawAtDesiredSize(true);
+	NameTagWidgetComp->SetTwoSided(true);
+	NameTagWidgetComp->SetVisibility(true);
+
+	bReplicates = true;
+	bAlwaysRelevant = true; // Optional, ensures all players see all characters
+
+	Crown = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Crown"));
+	Crown->SetupAttachment(RootComponent);
+	//プリンス END 2025/10/21
 
 	this->Tags.Add(FName("Player"));
 }
@@ -125,6 +141,8 @@ void AFishingBattleCharacter::BeginPlay()
 
 	UE_LOG(LogTemp, Warning, TEXT("initHP %f"), Health);
 
+	
+
 	// 2025.07.24 ウー start
 	//healthUpdate.AddDynamic(this, &AFishingBattleCharacter::GetPlayerHealth);
 	Health = MaxHealth;
@@ -142,6 +160,57 @@ void AFishingBattleCharacter::BeginPlay()
 		5.0f,
 		false
 	);
+
+	//プリンス　START 2025/10/22
+// For the local and remote clients
+
+	if (IsLocallyControlled())
+	{
+		ULANGameInstance* GameInstance = GetGameInstance<ULANGameInstance>();
+		if (GameInstance)
+		{
+			ServerSetPlayerName(GameInstance->GIPlayerName);
+		}
+	}
+	if (NameTagWidgetComp)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("WidgetComponent exists, visibility: %d, space: %d, hasWidget: %d"),
+			NameTagWidgetComp->IsVisible(),
+			(int32)NameTagWidgetComp->GetWidgetSpace(),
+			NameTagWidgetComp->GetWidget() != nullptr);
+		// Delay until widget exists
+		FTimerHandle WidgetCheckTimer;
+		GetWorldTimerManager().SetTimer(
+			WidgetCheckTimer,
+			FTimerDelegate::CreateLambda([this]()
+				{
+					if (UUserWidget* Widget = NameTagWidgetComp->GetWidget())
+					{
+						UE_LOG(LogTemp, Warning, TEXT("✅ Widget created - updating name"));
+						UpdateNameWidget();
+					}
+					else
+					{
+						UE_LOG(LogTemp, Warning, TEXT("⏳ Widget not ready yet"));
+					}
+				}),
+			0.2f,   // small delay
+			false
+		);
+	}
+
+	FTimerHandle TimerHandle;
+	GetWorldTimerManager().SetTimer(TimerHandle, [this]()
+		{
+			if (NameTagWidgetComp)
+			{
+				NameTagWidgetComp->InitWidget();
+				NameTagWidgetComp->SetVisibility(true);
+				NameTagWidgetComp->SetTwoSided(true);
+				UE_LOG(LogTemp, Warning, TEXT("✅ NameTagWidget manually initialized"));
+			}
+		}, 0.5f, false);
+	//プリンス END 2025/10/22
 }
 
 #pragma region RPC関数
@@ -856,6 +925,10 @@ void AFishingBattleCharacter::GetLifetimeReplicatedProps(TArray<FLifetimePropert
 	// 2025.07.24 ウー start
 	DOREPLIFETIME(AFishingBattleCharacter, Health);
 	// 2025.07.24 ウー end
+	// 
+	//プリンス START 2025/10/21
+	DOREPLIFETIME(AFishingBattleCharacter, Name);
+	//プリンス END 2025/10/21
 }
 
 //プレイヤーがコントローラーを取得したときに呼ばれる
@@ -868,6 +941,20 @@ void AFishingBattleCharacter::PossessedBy(AController* NewController)
 
 		Server_TrueInGamePlay();
 	}
+
+	//プリンス START 2025/10/22
+	if (HasAuthority())
+	{
+		if (IsLocallyControlled())
+		{
+			ULANGameInstance* GameInstance = GetGameInstance<ULANGameInstance>();
+			if (GameInstance)
+			{
+				ServerSetPlayerName(GameInstance->GIPlayerName);
+			}
+		}
+	}
+	//プリンス END 2025/10/22
 
 }
 
@@ -1136,6 +1223,8 @@ void AFishingBattleCharacter::SetNameFromInstance()
 		if (GameInstance && GameState)
 		{
 			GameState->SetName(GameInstance->GIPlayerName);
+			//prinz test
+			ServerSetPlayerName(GameInstance->GIPlayerName);
 		}
 	}
 }
@@ -1457,5 +1546,65 @@ void AFishingBattleCharacter::AddPoint(float Point)
 		ps->AddPoint(Point);
 	}
 }
+#pragma endregion
+
+#pragma region 名前表示（ネームタグ）
+//プリンス START 2025/10/21
+void AFishingBattleCharacter::SetName(const FString& NewName)
+{
+	Name = NewName;
+	UpdateNameWidget();
+}
+
+FString AFishingBattleCharacter::GetName() const
+{
+	return Name;
+}
+
+void AFishingBattleCharacter::OnRep_UpdatedName()
+{
+	UE_LOG(LogTemp, Warning, TEXT("OnRep_UpdatedName fired - new name: %s"), *Name);
+	UpdateNameWidget();
+}
+
+void AFishingBattleCharacter::UpdateNameWidget()
+{
+	// 名前ウィジェットを更新
+	if (UUserWidget* Widget = NameTagWidgetComp->GetWidget()){
+	//		NameTagWidgetComp->SetDrawAtDesiredSize(true);
+			NameTagWidgetComp->SetVisibility(true);
+	//		NameTagWidgetComp->InitWidget();
+		if (Widget->Implements<UNameUI>()){
+			INameUI::Execute_SetName(Widget, GetName());
+			INameUI::Execute_ShowName(Widget);
+			if (HasAuthority()) {
+				UE_LOG(LogTemp, Warning, TEXT("Server NameTag Set OK - %s"), *Name);
+			}
+			else {
+				UE_LOG(LogTemp, Warning, TEXT("Server NameTag Set OK - %s"), *Name);
+			}
+		}
+		else {
+			UE_LOG(LogTemp, Warning, TEXT("Widget->Implements<UNameUI>() nullptr"));
+		}
+	}
+	else {
+		UE_LOG(LogTemp, Warning, TEXT("UUserWidget* Widget = NameTagWidgetComp->GetWidget()  nullptr"));
+	}
+}
+
+void AFishingBattleCharacter::PostNetInit()
+{
+	Super::PostNetInit();
+	OnRep_UpdatedName(); // ensure name widget updates after replication
+}
+
+void AFishingBattleCharacter::ServerSetPlayerName_Implementation(const FString& NewName)
+{
+	SetName(NewName); // sets and replicates to everyone
+}
+
+
+//プリンス END 2025/10/21
 #pragma endregion
 // 2025.10.22 ウー end
