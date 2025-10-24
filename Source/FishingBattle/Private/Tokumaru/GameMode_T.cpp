@@ -172,6 +172,7 @@ void AGameMode_T::UpdateCrown(const FPlayerRecord* NewWinner)
         if (Winner)
         {
             UE_LOG(LogTemp, Warning, TEXT("Pre Winner: %s"), *Winner->GetActorNameOrLabel());
+            Winner->HideCrown();
         }
     }
 	// 新しい王冠をつける
@@ -179,6 +180,7 @@ void AGameMode_T::UpdateCrown(const FPlayerRecord* NewWinner)
     if (Winner)
     {
         UE_LOG(LogTemp, Warning, TEXT("Current Winner: %s"), *Winner->GetActorNameOrLabel());
+        Winner->ShowCrown();
     }
 }
 

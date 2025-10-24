@@ -722,11 +722,36 @@ public:
 	FString GetName() const;
 #pragma endregion
 
+// 2025.10.24 ウー start
 #pragma region 王冠
+public:
+
+	/// <summary>
+	/// 王冠を表示
+	/// </summary>
+	UFUNCTION(NetMulticast, Reliable)
+	void ShowCrown();
+
+	/// <summary>
+	/// 王冠を非表示
+	/// </summary>
+	UFUNCTION(NetMulticast, Reliable)
+	void HideCrown();
+
 private:
-		UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-		UStaticMeshComponent* Crown;
+
+	/// <summary>
+	/// 王冠のセットアップ
+	/// </summary>
+	void SetupCrown();
+
+	/// <summary>
+	/// 王冠のメッシュ
+	/// </summary>
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	UStaticMeshComponent* Crown;
 #pragma endregion
+// 2025.10.24 ウー end
 
 // 2025.10.22 ウー start
 #pragma region ポイント

@@ -89,7 +89,7 @@ AFishingBattleCharacter::AFishingBattleCharacter()
 	bAlwaysRelevant = true; // Optional, ensures all players see all characters
 
 	Crown = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Crown"));
-	Crown->SetupAttachment(RootComponent);
+	Crown->SetupAttachment(GetMesh());
 	//プリンス END 2025/10/21
 
 	this->Tags.Add(FName("Player"));
@@ -151,7 +151,10 @@ void AFishingBattleCharacter::BeginPlay()
 
 	UE_LOG(LogTemp, Warning, TEXT("initHP %f"), Health);
 
-	
+	// 2025.10.24 ウー start
+	SetupCrown();
+	HideCrown();
+	// 2025.10.24 ウー end
 
 	// 2025.07.24 ウー start
 	//healthUpdate.AddDynamic(this, &AFishingBattleCharacter::GetPlayerHealth);
@@ -1559,6 +1562,7 @@ void AFishingBattleCharacter::AddPoint(float Point)
 	}
 }
 #pragma endregion
+// 2025.10.22 ウー end
 
 #pragma region 名前表示（ネームタグ）
 //プリンス START 2025/10/21
@@ -1643,7 +1647,27 @@ void AFishingBattleCharacter::ServerSetPlayerName_Implementation(const FString& 
 	SetName(NewName); // sets and replicates to everyone
 }
 
-
 //プリンス END 2025/10/21
 #pragma endregion
-// 2025.10.22 ウー end
+
+// 2025.10.24 ウー start
+#pragma region 王冠
+void AFishingBattleCharacter::ShowCrown_Implementation()
+{
+	Crown->SetVisibility(true);
+}
+
+void AFishingBattleCharacter::HideCrown_Implementation()
+{
+	Crown->SetVisibility(false);
+}
+
+void AFishingBattleCharacter::SetupCrown()
+{
+	if (GetMesh()->DoesSocketExist(TEXT("Crown")))
+	{
+		Crown->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepWorldTransform, TEXT("Crown"));
+	}
+}
+#pragma endregion
+// 2025.10.24 ウー end
