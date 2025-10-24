@@ -958,11 +958,11 @@ void AFishingBattleCharacter::PossessedBy(AController* NewController)
 //	{
 //		if (IsLocallyControlled())
 //		{
-			ULANGameInstance* GameInstance = GetGameInstance<ULANGameInstance>();
-			if (GameInstance)
-			{
-				ServerSetPlayerName(GameInstance->GIPlayerName);
-			}
+//			ULANGameInstance* GameInstance = GetGameInstance<ULANGameInstance>();
+//			if (GameInstance)
+//			{
+//				ServerSetPlayerName(GameInstance->GIPlayerName);
+//			}
 //		}
 //	}
 	//プリンス END 2025/10/22
@@ -1236,7 +1236,7 @@ void AFishingBattleCharacter::SetNameFromInstance()
 		{
 			GameState->SetName(GameInstance->GIPlayerName);
 			//prinz test
-			ServerSetPlayerName(GameInstance->GIPlayerName);
+			//ServerSetPlayerName(GameInstance->GIPlayerName);
 		}
 	}
 }
@@ -1634,7 +1634,8 @@ void AFishingBattleCharacter::UpdateNameWidget()
 void AFishingBattleCharacter::PostNetInit()
 {
 	Super::PostNetInit();
-	OnRep_UpdatedName(); // ensure name widget updates after replication
+	UpdateNameWidget();
+	//OnRep_UpdatedName(); // ensure name widget updates after replication
 }
 
 void AFishingBattleCharacter::ServerSetPlayerName_Implementation(const FString& NewName)
