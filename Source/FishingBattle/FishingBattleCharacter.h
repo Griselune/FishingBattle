@@ -692,8 +692,8 @@ private:
 	UPROPERTY(Replicated, ReplicatedUsing = OnRep_UpdatedName)
 	FString Name;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	UWidgetComponent* NameTagWidgetComp;
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	//UWidgetComponent* NameTagWidgetComp;
 
 	protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Child Actor")

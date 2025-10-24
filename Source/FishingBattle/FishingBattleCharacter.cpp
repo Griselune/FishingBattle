@@ -80,7 +80,8 @@ AFishingBattleCharacter::AFishingBattleCharacter()
 	// Create the child actor component
 	ChildActorComp = CreateDefaultSubobject<UChildActorComponent>(TEXT("ChildActorComponent"));
 	// Set it as the root component, or attach it to another scene component
-	SetRootComponent(ChildActorComp);
+//	SetRootComponent(ChildActorComp);
+	ChildActorComp->SetupAttachment(RootComponent);
 
 
 
