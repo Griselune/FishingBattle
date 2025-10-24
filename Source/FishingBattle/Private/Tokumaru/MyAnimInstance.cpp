@@ -29,4 +29,9 @@ void UMyAnimInstance::GetWeaponType(ECPPWeaponType type_)
 	return;
 }
 
+bool UMyAnimInstance::GetIsFishing()
+{
+	return IsFishing;
+}
+
 

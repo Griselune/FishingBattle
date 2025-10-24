@@ -86,7 +86,7 @@ float AFishingBattleCharacter::TakeDamage(float DamageAmount, FDamageEvent const
 
 	// 2025.07.24 ウー start
 	float Damage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
-	
+
 	this->Health -= Damage;
 
 	// 自分も更新する, Replicatedはサーバー自身のReplicatedUsingにバインドされた関数を呼ばない
@@ -130,7 +130,7 @@ void AFishingBattleCharacter::BeginPlay()
 	Health = MaxHealth;
 
 	// サーバーのみ、
-	if(HasAuthority())
+	if (HasAuthority())
 		SetNameFromInstance();
 	// 2025.07.24 ウー end
 
@@ -292,16 +292,21 @@ void AFishingBattleCharacter::Multi_Fishing_Implementation()
 		mAnim->IsFishing = true;
 		UE_LOG(LogTemp, Warning, TEXT("Fishing!Play"));
 		IsFishing = true;
+		OnRep_IsFishing();
+
+		//FOnMontageEnded Delegate;
+		//Delegate.BindUObject(this, &AFishingBattleCharacter::ShowFishingGaugeNext);
+
 
 		// 2025.10.21 ウー start
-		if (IsLocallyControlled())
-		{
+		//if (IsLocallyControlled())
+		//{
 			FOnMontageEnded Delegate;
 			Delegate.BindUObject(this, &AFishingBattleCharacter::ShowFishingGauge);
 			animInstance->Montage_SetEndDelegate(Delegate, FishingMontage);
 
 			ChangeMappingContext(FishingMappingContext);
-		}
+		//}
 		// 2025.10.21 ウー end
 	}
 }
@@ -397,7 +402,7 @@ void AFishingBattleCharacter::Multi_DestructionWeapon_Implementation(int index) 
 	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
 	if (!ps)return;
 	ps->Server_DestructionWeaponPS(index);
-	
+
 	if (HasAuthority()) {
 		if (ACPPBaseWeapon* baseWeapon = Cast<ACPPBaseWeapon>(weaponActor)) {
 			Heal(baseWeapon->HealingAmount, 0);
@@ -416,9 +421,43 @@ void AFishingBattleCharacter::Server_GetFishByGauge_Implementation(bool Result)
 void AFishingBattleCharacter::Multi_GetFishByGauge_Implementation(bool Result)
 {
 	UE_LOG(LogTemp, Display, TEXT("Multi_GetFishByGauge inside"));
+
+	//UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
+	//if (!animInstance)return;
+	//UMyAnimInstance* mAnim = Cast<UMyAnimInstance>(animInstance);
+	//if (!mAnim)return;
+	//mAnim->IsFishing = false;
+	//animInstance->Montage_Play(UpLot);
 	OnFishingEnded(Result);
+
 }
 //10月15日　滝本海大　終了
+
+void AFishingBattleCharacter::Server_EnterSpot_Implementation(AActor* spot)
+{
+	Multi_EnterSpot(spot);
+}
+
+void AFishingBattleCharacter::Multi_EnterSpot_Implementation(AActor* spot)
+{
+	canFishing = true;
+	if (spot)
+	{
+		fishingSpot = spot;
+	}
+}
+
+void AFishingBattleCharacter::Server_ExitSpot_Implementation()
+{
+	Multi_ExitSpot();
+}
+
+void AFishingBattleCharacter::Multi_ExitSpot_Implementation()
+{
+	canFishing = false;
+	fishingSpot = nullptr;
+}
+
 #pragma endregion
 
 #pragma region 武器装備
@@ -592,6 +631,22 @@ void AFishingBattleCharacter::EquipFishlot()
 	else {
 		Multi_EquipSlotIndex(0);
 	}
+	//サーバー同期の関係か、変数の取得を直接行うと値が反映されないので、
+    //少し遅延をかけて取得できるようにしている。(0.01秒)
+	FTimerHandle WeaponCheckTimer;
+	GetWorldTimerManager().SetTimer(
+		WeaponCheckTimer,
+		FTimerDelegate::CreateLambda([this]() {
+			if (weaponActor) {
+				ChangeMappingContext(HasFishrotMappingContext);
+			}
+			else {
+				ChangeMappingContext(DefaultMappingContext);
+			}
+			}),
+		1.0f,
+		false
+	);
 	//ChangeMappingContext(HasFishrotMappingContext);
 }
 
@@ -795,6 +850,9 @@ void AFishingBattleCharacter::GetLifetimeReplicatedProps(TArray<FLifetimePropert
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AFishingBattleCharacter, weaponActor);
 	DOREPLIFETIME(AFishingBattleCharacter, WeaponType);
+	DOREPLIFETIME(AFishingBattleCharacter, IsFishing);
+	DOREPLIFETIME(AFishingBattleCharacter, weaponActorSubclass);
+	DOREPLIFETIME(AFishingBattleCharacter, fishingSpot);
 	// 2025.07.24 ウー start
 	DOREPLIFETIME(AFishingBattleCharacter, Health);
 	// 2025.07.24 ウー end
@@ -820,6 +878,7 @@ void AFishingBattleCharacter::OnRep_PlayerState()
 	// 名前を保存する、クライアントのみ
 	SetNameFromInstance();
 }
+
 #pragma endregion
 
 #pragma region Input
@@ -856,7 +915,7 @@ void AFishingBattleCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 		EnhancedInputComponent->BindAction(SwitchFishlot, ETriggerEvent::Started, this, &AFishingBattleCharacter::EquipFishlot);
 
 		EnhancedInputComponent->BindAction(DestructionWeaponInput, ETriggerEvent::Started, this, &AFishingBattleCharacter::DestructionWeapon);
-		
+
 		EnhancedInputComponent->BindAction(GaugeStop, ETriggerEvent::Started, this, &AFishingBattleCharacter::OnGaugeStop);
 	}
 	else
@@ -938,17 +997,29 @@ float AFishingBattleCharacter::GetMaxHealth() const
 
 void AFishingBattleCharacter::EnterSpot(AActor* spot)
 {
-	canFishing = true;
-	if (spot)
-	{
-		fishingSpot = spot;
+	if (HasAuthority()) {
+		Multi_EnterSpot(spot);
 	}
+	else {
+		Server_EnterSpot(spot);
+	}
+	//canFishing = true;
+	//if (spot)
+	//{
+	//	fishingSpot = spot;
+	//}
 }
 
 void AFishingBattleCharacter::ExitSpot()
 {
-	canFishing = false;
-	fishingSpot = NULL;
+	if (HasAuthority()) {
+		Multi_ExitSpot();
+	}
+	else{
+		Server_ExitSpot();
+	}
+	//canFishing = false;
+	//fishingSpot = nullptr;
 }
 #pragma endregion
 
@@ -970,6 +1041,24 @@ void AFishingBattleCharacter::OnRep_AnimInstance()
 	mAnim->GetWeaponType(this->WeaponType);
 }
 
+void AFishingBattleCharacter::OnRep_FishingSpot()
+{
+	return;
+}
+
+void AFishingBattleCharacter::OnRep_IsFishing()
+{
+	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
+	if (!animInstance)return;
+	UMyAnimInstance* mAnim = Cast<UMyAnimInstance>(animInstance);
+	if (!mAnim)return;
+	mAnim->IsFishing = this->IsFishing;
+}
+
+void AFishingBattleCharacter::OnRep_WeaponActorSubclass()
+{
+	return;
+}
 #pragma endregion
 
 #pragma region 体力UIで使用
@@ -1228,13 +1317,27 @@ void AFishingBattleCharacter::Fishing()
 void AFishingBattleCharacter::OnFishingEnded(bool Result)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Fishing!deligate"));
+
 	if (!weaponActorSubclass)return;
+	//weaponActorSubclassこれをローカルで更新しているので、これがtrueになるのは自分だけ。
+	//マスタークライアントはサーバーを担っているため、サーバーから値が更新されている。そのためほかのクライアントからも処理が通る。
+	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
+	if (!animInstance)return;
+	UMyAnimInstance* mAnim = Cast<UMyAnimInstance>(animInstance);
+	if (!mAnim)return;
+	mAnim->IsFishing = false;
+	animInstance->Montage_Play(UpLot);
+
+
+	IsFishing = false;
+	OnRep_IsFishing();
 
 	// Multi_AddWeaponInPlayerはNetMulticastを使ってるので、サーバーを含めた全員に飛ばしてる
 	// 2025.10.15 ウー start
 	//if (HasAuthority()) {
+
 	if (IsLocallyControlled()) {
-	
+
 		if (fishingSpot)
 		{
 			UClass* WeaponClass = weaponActorSubclass;
@@ -1252,6 +1355,7 @@ void AFishingBattleCharacter::OnFishingEnded(bool Result)
 				}*/
 				if (Result) {
 					// インベントリに追加
+					//ここはIsLocallyControlledを貫通したクライアントが実行するが、ローカル処理になる
 					Multi_AddWeaponInPlayer(weaponActorSubclass);
 					UE_LOG(LogTemp, Display, TEXT("GetFish!!!!!!!"));
 					// 釣れたので、ポイント追加
@@ -1272,17 +1376,10 @@ void AFishingBattleCharacter::OnFishingEnded(bool Result)
 		ChangeMappingContext(HasFishrotMappingContext);
 	}
 	// 2025.10.15 ウー end
-
 	weaponActorSubclass = nullptr;
 
-	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
-	if (!animInstance)return;
-	UMyAnimInstance* mAnim = Cast<UMyAnimInstance>(animInstance);
-	if (!mAnim)return;
-	mAnim->IsFishing = false;
-	animInstance->Montage_Play(UpLot);
-
-	IsFishing = false;
+	//IsFishing = false;
+	//OnRep_IsFishing();
 }
 
 void AFishingBattleCharacter::OnGaugeStop()
@@ -1298,20 +1395,50 @@ void AFishingBattleCharacter::OnGaugeStop()
 	}
 }
 
+
+//void AFishingBattleCharacter::ShowFishingGaugeNext(UAnimMontage* Montage, bool in) {
+//	weaponActorSubclass = Cast<AFishingGround>(fishingSpot)->GetFish();
+//}
+
 //10月15日　滝本海大　開始
 void AFishingBattleCharacter::ShowFishingGauge(UAnimMontage* Montage, bool in)
 {
 	// 2025.10.15 ウー start
 	//if (HasAuthority()) {
+	if (fishingSpot) {
 		if (weaponActorSubclass = Cast<AFishingGround>(fishingSpot)->GetFish()) {
-			UE_LOG(LogTemp, Display, TEXT("weaponActorSubclass: %s"), *weaponActorSubclass->GetName());
-			UClass* WeaponClass = weaponActorSubclass;
-			if (ACPPBaseWeapon* BW = Cast<ACPPBaseWeapon>(WeaponClass->GetDefaultObject())) {
-				AFisherController* FC = Cast<AFisherController>(GetController());
-				FC->ShowFishingGauge(BW->SkillCheckSpeed);
-				UE_LOG(LogTemp, Display, TEXT("AFishingBattleCharacter::ShowFishingGauge() correct"));
+			if (IsLocallyControlled()) {
+
+				ChangeMappingContext(FishingMappingContext);
+				UE_LOG(LogTemp, Display, TEXT("weaponActorSubclass: %s"), *weaponActorSubclass->GetName());
+				UClass* WeaponClass = weaponActorSubclass;
+				if (ACPPBaseWeapon* BW = Cast<ACPPBaseWeapon>(WeaponClass->GetDefaultObject())) {
+					AFisherController* FC = Cast<AFisherController>(GetController());
+					FC->ShowFishingGauge(BW->SkillCheckSpeed);
+					UE_LOG(LogTemp, Display, TEXT("AFishingBattleCharacter::ShowFishingGauge() correct"));
+				}
+
 			}
 		}
+		else {
+			UE_LOG(LogTemp, Display, TEXT("cast faild"));
+		}
+	}
+	//if (IsLocallyControlled()) {
+	//	if (fishingSpot) {
+	//		if (weaponActorSubclass = Cast<AFishingGround>(fishingSpot)->GetFish()) {
+
+	//			UE_LOG(LogTemp, Display, TEXT("weaponActorSubclass: %s"), *weaponActorSubclass->GetName());
+	//			UClass* WeaponClass = weaponActorSubclass;
+	//			if (ACPPBaseWeapon* BW = Cast<ACPPBaseWeapon>(WeaponClass->GetDefaultObject())) {
+	//				AFisherController* FC = Cast<AFisherController>(GetController());
+	//				FC->ShowFishingGauge(BW->SkillCheckSpeed);
+	//				UE_LOG(LogTemp, Display, TEXT("AFishingBattleCharacter::ShowFishingGauge() correct"));
+	//			}
+
+	//		}
+	//	}
+	//}
 	//}
 	//else {
 		//UE_LOG(LogTemp, Error, TEXT("MyLog| AFishingBattleCharacter::ShowFishingGauge() failed"));
