@@ -695,6 +695,10 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	UWidgetComponent* NameTagWidgetComp;
 
+	protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Child Actor")
+	UChildActorComponent* ChildActorComp;
+
 
 public:
 	virtual void PostNetInit() override;
@@ -708,6 +712,7 @@ public:
 	/// 名前を設定
 	/// </summary>
 	/// <param name="NewName"></param>
+
 	void SetName(const FString& NewName);
 
 	/// <summary>
