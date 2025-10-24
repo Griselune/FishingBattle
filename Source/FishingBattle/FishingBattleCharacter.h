@@ -547,7 +547,7 @@ protected:
 
 	// 2025.07.30 ウー start
 	/// <summary>
-	/// プレイヤーがPlayerStateを与えた時
+	/// プレイヤーがPlayerStateを与えられた時
 	/// </summary>
 	virtual void OnRep_PlayerState() override;
 	// 2025.07.30 ウー end
