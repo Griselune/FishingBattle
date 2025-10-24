@@ -17,6 +17,8 @@
 #include <PrinzBranch/LANGameInstance.h>
 #include "Components/WidgetComponent.h" //プリンス 追加 2025/10/21　ネームタグに使う
 #include "WuBranch/Interface/NameUI.h" //プリンス 追加 2025/10/21　ネームタグに使う
+#include "PrinzBranch/ChildPlayerNameTag.h" //プリンス 追加 2025/10/24　ネームタグに使う 
+#include "Components/TextBlock.h" //プリンス 追加 2025/10/24　ネームタグに使う 
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -69,11 +71,19 @@ AFishingBattleCharacter::AFishingBattleCharacter()
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 
 	//プリンス START 2025/10/21
-	NameTagWidgetComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("NameTagWidget"));
-	NameTagWidgetComp->SetupAttachment(RootComponent);
-	NameTagWidgetComp->SetDrawAtDesiredSize(true);
-	NameTagWidgetComp->SetTwoSided(true);
-	NameTagWidgetComp->SetVisibility(true);
+//	NameTagWidgetComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("NameTagWidget"));
+//	NameTagWidgetComp->SetupAttachment(RootComponent);
+//	NameTagWidgetComp->SetDrawAtDesiredSize(true);
+//	NameTagWidgetComp->SetTwoSided(true);
+//	NameTagWidgetComp->SetVisibility(true);
+
+	// Create the child actor component
+	ChildActorComp = CreateDefaultSubobject<UChildActorComponent>(TEXT("ChildActorComponent"));
+	// Set it as the root component, or attach it to another scene component
+//	SetRootComponent(ChildActorComp);
+	ChildActorComp->SetupAttachment(RootComponent);
+
+
 
 	bReplicates = true;
 	bAlwaysRelevant = true; // Optional, ensures all players see all characters
@@ -172,34 +182,34 @@ void AFishingBattleCharacter::BeginPlay()
 			ServerSetPlayerName(GameInstance->GIPlayerName);
 		}
 	}
-	if (NameTagWidgetComp)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("WidgetComponent exists, visibility: %d, space: %d, hasWidget: %d"),
-			NameTagWidgetComp->IsVisible(),
-			(int32)NameTagWidgetComp->GetWidgetSpace(),
-			NameTagWidgetComp->GetWidget() != nullptr);
-		// Delay until widget exists
-		FTimerHandle WidgetCheckTimer;
-		GetWorldTimerManager().SetTimer(
-			WidgetCheckTimer,
-			FTimerDelegate::CreateLambda([this]()
-				{
-					if (UUserWidget* Widget = NameTagWidgetComp->GetWidget())
-					{
-						UE_LOG(LogTemp, Warning, TEXT("✅ Widget created - updating name"));
-						UpdateNameWidget();
-					}
-					else
-					{
-						UE_LOG(LogTemp, Warning, TEXT("⏳ Widget not ready yet"));
-					}
-				}),
-			0.2f,   // small delay
-			false
-		);
-	}
+	//if (NameTagWidgetComp)
+	//{
+	//	UE_LOG(LogTemp, Warning, TEXT("WidgetComponent exists, visibility: %d, space: %d, hasWidget: %d"),
+	//		NameTagWidgetComp->IsVisible(),
+	//		(int32)NameTagWidgetComp->GetWidgetSpace(),
+	//		NameTagWidgetComp->GetWidget() != nullptr);
+	//	// Delay until widget exists
+	//	FTimerHandle WidgetCheckTimer;
+	//	GetWorldTimerManager().SetTimer(
+	//		WidgetCheckTimer,
+	//		FTimerDelegate::CreateLambda([this]()
+	//			{
+	//				if (UUserWidget* Widget = NameTagWidgetComp->GetWidget())
+	//				{
+	//					UE_LOG(LogTemp, Warning, TEXT("✅ Widget created - updating name"));
+	//					UpdateNameWidget();
+	//				}
+	//				else
+	//				{
+	//					UE_LOG(LogTemp, Warning, TEXT("⏳ Widget not ready yet"));
+	//				}
+	//			}),
+	//		0.2f,   // small delay
+	//		false
+	//	);
+	//}
 
-	FTimerHandle TimerHandle;
+	/*FTimerHandle TimerHandle;
 	GetWorldTimerManager().SetTimer(TimerHandle, [this]()
 		{
 			if (NameTagWidgetComp)
@@ -209,7 +219,7 @@ void AFishingBattleCharacter::BeginPlay()
 				NameTagWidgetComp->SetTwoSided(true);
 				UE_LOG(LogTemp, Warning, TEXT("✅ NameTagWidget manually initialized"));
 			}
-		}, 0.5f, false);
+		}, 0.5f, false);*/
 	//プリンス END 2025/10/22
 }
 
@@ -928,6 +938,7 @@ void AFishingBattleCharacter::GetLifetimeReplicatedProps(TArray<FLifetimePropert
 	// 
 	//プリンス START 2025/10/21
 	DOREPLIFETIME(AFishingBattleCharacter, Name);
+//	DOREPLIFETIME_CONDITION_NOTIFY(AFishingBattleCharacter, Name, COND_None, REPNOTIFY_Always);
 	//プリンス END 2025/10/21
 }
 
@@ -943,17 +954,17 @@ void AFishingBattleCharacter::PossessedBy(AController* NewController)
 	}
 
 	//プリンス START 2025/10/22
-	if (HasAuthority())
-	{
-		if (IsLocallyControlled())
-		{
+//	if (HasAuthority())
+//	{
+//		if (IsLocallyControlled())
+//		{
 			ULANGameInstance* GameInstance = GetGameInstance<ULANGameInstance>();
 			if (GameInstance)
 			{
 				ServerSetPlayerName(GameInstance->GIPlayerName);
 			}
-		}
-	}
+//		}
+//	}
 	//プリンス END 2025/10/22
 
 }
@@ -964,6 +975,7 @@ void AFishingBattleCharacter::OnRep_PlayerState()
 
 	// 名前を保存する、クライアントのみ
 	SetNameFromInstance();
+
 }
 
 #pragma endregion
@@ -1569,28 +1581,54 @@ void AFishingBattleCharacter::OnRep_UpdatedName()
 
 void AFishingBattleCharacter::UpdateNameWidget()
 {
+	if (ChildActorComp && ChildActorComp->GetChildActor())
+	{
+		// Get the specific child actor instance and cast to your C++ class
+		AChildPlayerNameTag* ChildNameTagActor = Cast<AChildPlayerNameTag>(ChildActorComp->GetChildActor());
+		if (ChildNameTagActor)
+		{
+			// Access the widget component through the getter
+			if (UWidgetComponent* WidgetComp = ChildNameTagActor->GetNameTagWidgetComp())
+			{
+				// Get the UserWidget object
+				if (UUserWidget* Widget = WidgetComp->GetUserWidgetObject())
+				{
+					// Access the TextBlock using the meta=(BindWidget) name
+					if (UTextBlock* NameTagText = Cast<UTextBlock>(Widget->GetWidgetFromName(TEXT("TXT_NameTag"))))
+					{
+						// Set the text
+						NameTagText->SetText(FText::FromString(Name));
+					}
+				}
+			}
+		}
+	}
+
+
+
 	// 名前ウィジェットを更新
-	if (UUserWidget* Widget = NameTagWidgetComp->GetWidget()){
-	//		NameTagWidgetComp->SetDrawAtDesiredSize(true);
-			NameTagWidgetComp->SetVisibility(true);
-	//		NameTagWidgetComp->InitWidget();
-		if (Widget->Implements<UNameUI>()){
-			INameUI::Execute_SetName(Widget, GetName());
-			INameUI::Execute_ShowName(Widget);
-			if (HasAuthority()) {
-				UE_LOG(LogTemp, Warning, TEXT("Server NameTag Set OK - %s"), *Name);
-			}
-			else {
-				UE_LOG(LogTemp, Warning, TEXT("Server NameTag Set OK - %s"), *Name);
-			}
-		}
-		else {
-			UE_LOG(LogTemp, Warning, TEXT("Widget->Implements<UNameUI>() nullptr"));
-		}
-	}
-	else {
-		UE_LOG(LogTemp, Warning, TEXT("UUserWidget* Widget = NameTagWidgetComp->GetWidget()  nullptr"));
-	}
+	//if (UUserWidget* Widget = NameTagWidgetComp->GetWidget()) {
+	//	//		NameTagWidgetComp->SetDrawAtDesiredSize(true);
+	//	NameTagWidgetComp->SetVisibility(true);
+	//	//		NameTagWidgetComp->InitWidget();
+	//	if (Widget->Implements<UNameUI>()) {
+	//		INameUI::Execute_SetName(Widget, GetName());
+	//		INameUI::Execute_ShowName(Widget);
+	//		if (HasAuthority()) {
+	//			UE_LOG(LogTemp, Warning, TEXT("Server NameTag Set OK - %s"), *Name);
+	//		}
+	//		else {
+	//			UE_LOG(LogTemp, Warning, TEXT("Server NameTag Set OK - %s"), *Name);
+	//		}
+	//	}
+	//	else {
+	//		UE_LOG(LogTemp, Warning, TEXT("Widget->Implements<UNameUI>() nullptr"));
+	//	}
+
+	//}
+	//else {
+	//	UE_LOG(LogTemp, Warning, TEXT("UUserWidget* Widget = NameTagWidgetComp->GetWidget()  nullptr"));
+	//}
 }
 
 void AFishingBattleCharacter::PostNetInit()
