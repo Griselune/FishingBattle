@@ -224,6 +224,36 @@ public:
 	UFUNCTION(Server, Reliable)
 	void Server_DamageEffect();  // クライアント用
 
+	///// <summary>
+ //   /// 無敵エフェクト表示用
+ //   /// </summary>
+	//UFUNCTION(NetMulticast, Reliable)
+	//void Multi_UndeadEffect();  // サーバー用
+
+	///// <summary>
+	///// 無敵エフェクト表示用
+	///// </summary>
+	//UFUNCTION(Server, Reliable)
+	//void Server_UndeadEffect();  // クライアント用
+
+	///// <summary>
+ //   /// エフェクト停止用
+ //   /// </summary>
+	//UFUNCTION(NetMulticast, Reliable)
+	//void Multi_StopBodyEffect();  // サーバー用
+
+	///// <summary>
+	///// エフェクト停止用
+	///// </summary>
+	//UFUNCTION(Server, Reliable)
+	//void Server_StopBodyEffect();  // クライアント用
+
+	UPROPERTY(EditAnywhere, Category = "effect")
+	UNiagaraSystem* damageAsset;
+
+	UPROPERTY(EditAnywhere, Category = "effect")
+	UNiagaraSystem* unDeadAsset;
+
 	/// <summary>
 	/// 釣り場侵入
 	/// </summary>
@@ -254,7 +284,10 @@ private:
 	/// <summary>
 	/// 釣り場
 	/// </summary>
+	UPROPERTY(Replicated, ReplicatedUsing = OnRep_FishingSpot)
 	AActor* fishingSpot = nullptr;
+	UFUNCTION()
+	void OnRep_FishingSpot();
 
 	/// <summary>
 	/// 今装備している武器のインベントリ番号
@@ -263,6 +296,12 @@ private:
 #pragma endregion
 
 #pragma region アニメーションモンタージュ再生から終了までの処理
+public:
+	UPROPERTY(Replicated, ReplicatedUsing = OnRep_IsFishing)
+	bool IsFishing = false;
+
+	UFUNCTION()
+	void OnRep_IsFishing();
 protected:
 
 	/** Called for movement input */
@@ -323,7 +362,6 @@ protected:
 	/// 釣りモーション再生
 	/// </summary>
 	void Fishing();
-	bool IsFishing = false;
 
 	/// <summary>
 	/// 釣りモーション終了
@@ -331,7 +369,11 @@ protected:
 	void OnFishingEnded(bool Result);
 	//10月15日　滝本海大　開始
 	//釣り場から貰ってきた魚を保存する変数
+	UPROPERTY(Replicated, ReplicatedUsing = OnRep_WeaponActorSubclass)
 	TSubclassOf<AActor> weaponActorSubclass;
+
+	UFUNCTION()
+	void OnRep_WeaponActorSubclass();
 		
 	//IA_GaugeStopにバインドする関数
 	void OnGaugeStop();
@@ -472,6 +514,18 @@ protected:
 	UFUNCTION(NetMulticast, Reliable)
 	void Multi_GetFishByGauge(bool Result);
 	//10月15日　滝本海大　終了
+
+	UFUNCTION(Server, Reliable)
+	void Server_EnterSpot(AActor* spot);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multi_EnterSpot(AActor* spot);
+
+	UFUNCTION(Server, Reliable)
+	void Server_ExitSpot();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multi_ExitSpot();
 #pragma endregion
 
 

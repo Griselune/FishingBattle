@@ -22,33 +22,42 @@ void AResultPlayerController::BeginPlay()
 
 void AResultPlayerController::ShowWinnerName_Implementation()
 {
-	if (HUDWidget && HUDWidget->Implements<UNameUI>())
+	if (IsLocalController())
 	{
-		INameUI::Execute_ShowName(HUDWidget);
+		if (HUDWidget && HUDWidget->Implements<UNameUI>())
+		{
+			INameUI::Execute_ShowName(HUDWidget);
+		}
 	}
 }
 
 void AResultPlayerController::AddWidgetToView_Implementation()
 {
-	if (HUDUIClass)
+	if (IsLocalController())
 	{
-		HUDWidget = CreateWidget<UUserWidget>(GetWorld(), HUDUIClass);
-		if (HUDWidget)
+		if (HUDUIClass)
 		{
-			HUDWidget->AddToViewport();
-			HUDWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
-		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("HUDWidget is null!"));
+			HUDWidget = CreateWidget<UUserWidget>(GetWorld(), HUDUIClass);
+			if (HUDWidget)
+			{
+				HUDWidget->AddToViewport();
+				//HUDWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("HUDWidget is null!"));
+			}
 		}
 	}
 }
 
 void AResultPlayerController::SetWinnerName_Implementation()
 {
-	// 勝者の名前をリクエスト
-	RequestWinnerName();
+	if (IsLocalController())
+	{
+		// 勝者の名前をリクエスト
+		RequestWinnerName();
+	}
 }
 
 void AResultPlayerController::RequestWinnerName_Implementation()
