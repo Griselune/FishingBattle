@@ -674,6 +674,11 @@ protected:
 
 #pragma region 名前表示（ネームタグ）
 	//プリンス START 2025/10/21
+public:
+	/// <summary>
+	/// 名前ウィジェットを更新
+	/// </summary>
+	void UpdateNameWidget();
 private:
 	/// <summary>
 	/// 名前が更新されたとき
@@ -681,10 +686,6 @@ private:
 	UFUNCTION()
 	void OnRep_UpdatedName();
 
-	/// <summary>
-	/// 名前ウィジェットを更新
-	/// </summary>
-	void UpdateNameWidget();
 
 	/// <summary>
 	/// プレイヤ名
