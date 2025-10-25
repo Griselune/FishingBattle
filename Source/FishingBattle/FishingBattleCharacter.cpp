@@ -57,9 +57,11 @@ AFishingBattleCharacter::AFishingBattleCharacter()
 
 	effect = CreateDefaultSubobject<UNiagaraComponent>(TEXT("Effect"));
 	effect->SetupAttachment(RootComponent);
+	effect->SetIsReplicated(true);
 
 	damageEffect = CreateDefaultSubobject<UNiagaraComponent>(TEXT("DamageEffect"));
 	damageEffect->SetupAttachment(RootComponent);
+	damageEffect->SetIsReplicated(true);
 
 
 	// Create a follow camera
@@ -97,18 +99,16 @@ AFishingBattleCharacter::AFishingBattleCharacter()
 
 float AFishingBattleCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
-	// 2025.07.24 ウー start
-	if (!HasAuthority())
-	{
-		Server_DamageEffect();
-		return 0.0f;
-	}
-	// 2025.07.24 ウー end
 	// 回避状態に入ってる
-	if (IsRoll)return 0.0f;
-	// 既に死んだら
 	if (IsDead)return 0.0f;
-	if (UnDead)return 0.0f;
+
+	// 海にいるなら
+	if (!Sea) {
+		// 回避状態に入ってる
+		if (IsRoll)return 0.0f;
+
+		if (UnDead)return 0.0f;
+	}
 
 	// 2025.07.24 ウー start
 	float Damage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
@@ -137,7 +137,12 @@ float AFishingBattleCharacter::TakeDamage(float DamageAmount, FDamageEvent const
 		//	Server_Dead();
 		//}
 	}
-
+	// 2025.07.24 ウー start
+	if (!HasAuthority())
+	{
+		Server_DamageEffect();
+	}
+	// 2025.07.24 ウー end
 	Multi_DamageEffect();
 	return DamageAmount;
 }
@@ -160,14 +165,29 @@ void AFishingBattleCharacter::BeginPlay()
 		SetNameFromInstance();
 	// 2025.07.24 ウー end
 
-	//スポーンしてから5秒無敵にする
-	FTimerHandle WeaponCheckTimer;
+
+	FTimerHandle Effect;
 	GetWorldTimerManager().SetTimer(
-		WeaponCheckTimer,
-		FTimerDelegate::CreateLambda([this]() {UnDead = false;}),
-		5.0f,
+		Effect,
+		FTimerDelegate::CreateLambda([this]() {
+			if (HasAuthority()) {
+				Multi_UndeadEffect();
+			}
+			else {
+				Server_UndeadEffect();
+			}}),
+		3.0f,
 		false
 	);
+
+	////スポーンしてから5秒無敵にする
+	//FTimerHandle WeaponCheckTimer;
+	//GetWorldTimerManager().SetTimer(
+	//	WeaponCheckTimer,
+	//	FTimerDelegate::CreateLambda([this]() {UnDead = false;}),
+	//	5.0f,
+	//	false
+	//);
 
 	//プリンス　START 2025/10/22
 // For the local and remote clients
@@ -178,6 +198,7 @@ void AFishingBattleCharacter::BeginPlay()
 		if (GameInstance)
 		{
 			ServerSetPlayerName(GameInstance->GIPlayerName);
+			UE_LOG(LogTemp, Warning, TEXT("ServerSetPlayerName called in BeginPlay with *Name : %s, *GameInstance->GIPlayerName : %s"), *Name, *GameInstance->GIPlayerName);
 		}
 	}
 	//if (NameTagWidgetComp)
@@ -930,6 +951,7 @@ void AFishingBattleCharacter::GetLifetimeReplicatedProps(TArray<FLifetimePropert
 	DOREPLIFETIME(AFishingBattleCharacter, IsFishing);
 	DOREPLIFETIME(AFishingBattleCharacter, weaponActorSubclass);
 	DOREPLIFETIME(AFishingBattleCharacter, fishingSpot);
+	DOREPLIFETIME(AFishingBattleCharacter, UnDead);
 	// 2025.07.24 ウー start
 	DOREPLIFETIME(AFishingBattleCharacter, Health);
 	// 2025.07.24 ウー end
@@ -949,6 +971,11 @@ void AFishingBattleCharacter::PossessedBy(AController* NewController)
 		UE_LOG(LogTemp, Warning, TEXT("addFishrod!!!!!!!!!!!!"));
 
 		Server_TrueInGamePlay();
+		//プリンス START 2025/10/25 test
+		ULANGameInstance* GI = GetGameInstance<ULANGameInstance>();
+		ServerSetPlayerName(GI->GIPlayerName);
+		
+		//プリンス END 2025/10/25 test
 	}
 
 	// 2025.10.25 ウー start
@@ -968,7 +995,6 @@ void AFishingBattleCharacter::PossessedBy(AController* NewController)
 //		}
 //	}
 	//プリンス END 2025/10/22
-
 }
 
 void AFishingBattleCharacter::OnRep_PlayerState()
@@ -977,7 +1003,12 @@ void AFishingBattleCharacter::OnRep_PlayerState()
 
 	// 名前を保存する、クライアントのみ
 	SetNameFromInstance();
-
+	//プリンス START 2025/10/25 test
+	if (IsLocallyControlled()) {
+		ULANGameInstance* GI = GetGameInstance<ULANGameInstance>();
+		ServerSetPlayerName(GI->GIPlayerName);
+	}
+	//プリンス END 2025/10/25 test
 }
 
 #pragma endregion
@@ -1077,6 +1108,7 @@ void AFishingBattleCharacter::Server_Heal_Implementation()
 
 void AFishingBattleCharacter::Multi_DamageEffect_Implementation()
 {
+	damageEffect->SetAsset(damageAsset);
 	damageEffect->ActivateSystem();
 }
 
@@ -1085,9 +1117,32 @@ void AFishingBattleCharacter::Server_DamageEffect_Implementation()
 	Multi_DamageEffect();
 }
 
+void AFishingBattleCharacter::Multi_UndeadEffect_Implementation()
+{
+	UnDead = true;
+	damageEffect->SetAsset(unDeadAsset);
+	damageEffect->ActivateSystem();
+}
+
+void AFishingBattleCharacter::Server_UndeadEffect_Implementation()
+{
+	Multi_UndeadEffect();
+}
+
+void AFishingBattleCharacter::Multi_StopBodyEffect_Implementation()
+{
+	damageEffect->Deactivate();
+}
+
+void AFishingBattleCharacter::Server_StopBodyEffect_Implementation()
+{
+	Multi_StopBodyEffect();
+}
+
 void AFishingBattleCharacter::EnterSea(AActor* Actor)
 {
 	Sea = Actor;
+	UGameplayStatics::ApplyDamage(this, GetMaxHealth(), nullptr, Sea, UDamageType::StaticClass());
 }
 
 float AFishingBattleCharacter::GetMaxHealth() const
@@ -1157,6 +1212,11 @@ void AFishingBattleCharacter::OnRep_IsFishing()
 }
 
 void AFishingBattleCharacter::OnRep_WeaponActorSubclass()
+{
+	return;
+}
+
+void AFishingBattleCharacter::OnRep_UnDead()
 {
 	return;
 }
@@ -1434,6 +1494,18 @@ void AFishingBattleCharacter::OnFishingEnded(bool Result)
 
 	IsFishing = false;
 	OnRep_IsFishing();
+
+	if (Result) {
+		if (UnDead) {
+			UnDead = false;
+			if (HasAuthority()) {
+				Multi_StopBodyEffect();
+			}
+			else {
+				Server_StopBodyEffect();
+			}
+		}
+	}
 
 	// Multi_AddWeaponInPlayerはNetMulticastを使ってるので、サーバーを含めた全員に飛ばしてる
 	// 2025.10.15 ウー start
