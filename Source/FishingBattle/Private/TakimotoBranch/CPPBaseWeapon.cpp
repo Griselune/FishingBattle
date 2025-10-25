@@ -61,6 +61,7 @@ void ACPPBaseWeapon::OnHit_Implementation(AActor* HitActor)
 			UGameplayStatics::ApplyDamage(HitActor, Damage, GetInstigatorController(), GetOwner(), UDamageType::StaticClass());
 			// 2025.10.23 ウー end
 			if(HitSound) UGameplayStatics::PlaySoundAtLocation(this, HitSound, GetActorLocation());
+			else { UE_LOG(LogTemp, Error, TEXT("CPPBaseWeapon: HitSound is not setting")); }
 			UE_LOG(LogTemp, Error, TEXT("Hit!"));
 			NextHitTime = 30.f;
 		}
