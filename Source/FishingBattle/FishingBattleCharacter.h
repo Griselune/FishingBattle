@@ -10,8 +10,9 @@
 #include "Logging/LogMacros.h"
 #include "tokumaru/InventoryWeapon.h"
 #include "Net/UnrealNetwork.h"
-//#include "NiagaraComponent.h"
-//#include "NiagaraSystem.h"
+#include "NiagaraSystem.h"
+#include "NiagaraFunctionLibrary.h"
+
 #include "NiagaraComponent.h"
 #include "TakimotoBranch/CPPBaseWeapon.h"
 #include "TakimotoBranch/CPPWeaponType.h"
@@ -163,7 +164,10 @@ private:
 	/// <summary>
 	/// 無敵時間作成
 	/// </summary>
+	UPROPERTY(Replicated,ReplicatedUsing = OnRep_UnDead)
 	bool UnDead = true;
+	UFUNCTION()
+	void OnRep_UnDead();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HP", meta = (AllowPrivateAccess = "true"), Replicated, ReplicatedUsing = OnRep_UpdatedHealth)
 	float Health = 100.0f;
@@ -227,32 +231,33 @@ public:
 	///// <summary>
  //   /// 無敵エフェクト表示用
  //   /// </summary>
-	//UFUNCTION(NetMulticast, Reliable)
-	//void Multi_UndeadEffect();  // サーバー用
+	UFUNCTION(NetMulticast, Reliable)
+	void Multi_UndeadEffect();  // サーバー用
 
 	///// <summary>
 	///// 無敵エフェクト表示用
 	///// </summary>
-	//UFUNCTION(Server, Reliable)
-	//void Server_UndeadEffect();  // クライアント用
+	UFUNCTION(Server, Reliable)
+	void Server_UndeadEffect();  // クライアント用
 
 	///// <summary>
  //   /// エフェクト停止用
  //   /// </summary>
-	//UFUNCTION(NetMulticast, Reliable)
-	//void Multi_StopBodyEffect();  // サーバー用
+	UFUNCTION(NetMulticast, Reliable)
+	void Multi_StopBodyEffect();  // サーバー用
 
 	///// <summary>
 	///// エフェクト停止用
 	///// </summary>
-	//UFUNCTION(Server, Reliable)
-	//void Server_StopBodyEffect();  // クライアント用
+	UFUNCTION(Server, Reliable)
+	void Server_StopBodyEffect();  // クライアント用
 
 	UPROPERTY(EditAnywhere, Category = "effect")
 	UNiagaraSystem* damageAsset;
 
 	UPROPERTY(EditAnywhere, Category = "effect")
 	UNiagaraSystem* unDeadAsset;
+
 
 	/// <summary>
 	/// 釣り場侵入
