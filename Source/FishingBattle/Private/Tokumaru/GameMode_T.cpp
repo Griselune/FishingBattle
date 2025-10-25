@@ -161,6 +161,13 @@ void AGameMode_T::UpdateWinner()
 	}
 }
 
+bool AGameMode_T::IsWinner(int32 ID)
+{
+    if(CurrentWinnerID == -1)
+		return false;
+	return CurrentWinnerID == ID;
+}
+
 void AGameMode_T::UpdateCrown(const FPlayerRecord* NewWinner)
 {
     AFishingBattleCharacter* Winner;

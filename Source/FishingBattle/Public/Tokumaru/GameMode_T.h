@@ -66,6 +66,13 @@ public:
 	/// </summary>
 	void UpdateWinner();
 
+	/// <summary>
+	/// IDが勝者かどうか
+	/// </summary>
+	/// <param name="ID">プレイヤーのID</param>
+	/// <returns>true: はい、false: いいえ</returns>
+	bool IsWinner(int32 ID);
+
 private:
 
 	/// <summary>
