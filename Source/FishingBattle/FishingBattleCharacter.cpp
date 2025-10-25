@@ -156,11 +156,6 @@ void AFishingBattleCharacter::BeginPlay()
 
 	UE_LOG(LogTemp, Warning, TEXT("initHP %f"), Health);
 
-	// 2025.10.24 ウー start
-	SetupCrown();
-	HideCrown();
-	// 2025.10.24 ウー end
-
 	// 2025.07.24 ウー start
 	//healthUpdate.AddDynamic(this, &AFishingBattleCharacter::GetPlayerHealth);
 	Health = MaxHealth;
@@ -982,6 +977,24 @@ void AFishingBattleCharacter::PossessedBy(AController* NewController)
 		
 		//プリンス END 2025/10/25 test
 	}
+
+	// 2025.10.25 ウー start
+	SetupCrown();
+	// 2025.10.25 ウー end
+
+	//プリンス START 2025/10/22
+//	if (HasAuthority())
+//	{
+//		if (IsLocallyControlled())
+//		{
+//			ULANGameInstance* GameInstance = GetGameInstance<ULANGameInstance>();
+//			if (GameInstance)
+//			{
+//				ServerSetPlayerName(GameInstance->GIPlayerName);
+//			}
+//		}
+//	}
+	//プリンス END 2025/10/22
 }
 
 void AFishingBattleCharacter::OnRep_PlayerState()
@@ -1722,9 +1735,30 @@ void AFishingBattleCharacter::HideCrown_Implementation()
 
 void AFishingBattleCharacter::SetupCrown()
 {
+	// ソケットが存在する場合、クラウンをメッシュにアタッチ
 	if (GetMesh()->DoesSocketExist(TEXT("Crown")))
 	{
 		Crown->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepWorldTransform, TEXT("Crown"));
+	}
+
+	// 王冠の表示設定
+	AGameMode_T* GM = Cast<AGameMode_T>(UGameplayStatics::GetGameMode(this));
+	APlayerState* PS = GetPlayerState();
+	int32 ID = PS ? PS->GetPlayerId() : -1;
+	if (GM)
+	{
+		if (GM->IsWinner(ID))
+		{
+			ShowCrown();
+		}
+		else
+		{
+			HideCrown();
+		}
+	}
+	else
+	{
+		HideCrown();
 	}
 }
 #pragma endregion
