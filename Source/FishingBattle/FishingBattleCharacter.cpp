@@ -183,6 +183,7 @@ void AFishingBattleCharacter::BeginPlay()
 		if (GameInstance)
 		{
 			ServerSetPlayerName(GameInstance->GIPlayerName);
+			UE_LOG(LogTemp, Warning, TEXT("ServerSetPlayerName called in BeginPlay with *Name : %s, *GameInstance->GIPlayerName : %s"), *Name, *GameInstance->GIPlayerName);
 		}
 	}
 	//if (NameTagWidgetComp)
@@ -954,22 +955,12 @@ void AFishingBattleCharacter::PossessedBy(AController* NewController)
 		UE_LOG(LogTemp, Warning, TEXT("addFishrod!!!!!!!!!!!!"));
 
 		Server_TrueInGamePlay();
+		//プリンス START 2025/10/25 test
+		ULANGameInstance* GI = GetGameInstance<ULANGameInstance>();
+		ServerSetPlayerName(GI->GIPlayerName);
+		
+		//プリンス END 2025/10/25 test
 	}
-
-	//プリンス START 2025/10/22
-//	if (HasAuthority())
-//	{
-//		if (IsLocallyControlled())
-//		{
-//			ULANGameInstance* GameInstance = GetGameInstance<ULANGameInstance>();
-//			if (GameInstance)
-//			{
-//				ServerSetPlayerName(GameInstance->GIPlayerName);
-//			}
-//		}
-//	}
-	//プリンス END 2025/10/22
-
 }
 
 void AFishingBattleCharacter::OnRep_PlayerState()
@@ -978,7 +969,12 @@ void AFishingBattleCharacter::OnRep_PlayerState()
 
 	// 名前を保存する、クライアントのみ
 	SetNameFromInstance();
-
+	//プリンス START 2025/10/25 test
+	if (IsLocallyControlled()) {
+		ULANGameInstance* GI = GetGameInstance<ULANGameInstance>();
+		ServerSetPlayerName(GI->GIPlayerName);
+	}
+	//プリンス END 2025/10/25 test
 }
 
 #pragma endregion
