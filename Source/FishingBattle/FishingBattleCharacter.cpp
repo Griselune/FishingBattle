@@ -15,6 +15,10 @@
 #include <WuBranch/Actor/FishingGround.h>
 #include <WuBranch/PlayerController/FisherController.h>
 #include <PrinzBranch/LANGameInstance.h>
+#include "Components/WidgetComponent.h" //プリンス 追加 2025/10/21　ネームタグに使う
+#include "WuBranch/Interface/NameUI.h" //プリンス 追加 2025/10/21　ネームタグに使う
+#include "PrinzBranch/ChildPlayerNameTag.h" //プリンス 追加 2025/10/24　ネームタグに使う 
+#include "Components/TextBlock.h" //プリンス 追加 2025/10/24　ネームタグに使う 
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -53,9 +57,11 @@ AFishingBattleCharacter::AFishingBattleCharacter()
 
 	effect = CreateDefaultSubobject<UNiagaraComponent>(TEXT("Effect"));
 	effect->SetupAttachment(RootComponent);
+	effect->SetIsReplicated(true);
 
 	damageEffect = CreateDefaultSubobject<UNiagaraComponent>(TEXT("DamageEffect"));
 	damageEffect->SetupAttachment(RootComponent);
+	damageEffect->SetIsReplicated(true);
 
 
 	// Create a follow camera
@@ -66,27 +72,47 @@ AFishingBattleCharacter::AFishingBattleCharacter()
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 
+	//プリンス START 2025/10/21
+//	NameTagWidgetComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("NameTagWidget"));
+//	NameTagWidgetComp->SetupAttachment(RootComponent);
+//	NameTagWidgetComp->SetDrawAtDesiredSize(true);
+//	NameTagWidgetComp->SetTwoSided(true);
+//	NameTagWidgetComp->SetVisibility(true);
+
+	// Create the child actor component
+	ChildActorComp = CreateDefaultSubobject<UChildActorComponent>(TEXT("ChildActorComponent"));
+	// Set it as the root component, or attach it to another scene component
+//	SetRootComponent(ChildActorComp);
+	ChildActorComp->SetupAttachment(RootComponent);
+
+
+
+	bReplicates = true;
+	bAlwaysRelevant = true; // Optional, ensures all players see all characters
+
+	Crown = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Crown"));
+	Crown->SetupAttachment(GetMesh());
+	//プリンス END 2025/10/21
+
 	this->Tags.Add(FName("Player"));
 }
 
 float AFishingBattleCharacter::TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
-	// 2025.07.24 ウー start
-	if (!HasAuthority())
-	{
-		Server_DamageEffect();
-		return 0.0f;
-	}
-	// 2025.07.24 ウー end
 	// 回避状態に入ってる
-	if (IsRoll)return 0.0f;
-	// 既に死んだら
 	if (IsDead)return 0.0f;
-	if (UnDead)return 0.0f;
+
+	// 海にいるなら
+	if (!Sea) {
+		// 回避状態に入ってる
+		if (IsRoll)return 0.0f;
+
+		if (UnDead)return 0.0f;
+	}
 
 	// 2025.07.24 ウー start
 	float Damage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
-	
+
 	this->Health -= Damage;
 
 	// 自分も更新する, Replicatedはサーバー自身のReplicatedUsingにバインドされた関数を呼ばない
@@ -111,7 +137,12 @@ float AFishingBattleCharacter::TakeDamage(float DamageAmount, FDamageEvent const
 		//	Server_Dead();
 		//}
 	}
-
+	// 2025.07.24 ウー start
+	if (!HasAuthority())
+	{
+		Server_DamageEffect();
+	}
+	// 2025.07.24 ウー end
 	Multi_DamageEffect();
 	return DamageAmount;
 }
@@ -125,23 +156,95 @@ void AFishingBattleCharacter::BeginPlay()
 
 	UE_LOG(LogTemp, Warning, TEXT("initHP %f"), Health);
 
+	// 2025.10.24 ウー start
+	SetupCrown();
+	HideCrown();
+	// 2025.10.24 ウー end
+
 	// 2025.07.24 ウー start
 	//healthUpdate.AddDynamic(this, &AFishingBattleCharacter::GetPlayerHealth);
 	Health = MaxHealth;
 
 	// サーバーのみ、
-	if(HasAuthority())
+	if (HasAuthority())
 		SetNameFromInstance();
 	// 2025.07.24 ウー end
 
-	//スポーンしてから5秒無敵にする
-	FTimerHandle WeaponCheckTimer;
+
+	FTimerHandle Effect;
 	GetWorldTimerManager().SetTimer(
-		WeaponCheckTimer,
-		FTimerDelegate::CreateLambda([this]() {UnDead = false;}),
-		5.0f,
+		Effect,
+		FTimerDelegate::CreateLambda([this]() {
+			if (HasAuthority()) {
+				Multi_UndeadEffect();
+			}
+			else {
+				Server_UndeadEffect();
+			}}),
+		3.0f,
 		false
 	);
+
+	////スポーンしてから5秒無敵にする
+	//FTimerHandle WeaponCheckTimer;
+	//GetWorldTimerManager().SetTimer(
+	//	WeaponCheckTimer,
+	//	FTimerDelegate::CreateLambda([this]() {UnDead = false;}),
+	//	5.0f,
+	//	false
+	//);
+
+	//プリンス　START 2025/10/22
+// For the local and remote clients
+
+	if (IsLocallyControlled())
+	{
+		ULANGameInstance* GameInstance = GetGameInstance<ULANGameInstance>();
+		if (GameInstance)
+		{
+			ServerSetPlayerName(GameInstance->GIPlayerName);
+			UE_LOG(LogTemp, Warning, TEXT("ServerSetPlayerName called in BeginPlay with *Name : %s, *GameInstance->GIPlayerName : %s"), *Name, *GameInstance->GIPlayerName);
+		}
+	}
+	//if (NameTagWidgetComp)
+	//{
+	//	UE_LOG(LogTemp, Warning, TEXT("WidgetComponent exists, visibility: %d, space: %d, hasWidget: %d"),
+	//		NameTagWidgetComp->IsVisible(),
+	//		(int32)NameTagWidgetComp->GetWidgetSpace(),
+	//		NameTagWidgetComp->GetWidget() != nullptr);
+	//	// Delay until widget exists
+	//	FTimerHandle WidgetCheckTimer;
+	//	GetWorldTimerManager().SetTimer(
+	//		WidgetCheckTimer,
+	//		FTimerDelegate::CreateLambda([this]()
+	//			{
+	//				if (UUserWidget* Widget = NameTagWidgetComp->GetWidget())
+	//				{
+	//					UE_LOG(LogTemp, Warning, TEXT("✅ Widget created - updating name"));
+	//					UpdateNameWidget();
+	//				}
+	//				else
+	//				{
+	//					UE_LOG(LogTemp, Warning, TEXT("⏳ Widget not ready yet"));
+	//				}
+	//			}),
+	//		0.2f,   // small delay
+	//		false
+	//	);
+	//}
+
+	/*FTimerHandle TimerHandle;
+	GetWorldTimerManager().SetTimer(TimerHandle, [this]()
+		{
+			if (NameTagWidgetComp)
+			{
+				NameTagWidgetComp->InitWidget();
+				NameTagWidgetComp->SetVisibility(true);
+				NameTagWidgetComp->SetTwoSided(true);
+				UE_LOG(LogTemp, Warning, TEXT("✅ NameTagWidget manually initialized"));
+			}
+		}, 0.5f, false);*/
+	//プリンス END 2025/10/22
 }
 
 #pragma region RPC関数
@@ -292,16 +395,21 @@ void AFishingBattleCharacter::Multi_Fishing_Implementation()
 		mAnim->IsFishing = true;
 		UE_LOG(LogTemp, Warning, TEXT("Fishing!Play"));
 		IsFishing = true;
+		OnRep_IsFishing();
+
+		//FOnMontageEnded Delegate;
+		//Delegate.BindUObject(this, &AFishingBattleCharacter::ShowFishingGaugeNext);
+
 
 		// 2025.10.21 ウー start
-		if (IsLocallyControlled())
-		{
+		//if (IsLocallyControlled())
+		//{
 			FOnMontageEnded Delegate;
 			Delegate.BindUObject(this, &AFishingBattleCharacter::ShowFishingGauge);
 			animInstance->Montage_SetEndDelegate(Delegate, FishingMontage);
 
 			ChangeMappingContext(FishingMappingContext);
-		}
+		//}
 		// 2025.10.21 ウー end
 	}
 }
@@ -397,7 +505,7 @@ void AFishingBattleCharacter::Multi_DestructionWeapon_Implementation(int index) 
 	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
 	if (!ps)return;
 	ps->Server_DestructionWeaponPS(index);
-	
+
 	if (HasAuthority()) {
 		if (ACPPBaseWeapon* baseWeapon = Cast<ACPPBaseWeapon>(weaponActor)) {
 			Heal(baseWeapon->HealingAmount, 0);
@@ -416,9 +524,43 @@ void AFishingBattleCharacter::Server_GetFishByGauge_Implementation(bool Result)
 void AFishingBattleCharacter::Multi_GetFishByGauge_Implementation(bool Result)
 {
 	UE_LOG(LogTemp, Display, TEXT("Multi_GetFishByGauge inside"));
+
+	//UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
+	//if (!animInstance)return;
+	//UMyAnimInstance* mAnim = Cast<UMyAnimInstance>(animInstance);
+	//if (!mAnim)return;
+	//mAnim->IsFishing = false;
+	//animInstance->Montage_Play(UpLot);
 	OnFishingEnded(Result);
+
 }
 //10月15日　滝本海大　終了
+
+void AFishingBattleCharacter::Server_EnterSpot_Implementation(AActor* spot)
+{
+	Multi_EnterSpot(spot);
+}
+
+void AFishingBattleCharacter::Multi_EnterSpot_Implementation(AActor* spot)
+{
+	canFishing = true;
+	if (spot)
+	{
+		fishingSpot = spot;
+	}
+}
+
+void AFishingBattleCharacter::Server_ExitSpot_Implementation()
+{
+	Multi_ExitSpot();
+}
+
+void AFishingBattleCharacter::Multi_ExitSpot_Implementation()
+{
+	canFishing = false;
+	fishingSpot = nullptr;
+}
+
 #pragma endregion
 
 #pragma region 武器装備
@@ -592,6 +734,22 @@ void AFishingBattleCharacter::EquipFishlot()
 	else {
 		Multi_EquipSlotIndex(0);
 	}
+	//サーバー同期の関係か、変数の取得を直接行うと値が反映されないので、
+    //少し遅延をかけて取得できるようにしている。(0.01秒)
+	FTimerHandle WeaponCheckTimer;
+	GetWorldTimerManager().SetTimer(
+		WeaponCheckTimer,
+		FTimerDelegate::CreateLambda([this]() {
+			if (weaponActor) {
+				ChangeMappingContext(HasFishrotMappingContext);
+			}
+			else {
+				ChangeMappingContext(DefaultMappingContext);
+			}
+			}),
+		1.0f,
+		false
+	);
 	//ChangeMappingContext(HasFishrotMappingContext);
 }
 
@@ -795,9 +953,18 @@ void AFishingBattleCharacter::GetLifetimeReplicatedProps(TArray<FLifetimePropert
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(AFishingBattleCharacter, weaponActor);
 	DOREPLIFETIME(AFishingBattleCharacter, WeaponType);
+	DOREPLIFETIME(AFishingBattleCharacter, IsFishing);
+	DOREPLIFETIME(AFishingBattleCharacter, weaponActorSubclass);
+	DOREPLIFETIME(AFishingBattleCharacter, fishingSpot);
+	DOREPLIFETIME(AFishingBattleCharacter, UnDead);
 	// 2025.07.24 ウー start
 	DOREPLIFETIME(AFishingBattleCharacter, Health);
 	// 2025.07.24 ウー end
+	// 
+	//プリンス START 2025/10/21
+	DOREPLIFETIME(AFishingBattleCharacter, Name);
+//	DOREPLIFETIME_CONDITION_NOTIFY(AFishingBattleCharacter, Name, COND_None, REPNOTIFY_Always);
+	//プリンス END 2025/10/21
 }
 
 //プレイヤーがコントローラーを取得したときに呼ばれる
@@ -809,8 +976,12 @@ void AFishingBattleCharacter::PossessedBy(AController* NewController)
 		UE_LOG(LogTemp, Warning, TEXT("addFishrod!!!!!!!!!!!!"));
 
 		Server_TrueInGamePlay();
+		//プリンス START 2025/10/25 test
+		ULANGameInstance* GI = GetGameInstance<ULANGameInstance>();
+		ServerSetPlayerName(GI->GIPlayerName);
+		
+		//プリンス END 2025/10/25 test
 	}
-
 }
 
 void AFishingBattleCharacter::OnRep_PlayerState()
@@ -819,7 +990,14 @@ void AFishingBattleCharacter::OnRep_PlayerState()
 
 	// 名前を保存する、クライアントのみ
 	SetNameFromInstance();
+	//プリンス START 2025/10/25 test
+	if (IsLocallyControlled()) {
+		ULANGameInstance* GI = GetGameInstance<ULANGameInstance>();
+		ServerSetPlayerName(GI->GIPlayerName);
+	}
+	//プリンス END 2025/10/25 test
 }
+
 #pragma endregion
 
 #pragma region Input
@@ -856,7 +1034,7 @@ void AFishingBattleCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 		EnhancedInputComponent->BindAction(SwitchFishlot, ETriggerEvent::Started, this, &AFishingBattleCharacter::EquipFishlot);
 
 		EnhancedInputComponent->BindAction(DestructionWeaponInput, ETriggerEvent::Started, this, &AFishingBattleCharacter::DestructionWeapon);
-		
+
 		EnhancedInputComponent->BindAction(GaugeStop, ETriggerEvent::Started, this, &AFishingBattleCharacter::OnGaugeStop);
 	}
 	else
@@ -917,6 +1095,7 @@ void AFishingBattleCharacter::Server_Heal_Implementation()
 
 void AFishingBattleCharacter::Multi_DamageEffect_Implementation()
 {
+	damageEffect->SetAsset(damageAsset);
 	damageEffect->ActivateSystem();
 }
 
@@ -925,9 +1104,32 @@ void AFishingBattleCharacter::Server_DamageEffect_Implementation()
 	Multi_DamageEffect();
 }
 
+void AFishingBattleCharacter::Multi_UndeadEffect_Implementation()
+{
+	UnDead = true;
+	damageEffect->SetAsset(unDeadAsset);
+	damageEffect->ActivateSystem();
+}
+
+void AFishingBattleCharacter::Server_UndeadEffect_Implementation()
+{
+	Multi_UndeadEffect();
+}
+
+void AFishingBattleCharacter::Multi_StopBodyEffect_Implementation()
+{
+	damageEffect->Deactivate();
+}
+
+void AFishingBattleCharacter::Server_StopBodyEffect_Implementation()
+{
+	Multi_StopBodyEffect();
+}
+
 void AFishingBattleCharacter::EnterSea(AActor* Actor)
 {
 	Sea = Actor;
+	UGameplayStatics::ApplyDamage(this, GetMaxHealth(), nullptr, Sea, UDamageType::StaticClass());
 }
 
 float AFishingBattleCharacter::GetMaxHealth() const
@@ -938,17 +1140,29 @@ float AFishingBattleCharacter::GetMaxHealth() const
 
 void AFishingBattleCharacter::EnterSpot(AActor* spot)
 {
-	canFishing = true;
-	if (spot)
-	{
-		fishingSpot = spot;
+	if (HasAuthority()) {
+		Multi_EnterSpot(spot);
 	}
+	else {
+		Server_EnterSpot(spot);
+	}
+	//canFishing = true;
+	//if (spot)
+	//{
+	//	fishingSpot = spot;
+	//}
 }
 
 void AFishingBattleCharacter::ExitSpot()
 {
-	canFishing = false;
-	fishingSpot = NULL;
+	if (HasAuthority()) {
+		Multi_ExitSpot();
+	}
+	else{
+		Server_ExitSpot();
+	}
+	//canFishing = false;
+	//fishingSpot = nullptr;
 }
 #pragma endregion
 
@@ -970,6 +1184,29 @@ void AFishingBattleCharacter::OnRep_AnimInstance()
 	mAnim->GetWeaponType(this->WeaponType);
 }
 
+void AFishingBattleCharacter::OnRep_FishingSpot()
+{
+	return;
+}
+
+void AFishingBattleCharacter::OnRep_IsFishing()
+{
+	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
+	if (!animInstance)return;
+	UMyAnimInstance* mAnim = Cast<UMyAnimInstance>(animInstance);
+	if (!mAnim)return;
+	mAnim->IsFishing = this->IsFishing;
+}
+
+void AFishingBattleCharacter::OnRep_WeaponActorSubclass()
+{
+	return;
+}
+
+void AFishingBattleCharacter::OnRep_UnDead()
+{
+	return;
+}
 #pragma endregion
 
 #pragma region 体力UIで使用
@@ -1047,6 +1284,8 @@ void AFishingBattleCharacter::SetNameFromInstance()
 		if (GameInstance && GameState)
 		{
 			GameState->SetName(GameInstance->GIPlayerName);
+			//prinz test
+			//ServerSetPlayerName(GameInstance->GIPlayerName);
 		}
 	}
 }
@@ -1228,13 +1467,39 @@ void AFishingBattleCharacter::Fishing()
 void AFishingBattleCharacter::OnFishingEnded(bool Result)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Fishing!deligate"));
+
 	if (!weaponActorSubclass)return;
+	//weaponActorSubclassこれをローカルで更新しているので、これがtrueになるのは自分だけ。
+	//マスタークライアントはサーバーを担っているため、サーバーから値が更新されている。そのためほかのクライアントからも処理が通る。
+	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
+	if (!animInstance)return;
+	UMyAnimInstance* mAnim = Cast<UMyAnimInstance>(animInstance);
+	if (!mAnim)return;
+	mAnim->IsFishing = false;
+	animInstance->Montage_Play(UpLot);
+
+
+	IsFishing = false;
+	OnRep_IsFishing();
+
+	if (Result) {
+		if (UnDead) {
+			UnDead = false;
+			if (HasAuthority()) {
+				Multi_StopBodyEffect();
+			}
+			else {
+				Server_StopBodyEffect();
+			}
+		}
+	}
 
 	// Multi_AddWeaponInPlayerはNetMulticastを使ってるので、サーバーを含めた全員に飛ばしてる
 	// 2025.10.15 ウー start
 	//if (HasAuthority()) {
+
 	if (IsLocallyControlled()) {
-	
+
 		if (fishingSpot)
 		{
 			UClass* WeaponClass = weaponActorSubclass;
@@ -1252,6 +1517,7 @@ void AFishingBattleCharacter::OnFishingEnded(bool Result)
 				}*/
 				if (Result) {
 					// インベントリに追加
+					//ここはIsLocallyControlledを貫通したクライアントが実行するが、ローカル処理になる
 					Multi_AddWeaponInPlayer(weaponActorSubclass);
 					UE_LOG(LogTemp, Display, TEXT("GetFish!!!!!!!"));
 					// 釣れたので、ポイント追加
@@ -1272,17 +1538,10 @@ void AFishingBattleCharacter::OnFishingEnded(bool Result)
 		ChangeMappingContext(HasFishrotMappingContext);
 	}
 	// 2025.10.15 ウー end
-
 	weaponActorSubclass = nullptr;
 
-	UAnimInstance* animInstance = GetMesh()->GetAnimInstance();
-	if (!animInstance)return;
-	UMyAnimInstance* mAnim = Cast<UMyAnimInstance>(animInstance);
-	if (!mAnim)return;
-	mAnim->IsFishing = false;
-	animInstance->Montage_Play(UpLot);
-
-	IsFishing = false;
+	//IsFishing = false;
+	//OnRep_IsFishing();
 }
 
 void AFishingBattleCharacter::OnGaugeStop()
@@ -1298,20 +1557,50 @@ void AFishingBattleCharacter::OnGaugeStop()
 	}
 }
 
+
+//void AFishingBattleCharacter::ShowFishingGaugeNext(UAnimMontage* Montage, bool in) {
+//	weaponActorSubclass = Cast<AFishingGround>(fishingSpot)->GetFish();
+//}
+
 //10月15日　滝本海大　開始
 void AFishingBattleCharacter::ShowFishingGauge(UAnimMontage* Montage, bool in)
 {
 	// 2025.10.15 ウー start
 	//if (HasAuthority()) {
+	if (fishingSpot) {
 		if (weaponActorSubclass = Cast<AFishingGround>(fishingSpot)->GetFish()) {
-			UE_LOG(LogTemp, Display, TEXT("weaponActorSubclass: %s"), *weaponActorSubclass->GetName());
-			UClass* WeaponClass = weaponActorSubclass;
-			if (ACPPBaseWeapon* BW = Cast<ACPPBaseWeapon>(WeaponClass->GetDefaultObject())) {
-				AFisherController* FC = Cast<AFisherController>(GetController());
-				FC->ShowFishingGauge(BW->SkillCheckSpeed);
-				UE_LOG(LogTemp, Display, TEXT("AFishingBattleCharacter::ShowFishingGauge() correct"));
+			if (IsLocallyControlled()) {
+
+				ChangeMappingContext(FishingMappingContext);
+				UE_LOG(LogTemp, Display, TEXT("weaponActorSubclass: %s"), *weaponActorSubclass->GetName());
+				UClass* WeaponClass = weaponActorSubclass;
+				if (ACPPBaseWeapon* BW = Cast<ACPPBaseWeapon>(WeaponClass->GetDefaultObject())) {
+					AFisherController* FC = Cast<AFisherController>(GetController());
+					FC->ShowFishingGauge(BW->SkillCheckSpeed);
+					UE_LOG(LogTemp, Display, TEXT("AFishingBattleCharacter::ShowFishingGauge() correct"));
+				}
+
 			}
 		}
+		else {
+			UE_LOG(LogTemp, Display, TEXT("cast faild"));
+		}
+	}
+	//if (IsLocallyControlled()) {
+	//	if (fishingSpot) {
+	//		if (weaponActorSubclass = Cast<AFishingGround>(fishingSpot)->GetFish()) {
+
+	//			UE_LOG(LogTemp, Display, TEXT("weaponActorSubclass: %s"), *weaponActorSubclass->GetName());
+	//			UClass* WeaponClass = weaponActorSubclass;
+	//			if (ACPPBaseWeapon* BW = Cast<ACPPBaseWeapon>(WeaponClass->GetDefaultObject())) {
+	//				AFisherController* FC = Cast<AFisherController>(GetController());
+	//				FC->ShowFishingGauge(BW->SkillCheckSpeed);
+	//				UE_LOG(LogTemp, Display, TEXT("AFishingBattleCharacter::ShowFishingGauge() correct"));
+	//			}
+
+	//		}
+	//	}
+	//}
 	//}
 	//else {
 		//UE_LOG(LogTemp, Error, TEXT("MyLog| AFishingBattleCharacter::ShowFishingGauge() failed"));
@@ -1332,3 +1621,111 @@ void AFishingBattleCharacter::AddPoint(float Point)
 }
 #pragma endregion
 // 2025.10.22 ウー end
+
+#pragma region 名前表示（ネームタグ）
+//プリンス START 2025/10/21
+void AFishingBattleCharacter::SetName(const FString& NewName)
+{
+	Name = NewName;
+	UpdateNameWidget();
+}
+
+FString AFishingBattleCharacter::GetName() const
+{
+	return Name;
+}
+
+void AFishingBattleCharacter::OnRep_UpdatedName()
+{
+	UE_LOG(LogTemp, Warning, TEXT("OnRep_UpdatedName fired - new name: %s"), *Name);
+	UpdateNameWidget();
+}
+
+void AFishingBattleCharacter::UpdateNameWidget()
+{
+	if (ChildActorComp && ChildActorComp->GetChildActor())
+	{
+		// Get the specific child actor instance and cast to your C++ class
+		AChildPlayerNameTag* ChildNameTagActor = Cast<AChildPlayerNameTag>(ChildActorComp->GetChildActor());
+		if (ChildNameTagActor)
+		{
+			// Access the widget component through the getter
+			if (UWidgetComponent* WidgetComp = ChildNameTagActor->GetNameTagWidgetComp())
+			{
+				// Get the UserWidget object
+				if (UUserWidget* Widget = WidgetComp->GetUserWidgetObject())
+				{
+					// Access the TextBlock using the meta=(BindWidget) name
+					if (UTextBlock* NameTagText = Cast<UTextBlock>(Widget->GetWidgetFromName(TEXT("TXT_NameTag"))))
+					{
+						// Set the text
+						NameTagText->SetText(FText::FromString(Name));
+					}
+				}
+			}
+		}
+	}
+
+
+
+	// 名前ウィジェットを更新
+	//if (UUserWidget* Widget = NameTagWidgetComp->GetWidget()) {
+	//	//		NameTagWidgetComp->SetDrawAtDesiredSize(true);
+	//	NameTagWidgetComp->SetVisibility(true);
+	//	//		NameTagWidgetComp->InitWidget();
+	//	if (Widget->Implements<UNameUI>()) {
+	//		INameUI::Execute_SetName(Widget, GetName());
+	//		INameUI::Execute_ShowName(Widget);
+	//		if (HasAuthority()) {
+	//			UE_LOG(LogTemp, Warning, TEXT("Server NameTag Set OK - %s"), *Name);
+	//		}
+	//		else {
+	//			UE_LOG(LogTemp, Warning, TEXT("Server NameTag Set OK - %s"), *Name);
+	//		}
+	//	}
+	//	else {
+	//		UE_LOG(LogTemp, Warning, TEXT("Widget->Implements<UNameUI>() nullptr"));
+	//	}
+
+	//}
+	//else {
+	//	UE_LOG(LogTemp, Warning, TEXT("UUserWidget* Widget = NameTagWidgetComp->GetWidget()  nullptr"));
+	//}
+}
+
+void AFishingBattleCharacter::PostNetInit()
+{
+	Super::PostNetInit();
+	UpdateNameWidget();
+	//OnRep_UpdatedName(); // ensure name widget updates after replication
+}
+
+void AFishingBattleCharacter::ServerSetPlayerName_Implementation(const FString& NewName)
+{
+	SetName(NewName); // sets and replicates to everyone
+}
+
+//プリンス END 2025/10/21
+#pragma endregion
+
+// 2025.10.24 ウー start
+#pragma region 王冠
+void AFishingBattleCharacter::ShowCrown_Implementation()
+{
+	Crown->SetVisibility(true);
+}
+
+void AFishingBattleCharacter::HideCrown_Implementation()
+{
+	Crown->SetVisibility(false);
+}
+
+void AFishingBattleCharacter::SetupCrown()
+{
+	if (GetMesh()->DoesSocketExist(TEXT("Crown")))
+	{
+		Crown->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepWorldTransform, TEXT("Crown"));
+	}
+}
+#pragma endregion
+// 2025.10.24 ウー end

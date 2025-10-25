@@ -65,6 +65,10 @@ void AGameMode_T::RespawnPlayerT(AController* Controller)
     if (NewPawn)
     {
         Controller->Possess(NewPawn);
+        //プリンス START 2025/10/25 test
+ //       AFishingBattleCharacter* NewChar = Cast<AFishingBattleCharacter>(Controller);
+ //       NewChar->UpdateNameWidget();
+        //プリンス END 2025/10/25 test
     }
 }
 
@@ -172,6 +176,7 @@ void AGameMode_T::UpdateCrown(const FPlayerRecord* NewWinner)
         if (Winner)
         {
             UE_LOG(LogTemp, Warning, TEXT("Pre Winner: %s"), *Winner->GetActorNameOrLabel());
+            Winner->HideCrown();
         }
     }
 	// 新しい王冠をつける
@@ -179,6 +184,7 @@ void AGameMode_T::UpdateCrown(const FPlayerRecord* NewWinner)
     if (Winner)
     {
         UE_LOG(LogTemp, Warning, TEXT("Current Winner: %s"), *Winner->GetActorNameOrLabel());
+        Winner->ShowCrown();
     }
 }
 

@@ -10,8 +10,9 @@
 #include "Logging/LogMacros.h"
 #include "tokumaru/InventoryWeapon.h"
 #include "Net/UnrealNetwork.h"
-//#include "NiagaraComponent.h"
-//#include "NiagaraSystem.h"
+#include "NiagaraSystem.h"
+#include "NiagaraFunctionLibrary.h"
+
 #include "NiagaraComponent.h"
 #include "TakimotoBranch/CPPBaseWeapon.h"
 #include "TakimotoBranch/CPPWeaponType.h"
@@ -23,6 +24,7 @@ class UInputMappingContext;
 class UInputAction;
 class UMyAnimInstance;
 struct FInputActionValue;
+class UWidgetComponent; //プリンス 追加 2025/10/21　ネームタグに使う
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
@@ -162,7 +164,10 @@ private:
 	/// <summary>
 	/// 無敵時間作成
 	/// </summary>
+	UPROPERTY(Replicated,ReplicatedUsing = OnRep_UnDead)
 	bool UnDead = true;
+	UFUNCTION()
+	void OnRep_UnDead();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "HP", meta = (AllowPrivateAccess = "true"), Replicated, ReplicatedUsing = OnRep_UpdatedHealth)
 	float Health = 100.0f;
@@ -223,6 +228,37 @@ public:
 	UFUNCTION(Server, Reliable)
 	void Server_DamageEffect();  // クライアント用
 
+	///// <summary>
+ //   /// 無敵エフェクト表示用
+ //   /// </summary>
+	UFUNCTION(NetMulticast, Reliable)
+	void Multi_UndeadEffect();  // サーバー用
+
+	///// <summary>
+	///// 無敵エフェクト表示用
+	///// </summary>
+	UFUNCTION(Server, Reliable)
+	void Server_UndeadEffect();  // クライアント用
+
+	///// <summary>
+ //   /// エフェクト停止用
+ //   /// </summary>
+	UFUNCTION(NetMulticast, Reliable)
+	void Multi_StopBodyEffect();  // サーバー用
+
+	///// <summary>
+	///// エフェクト停止用
+	///// </summary>
+	UFUNCTION(Server, Reliable)
+	void Server_StopBodyEffect();  // クライアント用
+
+	UPROPERTY(EditAnywhere, Category = "effect")
+	UNiagaraSystem* damageAsset;
+
+	UPROPERTY(EditAnywhere, Category = "effect")
+	UNiagaraSystem* unDeadAsset;
+
+
 	/// <summary>
 	/// 釣り場侵入
 	/// </summary>
@@ -253,7 +289,10 @@ private:
 	/// <summary>
 	/// 釣り場
 	/// </summary>
+	UPROPERTY(Replicated, ReplicatedUsing = OnRep_FishingSpot)
 	AActor* fishingSpot = nullptr;
+	UFUNCTION()
+	void OnRep_FishingSpot();
 
 	/// <summary>
 	/// 今装備している武器のインベントリ番号
@@ -262,6 +301,12 @@ private:
 #pragma endregion
 
 #pragma region アニメーションモンタージュ再生から終了までの処理
+public:
+	UPROPERTY(Replicated, ReplicatedUsing = OnRep_IsFishing)
+	bool IsFishing = false;
+
+	UFUNCTION()
+	void OnRep_IsFishing();
 protected:
 
 	/** Called for movement input */
@@ -322,7 +367,6 @@ protected:
 	/// 釣りモーション再生
 	/// </summary>
 	void Fishing();
-	bool IsFishing = false;
 
 	/// <summary>
 	/// 釣りモーション終了
@@ -330,7 +374,11 @@ protected:
 	void OnFishingEnded(bool Result);
 	//10月15日　滝本海大　開始
 	//釣り場から貰ってきた魚を保存する変数
+	UPROPERTY(Replicated, ReplicatedUsing = OnRep_WeaponActorSubclass)
 	TSubclassOf<AActor> weaponActorSubclass;
+
+	UFUNCTION()
+	void OnRep_WeaponActorSubclass();
 		
 	//IA_GaugeStopにバインドする関数
 	void OnGaugeStop();
@@ -471,6 +519,18 @@ protected:
 	UFUNCTION(NetMulticast, Reliable)
 	void Multi_GetFishByGauge(bool Result);
 	//10月15日　滝本海大　終了
+
+	UFUNCTION(Server, Reliable)
+	void Server_EnterSpot(AActor* spot);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multi_EnterSpot(AActor* spot);
+
+	UFUNCTION(Server, Reliable)
+	void Server_ExitSpot();
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multi_ExitSpot();
 #pragma endregion
 
 
@@ -492,7 +552,7 @@ protected:
 
 	// 2025.07.30 ウー start
 	/// <summary>
-	/// プレイヤーがPlayerStateを与えた時
+	/// プレイヤーがPlayerStateを与えられた時
 	/// </summary>
 	virtual void OnRep_PlayerState() override;
 	// 2025.07.30 ウー end
@@ -616,6 +676,88 @@ protected:
 	/// </summary>
 	void SetNameFromInstance();
 #pragma endregion
+
+#pragma region 名前表示（ネームタグ）
+	//プリンス START 2025/10/21
+public:
+	/// <summary>
+	/// 名前ウィジェットを更新
+	/// </summary>
+	void UpdateNameWidget();
+private:
+	/// <summary>
+	/// 名前が更新されたとき
+	/// </summary>
+	UFUNCTION()
+	void OnRep_UpdatedName();
+
+
+	/// <summary>
+	/// プレイヤ名
+	/// </summary>
+	UPROPERTY(Replicated, ReplicatedUsing = OnRep_UpdatedName)
+	FString Name;
+
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	//UWidgetComponent* NameTagWidgetComp;
+
+	protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Child Actor")
+	UChildActorComponent* ChildActorComp;
+
+
+public:
+	virtual void PostNetInit() override;
+
+	UFUNCTION(Server, Reliable)
+	void ServerSetPlayerName(const FString& NewName);
+	//プリンス END 2025/10/21
+
+public:
+	/// <summary>
+	/// 名前を設定
+	/// </summary>
+	/// <param name="NewName"></param>
+
+	void SetName(const FString& NewName);
+
+	/// <summary>
+	/// 名前をゲット
+	/// </summary>
+	/// <returns></returns>
+	FString GetName() const;
+#pragma endregion
+
+// 2025.10.24 ウー start
+#pragma region 王冠
+public:
+
+	/// <summary>
+	/// 王冠を表示
+	/// </summary>
+	UFUNCTION(NetMulticast, Reliable)
+	void ShowCrown();
+
+	/// <summary>
+	/// 王冠を非表示
+	/// </summary>
+	UFUNCTION(NetMulticast, Reliable)
+	void HideCrown();
+
+private:
+
+	/// <summary>
+	/// 王冠のセットアップ
+	/// </summary>
+	void SetupCrown();
+
+	/// <summary>
+	/// 王冠のメッシュ
+	/// </summary>
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	UStaticMeshComponent* Crown;
+#pragma endregion
+// 2025.10.24 ウー end
 
 // 2025.10.22 ウー start
 #pragma region ポイント

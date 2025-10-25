@@ -36,4 +36,7 @@ public :
 
 	UFUNCTION(BlueprintCallable)
 	void GetWeaponType(ECPPWeaponType type_);
+
+	UFUNCTION(BlueprintCallable)
+	bool GetIsFishing();
 };

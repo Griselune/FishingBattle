@@ -9,8 +9,6 @@ void APlayerState_T::Server_AddWeapon(TSubclassOf<AActor> WeaponID)
 {
 	//Multi_AddWeapon(WeaponID);
 
-
-
 	for (int i = 0; i < inventory.Num(); i++) {
 		if (inventory[i].weaponActor == nullptr) {
 			inventory[i].weaponActor = WeaponID;
@@ -69,11 +67,14 @@ void APlayerState_T::Server_DestructionWeaponPS(int index)
 	else {
 		return;
 	}
+	//OnRep_Inventory();
+	OnInventoryUpdated.Broadcast();
 }
 
 void APlayerState_T::OnRep_Inventory()
 {
-	UE_LOG(LogTemp, Log, TEXT("インベントリ更新"));
+	UE_LOG(LogTemp, Display, TEXT("インベントリ更新"));
+	//OnInventoryUpdated.Broadcast();
 }
 
 void APlayerState_T::OnRep_InGamePlay()
