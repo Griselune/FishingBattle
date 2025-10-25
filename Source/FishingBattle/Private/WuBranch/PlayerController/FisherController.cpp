@@ -29,6 +29,11 @@ void AFisherController::BeginPlay()
 {
 	MyHUD = GetHUD<ABaseHUD>();
 
+	//PRINZ test
+	//if (AFishingBattleCharacter* MyChara = GetPawn<AFishingBattleCharacter>())
+	//{
+	//	MyChara->UpdateNameWidget();
+	//}
 }
 
 void AFisherController::OnPossess(APawn* aPawn)
@@ -113,6 +118,7 @@ void AFisherController::CreateUI_Implementation()
 		UE_LOG(LogTemp, Display, TEXT("FishingGaugeUI already set"));
 	}
 	//10月8日　滝本海大　終了
+
 }
 
 //10月8日　滝本海大　開始
