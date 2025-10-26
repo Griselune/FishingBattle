@@ -16,7 +16,7 @@ AChildPlayerNameTag::AChildPlayerNameTag()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	//PrimaryActorTick.bCanEverTick = true;
 
-	// Create and configure the widget component
+	//Widget Componentを生成してRootComponentに付ける
 	NameTagWidgetComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("NameTagWidgetComp"));
 	SetRootComponent(NameTagWidgetComp);
 
