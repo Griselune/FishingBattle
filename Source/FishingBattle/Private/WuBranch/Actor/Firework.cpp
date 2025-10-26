@@ -3,6 +3,8 @@
 
 #include "WuBranch/Actor/Firework.h"
 #include "NiagaraComponent.h"
+#include <Kismet/GameplayStatics.h>
+#include "Components/AudioComponent.h"
 
 // Sets default values
 AFirework::AFirework()
@@ -15,6 +17,10 @@ AFirework::AFirework()
 	FireworkEffect = CreateDefaultSubobject<UNiagaraComponent>(TEXT("Firework Effect"));
 	FireworkEffect->SetupAttachment(RootComponent);
 	FireworkEffect->SetAutoActivate(false);
+
+	FireworkAudioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("Firework Audio Component"));
+	FireworkAudioComponent->SetupAttachment(RootComponent);
+	FireworkAudioComponent->bAutoActivate = false;
 
 	bReplicates = true;
 }
@@ -38,6 +44,11 @@ void AFirework::Fire_Implementation()
 	if(FireworkEffect)
 	{
 		FireworkEffect->Activate(true);
+	}
+	// クライアント側で音声を再生
+	if(FireworkAudioComponent && !FireworkAudioComponent->IsPlaying())
+	{
+		FireworkAudioComponent->Play();
 	}
 }
 

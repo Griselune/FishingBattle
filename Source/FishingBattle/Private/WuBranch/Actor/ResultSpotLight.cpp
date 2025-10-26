@@ -3,10 +3,12 @@
 
 #include "WuBranch/Actor/ResultSpotLight.h"
 #include "Components/SpotLightComponent.h"
+#include "Components/AudioComponent.h"
 #include <Kismet/GameplayStatics.h>
 #include "WuBranch/Actor/ResultPlayer.h"
 #include <Kismet/KismetMathLibrary.h>
 #include <Net/UnrealNetwork.h>
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 AResultSpotLight::AResultSpotLight()
@@ -14,9 +16,15 @@ AResultSpotLight::AResultSpotLight()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+    RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
+
 	SpotLight = CreateDefaultSubobject<USpotLightComponent>(TEXT("Light"));
 	SpotLight->SetupAttachment(RootComponent);
     SpotLight->SetIsReplicated(true);
+
+	PreRevealAudioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("PreRevealAudioComponent"));
+	PreRevealAudioComponent->SetupAttachment(RootComponent);
+	PreRevealAudioComponent->bAutoActivate = false;
 
     bReplicates = true;
 }
@@ -50,7 +58,7 @@ void AResultSpotLight::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 
     DOREPLIFETIME(AResultSpotLight, SpotLight);
 	//DOREPLIFETIME(AResultSpotLight, WinnerID);
-	//DOREPLIFETIME(AResultSpotLight, CanStart);
+	DOREPLIFETIME(AResultSpotLight, CanStart);
 }
 
 void AResultSpotLight::StartMove_Implementation()
@@ -69,11 +77,27 @@ void AResultSpotLight::StartMove_Implementation()
 
     // 開始移動
     CanStart = true;
+
+	// プレリビール音声を再生
+    PlayPreRevealSound();
 }
 
 void AResultSpotLight::SetWinner_Implementation(int ID)
 {
 	WinnerID = ID;
+}
+
+void AResultSpotLight::OnRep_UpdateCanStart()
+{
+    if (CanStart)
+    {
+        // プレリビール音声を再生
+        PlayPreRevealSound();
+	}
+    else
+    {
+        NotifyPointedWinnerEvent();
+    }
 }
 
 void AResultSpotLight::SetFirstLightTarget()
@@ -124,6 +148,8 @@ void AResultSpotLight::CountEffectTime(float DeltaTime)
     {
         bIsEffectFinish = true;
         ForceSetLastTarget(FindWinnerCharacter());
+		// プレリビール音声を停止
+		StopPreRevealSound();
         return;
     }
 
@@ -207,5 +233,21 @@ void AResultSpotLight::NotifyPointedWinnerEvent()
 {
 	if (OnPointed.IsBound())
         OnPointed.Broadcast();
+}
+
+void AResultSpotLight::PlayPreRevealSound_Implementation()
+{
+    if(PreRevealAudioComponent->Sound && !PreRevealAudioComponent->IsPlaying())
+    {
+        PreRevealAudioComponent->Play();
+	}
+}
+
+void AResultSpotLight::StopPreRevealSound_Implementation()
+{
+    if (PreRevealAudioComponent->Sound && PreRevealAudioComponent->IsPlaying())
+    {
+		PreRevealAudioComponent->Stop();
+    }
 }
 
