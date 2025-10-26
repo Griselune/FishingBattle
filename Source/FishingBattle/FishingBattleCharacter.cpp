@@ -1100,7 +1100,11 @@ void AFishingBattleCharacter::Multi_Heal_Implementation()
 	//effect->Activate();
 	effect->ActivateSystem();
 
-	if(HealSound) UGameplayStatics::PlaySoundAtLocation(this, HealSound, GetActorLocation());
+	if (IsLocallyControlled()) {
+		if (HealSound) {
+			UGameplayStatics::PlaySoundAtLocation(this, HealSound, GetActorLocation());
+		}
+	}
 }
 
 void AFishingBattleCharacter::Server_Heal_Implementation()
