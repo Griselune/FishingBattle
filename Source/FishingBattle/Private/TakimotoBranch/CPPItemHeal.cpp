@@ -35,8 +35,9 @@ void ACPPItemHeal::Heal(AActor* Player)
 		if (IsHeal == false) {
 			IsHeal = true;
 
-			if (HealSound) UGameplayStatics::PlaySoundAtLocation(this, HealSound, GetActorLocation());
-			else { UE_LOG(LogTemp, Error, TEXT("CPPItemHeal: HealSound is not setting")); }
+			//キャラクターのHeal関数の中に移動
+			/*if (HealSound) UGameplayStatics::PlaySoundAtLocation(this, HealSound, GetActorLocation());
+			else { UE_LOG(LogTemp, Error, TEXT("CPPItemHeal: HealSound is not setting")); }*/
 
 			if (!HasAuthority()) return;
 			// 2025.07.17 ウー start

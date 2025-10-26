@@ -42,7 +42,7 @@ bool AGS_MenuGameState::Server_CheckAllPlayersReady()
 
 	for (APlayerState* PS : PlayerArray)
 	{
-		//checks if any player is not ready
+		//誰かが準備ボタンを押していないかどうかを確認する
 		APS_MenuPlayerState* MenuPS = Cast<APS_MenuPlayerState>(PS);
 		if (MenuPS){
 			if (!MenuPS->PSisPlayerReady) {
@@ -57,7 +57,7 @@ bool AGS_MenuGameState::Server_CheckAllPlayersReady()
 	GSCurrentPlayers = PlayerArray.Num(); //stores the amount of currently connected players
 
 
-	if (bAllReady == false) return false;
+	if (bAllReady == false) return false; //誰かが準備ボタンを押していない
 
 	UE_LOG(LogTemp, Warning, TEXT("✅ All players are ready!"));
 	return true;
@@ -123,7 +123,7 @@ void AGS_MenuGameState::OnRep_AllReady()
 {
 	AMenuPlayerController* PC = Cast<AMenuPlayerController>(GetOwner());
 
-	//Server's button turns green if all ready
+	//Server's "Play Now" button turns green if all ready
 	if (PC && PC->MatchMakingWidget) {
 		PC->MatchMakingWidget->SetButtonPlayNowColor(bEveryoneReady);
 	}
@@ -135,64 +135,6 @@ void AGS_MenuGameState::OnRep_CurrentPlayers()
 }
 #pragma endregion
 
-//void AGS_MenuGameState::AddPlayerToList(APlayerState* PS)
-//{
-//	if (!HasAuthority() || !PS)
-//		return;
-//
-//	APS_MenuPlayerState* MyPS = Cast<APS_MenuPlayerState>(PS);
-//	if (MyPS)
-//	{
-//		GSPlayerList.Add(MyPS, MyPS->PSPlayerName);
-//		UE_LOG(LogTemp, Warning, TEXT("Player added to GS list: %s"), *MyPS->PSPlayerName);
-//	}
-//}
-
-
-
-
-
-
-
-
-
-
-
-
-//void AGS_MenuGameState::GetDataFromServer_Implementation(AController* NewPlayer)
-//{
-////	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-//	ULANGameInstance* GIserver = Cast<ULANGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
-//
-//	APlayerState* PS = NewPlayer->GetPlayerState<APlayerState>();
-//	ULANGameInstance* GIclient = Cast<ULANGameInstance>(UGameplayStatics::GetGameInstance(NewPlayer->GetWorld()));
-//
-//	// server
-//	//if(HasAuthority())
-//		
-//
-//	UE_LOG(LogTemp, Warning, TEXT("Server Send Session Name"));
-//	SetSessionName(GSSessionName);
-//
-////	GIclient->GIPlayerList.Append(GIserver->GIPlayerList);
-////	UE_LOG(LogTemp, Warning, TEXT("GIserver last name : %s"), *GIserver->GIPlayerList[0]);
-//
-//	//Gets player list from server
-//	UE_LOG(LogTemp, Warning, TEXT("GI PlayerList: %d"), GIserver->GIPlayerList.Num());
-//	for (auto& list : GIserver->GIPlayerList) {
-//		AddPlayerToList(list.Key, list.Value);  //crash
-//		UE_LOG(LogTemp, Warning, TEXT("Get Player list from Server"));
-//	}
-//
-//	//Client adds it's own name in the list
-//	UE_LOG(LogTemp, Warning, TEXT("GI2 PlayerList: %d"), GIclient->GIPlayerList.Num());
-//	if (GIclient)
-//	{
-//		UE_LOG(LogTemp, Warning, TEXT("Add Client name in the Player List"));
-//		AddPlayerToList(PS, GIclient->GIPlayerName);
-//	}
-//	UE_LOG(LogTemp, Warning, TEXT("GI server PlayerList: %d"), GIserver->GIPlayerList.Num());
-//}
 
 
 #pragma region Setter
@@ -284,3 +226,53 @@ void AGS_MenuGameState::SetSessionIsBattleRoyale_Implementation(bool isBR)
 //	GSReadyPlayers -=1 ;
 //}
 #pragma endregion
+
+//void AGS_MenuGameState::AddPlayerToList(APlayerState* PS)
+//{
+//	if (!HasAuthority() || !PS)
+//		return;
+//
+//	APS_MenuPlayerState* MyPS = Cast<APS_MenuPlayerState>(PS);
+//	if (MyPS)
+//	{
+//		GSPlayerList.Add(MyPS, MyPS->PSPlayerName);
+//		UE_LOG(LogTemp, Warning, TEXT("Player added to GS list: %s"), *MyPS->PSPlayerName);
+//	}
+//}
+
+
+
+//void AGS_MenuGameState::GetDataFromServer_Implementation(AController* NewPlayer)
+//{
+////	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+//	ULANGameInstance* GIserver = Cast<ULANGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
+//
+//	APlayerState* PS = NewPlayer->GetPlayerState<APlayerState>();
+//	ULANGameInstance* GIclient = Cast<ULANGameInstance>(UGameplayStatics::GetGameInstance(NewPlayer->GetWorld()));
+//
+//	// server
+//	//if(HasAuthority())
+//		
+//
+//	UE_LOG(LogTemp, Warning, TEXT("Server Send Session Name"));
+//	SetSessionName(GSSessionName);
+//
+////	GIclient->GIPlayerList.Append(GIserver->GIPlayerList);
+////	UE_LOG(LogTemp, Warning, TEXT("GIserver last name : %s"), *GIserver->GIPlayerList[0]);
+//
+//	//Gets player list from server
+//	UE_LOG(LogTemp, Warning, TEXT("GI PlayerList: %d"), GIserver->GIPlayerList.Num());
+//	for (auto& list : GIserver->GIPlayerList) {
+//		AddPlayerToList(list.Key, list.Value);  //crash
+//		UE_LOG(LogTemp, Warning, TEXT("Get Player list from Server"));
+//	}
+//
+//	//Client adds it's own name in the list
+//	UE_LOG(LogTemp, Warning, TEXT("GI2 PlayerList: %d"), GIclient->GIPlayerList.Num());
+//	if (GIclient)
+//	{
+//		UE_LOG(LogTemp, Warning, TEXT("Add Client name in the Player List"));
+//		AddPlayerToList(PS, GIclient->GIPlayerName);
+//	}
+//	UE_LOG(LogTemp, Warning, TEXT("GI server PlayerList: %d"), GIserver->GIPlayerList.Num());
+//}

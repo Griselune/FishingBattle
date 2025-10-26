@@ -1099,6 +1099,8 @@ void AFishingBattleCharacter::Multi_Heal_Implementation()
 	//effect->Deactivate();
 	//effect->Activate();
 	effect->ActivateSystem();
+
+	if(HealSound) UGameplayStatics::PlaySoundAtLocation(this, HealSound, GetActorLocation());
 }
 
 void AFishingBattleCharacter::Server_Heal_Implementation()
