@@ -7,6 +7,7 @@
 #include "Firework.generated.h"
 
 class UNiagaraComponent;
+class UAudioComponent;
 
 UCLASS()
 class FISHINGBATTLE_API AFirework : public AActor
@@ -39,4 +40,9 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	UNiagaraComponent* FireworkEffect;
 
+	/// <summary>
+	/// 花火の音声コンポーネント
+	/// </summary>
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	UAudioComponent* FireworkAudioComponent;
 };
