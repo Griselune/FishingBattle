@@ -175,6 +175,11 @@ private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HP", meta = (AllowPrivateAccess = "true"))
 	float MaxHealth;
 
+	//10.26　滝本　start
+	UPROPERTY(EditAnywhere, Category = "HP")
+	USoundBase* HealSound;
+	//10.26　滝本　end
+
 	/// <summary>
 	/// プレイヤーステートの死に回数計測変数に加算。
 	/// </summary>
