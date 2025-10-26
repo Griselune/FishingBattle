@@ -9,6 +9,32 @@
 #include "PrinzBranch/PS_MenuPlayerState.h"
 
 
+
+
+#pragma region Initialize
+void AMenuPlayerController::SessionDataInitialize()
+{
+	if (!MatchMakingWidget) return;
+
+	AGS_MenuGameState* GS = GetWorld()->GetGameState<AGS_MenuGameState>();
+	FString GameMode = GS->GSisDeathMatch ? "Death Match" : "Battle Royale";
+
+	MatchMakingWidget->SetTextReadyPlayers(GS->GSReadyPlayers, GS->GSCurrentPlayers);
+	MatchMakingWidget->SetTextPlayerMax(FString::FromInt(GS->GSSessionPlayerLimit));
+	MatchMakingWidget->SetTextSessionName(GS->GSSessionName);
+	MatchMakingWidget->SetTextSessionGameMode(GameMode);
+	MatchMakingWidget->SetTextSessionTimeLimit(FString::FromInt(GS->GSSessionTimeLimit));
+}
+void AMenuPlayerController::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if (IsLocalController()) {
+		SessionDataInitialize();
+	}
+}
+#pragma endregion
+
 //server only
 void AMenuPlayerController::Server_SetPlayerReady_Implementation(bool IsPlayerReady)
 {
@@ -42,30 +68,3 @@ void AMenuPlayerController::Server_SetPlayerReady_Implementation(bool IsPlayerRe
 		}
 	}
 }
-
-
-#pragma region Initialize
-void AMenuPlayerController::SessionDataInitialize()
-{
-	if (!MatchMakingWidget) return;
-
-	AGS_MenuGameState* GS = GetWorld()->GetGameState<AGS_MenuGameState>();
-	FString GameMode = GS->GSisDeathMatch ? "Death Match" : "Battle Royale";
-
-	MatchMakingWidget->SetTextReadyPlayers(GS->GSReadyPlayers, GS->GSCurrentPlayers);
-	MatchMakingWidget->SetTextPlayerMax(FString::FromInt(GS->GSSessionPlayerLimit));
-	MatchMakingWidget->SetTextSessionName(GS->GSSessionName);
-	MatchMakingWidget->SetTextSessionGameMode(GameMode);
-	MatchMakingWidget->SetTextSessionTimeLimit(FString::FromInt(GS->GSSessionTimeLimit));
-}
-void AMenuPlayerController::BeginPlay()
-{
-	Super::BeginPlay();
-
-//	AGS_MenuGameState* GS = GetWorld()->GetGameState<AGS_MenuGameState>();
-	if (/*MatchMakingWidget && */IsLocalController()) {
-	//	MatchMakingWidget->SetTextReadyPlayers(GS->GSReadyPlayers, GS->GSCurrentPlayers);
-		SessionDataInitialize();
-	}
-}
-#pragma endregion

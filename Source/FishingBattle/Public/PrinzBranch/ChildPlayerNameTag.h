@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "ChildPlayerNameTag.generated.h"
-class UWidgetComponent; //プリンス 追加 2025/10/21　ネームタグに使う
+class UWidgetComponent;
 
 UCLASS()
 class FISHINGBATTLE_API AChildPlayerNameTag : public AActor
