@@ -9,6 +9,7 @@
 class USpotLightComponent;
 class USphereComponent;
 class AResultPlayer;
+class UAudioComponent;
 
 UCLASS()
 class FISHINGBATTLE_API AResultSpotLight : public AActor
@@ -50,6 +51,12 @@ public:
 	FPointWinnerDelegate OnPointed;
 
 private:
+
+	/// <summary>
+	/// CanStartの更新通知
+	/// </summary>
+	UFUNCTION()
+	void OnRep_UpdateCanStart();
 
 	/// <summary>
 	/// 初めのライトの照明対象を設定
@@ -97,10 +104,28 @@ private:
 	void NotifyPointedWinnerEvent();
 
 	/// <summary>
+	/// プレリビール音声を再生
+	/// </summary>
+	UFUNCTION(NetMulticast, Reliable)
+	void PlayPreRevealSound();
+
+	/// <summary>
+	/// プレリビール音声を停止
+	/// </summary>
+	UFUNCTION(NetMulticast, Reliable)
+	void StopPreRevealSound();
+
+	/// <summary>
 	/// ライト
 	/// </summary>
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"), Replicated)
 	USpotLightComponent* SpotLight;
+
+	/// <summary>
+	/// プレリビール音声コンポーネント
+	/// </summary>
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	UAudioComponent* PreRevealAudioComponent;
 
 	/// <summary>
 	/// 全プレイヤーのキャラクター
@@ -136,7 +161,7 @@ private:
 	/// <summary>
 	/// 移動開始ですか
 	/// </summary>
-	//UPROPERTY(Replicated)
+	UPROPERTY(Replicated, ReplicatedUsing = OnRep_UpdateCanStart)
 	bool CanStart;
 
 	/// <summary>
