@@ -130,8 +130,8 @@ AActor* AResultSpotLight::GetNewRandomTarget()
 	CharacterCopy.Remove(CurrentTarget);
 	// 隨機に選ぶ
     int Index = FMath::RandRange(0, CharacterCopy.Num() - 1);
-    NewTarget = Characters[Index];
-    return NewTarget;
+    NewTarget = CharacterCopy[Index];
+    return Characters[Characters.Find(NewTarget)];
 }
 
 void AResultSpotLight::CountEffectTime(float DeltaTime)
