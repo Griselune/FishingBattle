@@ -4,19 +4,18 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "Firework.generated.h"
+#include "Audio2DManager.generated.h"
 
-class UNiagaraComponent;
 class UAudioComponent;
 
 UCLASS()
-class FISHINGBATTLE_API AFirework : public AActor
+class FISHINGBATTLE_API AAudio2DManager : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
-	AFirework();
+	AAudio2DManager();
 
 protected:
 	// Called when the game starts or when spawned
@@ -26,23 +25,29 @@ public:
 	// Called every frame
 	//virtual void Tick(float DeltaTime) override;
 
-	/// <summary>
-	/// 花火を打ち上げる
-	/// </summary>
-	UFUNCTION(NetMulticast, Reliable)
-	void Fire();
-
 private:
 
 	/// <summary>
-	/// 花火のエフェクト
+	/// 歓声音声を再生
 	/// </summary>
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	UNiagaraComponent* FireworkEffect;
+	UFUNCTION()
+	void PlayCheerSound();
 
 	/// <summary>
-	/// 花火の音声コンポーネント
+	/// 拍手音声を再生
+	/// </summary>
+	UFUNCTION()
+	void PlayClapSound();
+
+	/// <summary>
+	/// 歓声音声コンポーネント
 	/// </summary>
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
-	UAudioComponent* FireworkAudioComponent;
+	UAudioComponent* CheerAudioComponent;
+
+	/// <summary>
+	/// 拍手音声コンポーネント
+	/// </summary>
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	UAudioComponent* ClapAudioComponent;
 };
