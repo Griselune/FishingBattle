@@ -123,10 +123,10 @@ float AFishingBattleCharacter::TakeDamage(float DamageAmount, FDamageEvent const
 		Die();
 
 		// 2025.10.23 ウー start
-		// ポイントを加算
-		if (AFishingBattleCharacter* Player = Cast<AFishingBattleCharacter>(DamageCauser))
+		// プレイヤーを倒したら、倒した人がポイントを加算(サーバーだけ)
+		if (HasAuthority())
 		{
-			Player->AddPoint(AttackPoint);
+			AwardPointsForDefeat(DamageCauser);
 		}
 		// 2025.10.23 ウー end
 
@@ -1633,9 +1633,33 @@ void AFishingBattleCharacter::ShowFishingGauge(UAnimMontage* Montage, bool in)
 #pragma region ポイント
 void AFishingBattleCharacter::AddPoint(float Point)
 {
-	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
-	if (ps) {
-		ps->AddPoint(Point);
+	APlayerState_T* PS = GetPlayerState<APlayerState_T>();
+	if (PS) {
+		PS->AddPoint(Point);
+	}
+}
+
+float AFishingBattleCharacter::GetPoint()
+{
+	APlayerState_T* PS = GetPlayerState<APlayerState_T>();
+	if (PS) {
+		return PS->GetPoint();
+	}
+	return 0.0f;
+}
+
+void AFishingBattleCharacter::AwardPointsForDefeat(AActor* DamageCauser)
+{
+	if (AFishingBattleCharacter* Player = Cast<AFishingBattleCharacter>(DamageCauser))
+	{
+		// 新しいルールを使用する
+		// 自身にポイントは半分になる、小数点はいらない
+		float MyPoint = GetPoint();
+		int LossPoint = (int)(MyPoint / 2);
+		AddPoint(-LossPoint);
+		// 倒した人はなくなったポイントの半分をもらう
+		Player->AddPoint((int)(LossPoint / 2));
+		//Player->AddPoint(AttackPoint);
 	}
 }
 #pragma endregion
