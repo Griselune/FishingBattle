@@ -22,6 +22,9 @@ public:
 
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 
+    UFUNCTION(Server, Reliable)
+    void Server_SetDataSession();
+
     UFUNCTION()
     void OnRep_SessionData();
 
@@ -43,6 +46,11 @@ public:
     UFUNCTION(BlueprintCallable)
     void Server_UpdateAllReadyButtonColor();
 
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data", Replicated, ReplicatedUsing = OnRep_CurrentPlayers)
+    int32 GSReadyPlayers = 0;
+
+    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data", Replicated, ReplicatedUsing = OnRep_CurrentPlayers)
+    int32 GSCurrentPlayers = 0;
 
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data", Replicated, ReplicatedUsing = OnRep_SessionData)
     FString GSSessionName;
@@ -62,14 +70,10 @@ public:
     UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data", Replicated, ReplicatedUsing = OnRep_SessionData)
     bool GSisBattleRoyale = true;
 
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
-    TMap<APlayerState*, FString> GSPlayerList;
 
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data", Replicated, ReplicatedUsing = OnRep_CurrentPlayers)
-    int32 GSReadyPlayers = 0;
+    //UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data")
+    //TMap<APlayerState*, FString> GSPlayerList;
 
-    UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Shared Data", Replicated, ReplicatedUsing = OnRep_CurrentPlayers)
-    int32 GSCurrentPlayers = 0;
 
 
     /// <summary>
@@ -90,30 +94,25 @@ public:
     //UFUNCTION(BlueprintCallable, Server, Reliable)
     //void HostRemoveReadyPlayer();
 
-public:
-
-    UFUNCTION(Server, Reliable)
-    void Server_SetDataSession();
-
-
-
-    UFUNCTION(NetMulticast, Reliable)
-    void SetSessionName(const FString& Name);
-
-    UFUNCTION(NetMulticast, Reliable)
-    void SetSessionPlayerLimit(const int32& PlayerLimit);
-
-    UFUNCTION(NetMulticast, Reliable)
-    void SetPlayerName(const FString& PlayerName);  //name
-
-    UFUNCTION(NetMulticast, Reliable)
-    void SetSessionTimeLimit(const int32& TimeLimit);
-
-    UFUNCTION(NetMulticast, Reliable)
-    void SetSessionIsDeathMatch(bool isDM);
-
-    UFUNCTION(NetMulticast, Reliable)
-    void SetSessionIsBattleRoyale(bool isBR);
+//public:
+//
+//    UFUNCTION(NetMulticast, Reliable)
+//    void SetSessionName(const FString& Name);
+//
+//    UFUNCTION(NetMulticast, Reliable)
+//    void SetSessionPlayerLimit(const int32& PlayerLimit);
+//
+//    UFUNCTION(NetMulticast, Reliable)
+//    void SetPlayerName(const FString& PlayerName);  //name
+//
+//    UFUNCTION(NetMulticast, Reliable)
+//    void SetSessionTimeLimit(const int32& TimeLimit);
+//
+//    UFUNCTION(NetMulticast, Reliable)
+//    void SetSessionIsDeathMatch(bool isDM);
+//
+//    UFUNCTION(NetMulticast, Reliable)
+//    void SetSessionIsBattleRoyale(bool isBR);
 };
 
 

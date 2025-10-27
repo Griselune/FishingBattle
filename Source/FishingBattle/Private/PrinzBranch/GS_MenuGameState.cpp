@@ -12,7 +12,7 @@
 void AGS_MenuGameState::BeginPlay()
 {
 	Super::BeginPlay();
-//	GSCurrentPlayers = PlayerArray.Num();
+
 	Server_SetDataSession();
 	Server_UpdateAllCurrentPlayers();
 }
@@ -138,51 +138,51 @@ void AGS_MenuGameState::OnRep_CurrentPlayers()
 
 
 #pragma region Setter
-void AGS_MenuGameState::SetSessionName_Implementation(const FString& Name)
-{
-	GSSessionName = Name;
-	UE_LOG(LogTemp, Warning, TEXT("Get Name: %s"), *GSSessionName);
-}
-
-//void AGS_MenuGameState::SetSessionPassword_Implementation(const FString& Password)
+//void AGS_MenuGameState::SetSessionName_Implementation(const FString& Name)
 //{
-//	GSSessionPassword= Password;
-//	UE_LOG(LogTemp, Warning, TEXT("Get Name: %s"), *GSSessionPassword);
+//	GSSessionName = Name;
+//	UE_LOG(LogTemp, Warning, TEXT("Get Name: %s"), *GSSessionName);
 //}
-
-void AGS_MenuGameState::SetSessionPlayerLimit_Implementation(const int32& PlayerLimit)
-{
-	GSSessionPlayerLimit = PlayerLimit;
-	UE_LOG(LogTemp, Warning, TEXT("Get Name: %d"), GSSessionPlayerLimit);
-}
-
-void AGS_MenuGameState::SetPlayerName_Implementation(const FString& PlayerName)   //name
-{
-	GSPlayerName = PlayerName;
-	UE_LOG(LogTemp, Warning, TEXT("Get Name: %s"), *GSPlayerName);
-}
-
-void AGS_MenuGameState::SetSessionTimeLimit_Implementation(const int32& TimeLimit)
-{
-	GSSessionTimeLimit = TimeLimit;
-	UE_LOG(LogTemp, Warning, TEXT("Get Name: %d"), GSSessionTimeLimit);
-}
-
-void AGS_MenuGameState::SetSessionIsDeathMatch_Implementation(bool isDM)
-{
-	GSisDeathMatch = isDM;
-	if (GSisDeathMatch) {
-		UE_LOG(LogTemp, Warning, TEXT("Get mode: Deathmatch"));
-	}
-}
-
-void AGS_MenuGameState::SetSessionIsBattleRoyale_Implementation(bool isBR)
-{
-	GSisBattleRoyale = isBR;
-	if (GSisBattleRoyale) {
-		UE_LOG(LogTemp, Warning, TEXT("Get mode: Battleroyale"));
-	}
-}
+//
+////void AGS_MenuGameState::SetSessionPassword_Implementation(const FString& Password)
+////{
+////	GSSessionPassword= Password;
+////	UE_LOG(LogTemp, Warning, TEXT("Get Name: %s"), *GSSessionPassword);
+////}
+//
+//void AGS_MenuGameState::SetSessionPlayerLimit_Implementation(const int32& PlayerLimit)
+//{
+//	GSSessionPlayerLimit = PlayerLimit;
+//	UE_LOG(LogTemp, Warning, TEXT("Get SessionPlayerLimit: %d"), GSSessionPlayerLimit);
+//}
+//
+//void AGS_MenuGameState::SetPlayerName_Implementation(const FString& PlayerName)   //name
+//{
+//	GSPlayerName = PlayerName;
+//	UE_LOG(LogTemp, Warning, TEXT("Get PlayerName: %s"), *GSPlayerName);
+//}
+//
+//void AGS_MenuGameState::SetSessionTimeLimit_Implementation(const int32& TimeLimit)
+//{
+//	GSSessionTimeLimit = TimeLimit;
+//	UE_LOG(LogTemp, Warning, TEXT("Get SessionTimeLimit: %d"), GSSessionTimeLimit);
+//}
+//
+//void AGS_MenuGameState::SetSessionIsDeathMatch_Implementation(bool isDM)
+//{
+//	GSisDeathMatch = isDM;
+//	if (GSisDeathMatch) {
+//		UE_LOG(LogTemp, Warning, TEXT("Get mode: Deathmatch"));
+//	}
+//}
+//
+//void AGS_MenuGameState::SetSessionIsBattleRoyale_Implementation(bool isBR)
+//{
+//	GSisBattleRoyale = isBR;
+//	if (GSisBattleRoyale) {
+//		UE_LOG(LogTemp, Warning, TEXT("Get mode: Battleroyale"));
+//	}
+//}
 #pragma endregion
 
 #pragma region Player List Functions
