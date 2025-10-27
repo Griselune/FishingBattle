@@ -35,34 +35,30 @@ void AMenuPlayerController::BeginPlay()
 }
 #pragma endregion
 
-//server only
+//サーバーのみ
 void AMenuPlayerController::Server_SetPlayerReady_Implementation(bool IsPlayerReady)
 {
-	//get PS from the client that calls the RPC
+	// RPCを呼び出したクライアントからPSを取得
 	APS_MenuPlayerState* PS = GetPlayerState<APS_MenuPlayerState>();
 	if (PS) {
-		PS->PSisPlayerReady = IsPlayerReady; //server sets the value for the client
+		PS->PSisPlayerReady = IsPlayerReady; //サーバーがクライアント用の値を設定
 
-		PS->OnRep_PlayerReady(); //force server UI update
+		PS->OnRep_PlayerReady(); //サーバーUIを強制更新
 	}
 
-	//change PlayNow button color server only
+	//PlayNowボタンの色をサーバー側のみで変更
 	AGS_MenuGameState* GS = GetWorld()->GetGameState<AGS_MenuGameState>();
-	if (GS)
-	{
+	if (GS) {
 		bool bAllReady = GS->Server_CheckAllPlayersReady();
-
-		// Only update host’s button UI
-		for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
-		{
+		//ホストのボタンUIのみ更新
+		for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It) {
 			AMenuPlayerController* PC = Cast<AMenuPlayerController>(*It);
-			if (PC && PC->IsLocalController() && PC->HasAuthority() && PC->MatchMakingWidget) //If server
-			{
+			if (PC && PC->IsLocalController() && PC->HasAuthority() && PC->MatchMakingWidget) { //サーバーの場合
 				PC->MatchMakingWidget->SetButtonPlayNowColor(bAllReady);
 			}
 
 			if (PC && PC->MatchMakingWidget) {
-				//update all numbers
+				//現在のプレイヤー数と準備完了プレイヤー数を更新
 				PC->MatchMakingWidget->SetTextReadyPlayers(GS->GSReadyPlayers, GS->GSCurrentPlayers);
 			}
 		}
