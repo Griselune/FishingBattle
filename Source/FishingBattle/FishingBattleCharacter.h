@@ -774,7 +774,19 @@ public:
 	/// <param name="Point">ポイント</param>
 	void AddPoint(float Point);
 
+	/// <summary>
+	/// ポイントをゲット
+	/// </summary>
+	/// <returns>ポイント</returns>
+	float GetPoint();
+
 private:
+
+	/// <summary>
+	/// プレイヤーを倒したのポイント処理
+	/// </summary>
+	/// <param name="DamageCauser">ダメージ元</param>
+	void AwardPointsForDefeat(AActor* DamageCauser);
 
 	UPROPERTY(EditDefaultsOnly, Category = "Point", meta = (AllowPrivateAccess = "true"))
 	float AttackPoint;
