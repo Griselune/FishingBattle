@@ -33,15 +33,20 @@ void AGameMode_T::RespawnPlayerT(AController* Controller)
     FVector Location;
     FRotator Rotation;
     bool bHit = false;
+    float Radius = 0.0f;
+    if(AFishingBattleCharacter* Character = Controller->GetPawn<AFishingBattleCharacter>())
+        Radius = Character->GetSimpleCollisionRadius();
+    FCollisionShape collisionShape = FCollisionShape::MakeSphere(Radius);
     do {
         Location = StartSpot->GetActorLocation();
+        Location.Z = Radius + 53.0f;
         Rotation = StartSpot->GetActorRotation();
 
 
         FRandomStream Stream;
         Stream.GenerateNewSeed(); //種値更新
-        float randomX = Stream.RandRange(-800.0f, 800.0f);
-        float randomY = Stream.RandRange(-800.0f, 800.0f);
+        float randomX = Stream.RandRange(-75.0f, 75.0f);
+        float randomY = Stream.RandRange(-75.0f, 75.0f);
 
         Location.X += randomX;
         Location.Y += randomY;
@@ -52,14 +57,19 @@ void AGameMode_T::RespawnPlayerT(AController* Controller)
         FHitResult HitResult;
         FCollisionQueryParams Params;
         Params.AddIgnoredActor(Controller->GetPawn()); // 自分自身を無視
-
-        bHit = GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, Params);
+        //DrawDebugSphere();
+        bHit = GetWorld()->SweepSingleByChannel(HitResult, Start, End,FQuat::Identity,ECC_Visibility, collisionShape, Params);
+        if (bHit)
+            UE_LOG(LogTemp, Warning, TEXT("hit %s"), *HitResult.GetActor()->GetActorNameOrLabel());
     } while (bHit);
 
 
     UE_LOG(LogTemp, Log, TEXT("StartSpot Location: X=%f, Y=%f, Z=%f"), Location.X, Location.Y, Location.Z);
 
-    APawn* NewPawn = GetWorld()->SpawnActor<APawn>(DefaultPawnClass, Location, Rotation);
+
+    FActorSpawnParameters params;
+    params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+    APawn* NewPawn = GetWorld()->SpawnActor<APawn>(DefaultPawnClass, Location, Rotation,params);
 
 
     if (NewPawn)
