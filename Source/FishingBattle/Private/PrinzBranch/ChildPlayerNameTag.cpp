@@ -10,6 +10,13 @@ UWidgetComponent* AChildPlayerNameTag::GetNameTagWidgetComp() const
     return NameTagWidgetComp;
 }
 
+UWidgetComponent* AChildPlayerNameTag::GetDisplayPointsWidgetComp() const
+{
+	return DisplayPointsWidgetComp;
+}
+
+
+
 // Sets default values
 AChildPlayerNameTag::AChildPlayerNameTag()
 {
@@ -17,9 +24,14 @@ AChildPlayerNameTag::AChildPlayerNameTag()
 	//PrimaryActorTick.bCanEverTick = true;
 
 	//Widget Componentを生成してRootComponentに付ける
-	NameTagWidgetComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("NameTagWidgetComp"));
-	SetRootComponent(NameTagWidgetComp);
+	TextRootComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("TextRootComp"));
+	SetRootComponent(TextRootComp);
 
+	NameTagWidgetComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("NameTagWidgetComp"));
+	NameTagWidgetComp->SetupAttachment(TextRootComp);
+
+	DisplayPointsWidgetComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("DisplayPointsWidgetComp"));
+	DisplayPointsWidgetComp->SetupAttachment(TextRootComp);
 }
 
 // Called when the game starts or when spawned
