@@ -997,14 +997,14 @@ void AFishingBattleCharacter::PossessedBy(AController* NewController)
 		UE_LOG(LogTemp, Warning, TEXT("addFishrod!!!!!!!!!!!!"));
 
 		Server_TrueInGamePlay();
-		//プリンス START 2025/10/25 test
+		//プリンス START 2025/10/25 
 		ULANGameInstance* GI = GetGameInstance<ULANGameInstance>();
 		ServerSetPlayerName(GI->GIPlayerName);
-		//プリンス START 2025/10/28 test
+		//2025/10/28 
 		Multi_SetPlayerDPoints((int)GetPoint());
 		OnRep_UpdatedPoints();
-		//プリンス END 2025/10/28
-		//プリンス END 2025/10/25 test
+		//2025/10/28
+		//プリンス END 2025/10/25
 	}
 
 	// 2025.10.25 ウー start
@@ -1032,12 +1032,12 @@ void AFishingBattleCharacter::OnRep_PlayerState()
 
 	// 名前を保存する、クライアントのみ
 	SetNameFromInstance();
-	//プリンス START 2025/10/25 test
+	//プリンス START 2025/10/25
 	if (IsLocallyControlled()) {
 		ULANGameInstance* GI = GetGameInstance<ULANGameInstance>();
 		ServerSetPlayerName(GI->GIPlayerName);
 	}
-	//プリンス END 2025/10/25 test
+	//プリンス END 2025/10/25
 }
 
 #pragma endregion
@@ -1096,12 +1096,6 @@ void AFishingBattleCharacter::ChangeMappingContext(UInputMappingContext* context
 			Subsystem->AddMappingContext(context_, 0);
 			nowMappingContext = context_;
 		}
-	}
-
-	//prinz test
-	if (HasAuthority()) {
-		Multi_SetPlayerDPoints((int)GetPoint());
-		UE_LOG(LogTemp, Warning, TEXT("SERVER calls Multi_SetPlayerDPoints((int)GetPoint()) with %d pts for : %s"), (int)GetPoint(), *Name);
 	}
 }
 #pragma endregion
@@ -1338,8 +1332,6 @@ void AFishingBattleCharacter::SetNameFromInstance()
 		if (GameInstance && GameState)
 		{
 			GameState->SetName(GameInstance->GIPlayerName);
-			//prinz test
-			//ServerSetPlayerName(GameInstance->GIPlayerName);
 		}
 	}
 }
@@ -1578,6 +1570,7 @@ void AFishingBattleCharacter::OnFishingEnded(bool Result)
 					if (ACPPBaseWeapon* BW = Cast<ACPPBaseWeapon>(WeaponClass->GetDefaultObject()))
 					{
 						AddPoint(BW->GetPoint());
+						Server_SetPlayerDPoints((int)GetPoint());
 					}
 				}
 				else
@@ -1680,7 +1673,7 @@ void AFishingBattleCharacter::AddPoint(float Point)
 		PS->AddPoint(Point);
 
 		//プリンス START 2025/10/28 test
-		const float DelayTime = 1.0f;
+		const float DelayTime = 0.2f;
 
 		FTimerHandle DelayHandle;
 		GetWorldTimerManager().SetTimer(
@@ -1689,13 +1682,13 @@ void AFishingBattleCharacter::AddPoint(float Point)
 				{
 					if (HasAuthority())
 					{
-						UE_LOG(LogTemp, Warning, TEXT("SERVER delayed ServerSetPlayerDPoints() | new points : %d for name: %s"), DPoints, *Name);
+						UE_LOG(LogTemp, Warning, TEXT("SERVER delayed ServerSetPlayerDPoints() in AddPoint()| new points : %d for name: %s"), (int)PS->GetPoint(), *Name);
 					//	AddPoint(0.f);
 						Multi_SetPlayerDPoints((int)PS->GetPoint());
 					}
 					else
 					{
-						UE_LOG(LogTemp, Warning, TEXT("CLIENT delayed ServerSetPlayerDPoints() | new points : %d for name: %s"), DPoints, *Name);
+						UE_LOG(LogTemp, Warning, TEXT("CLIENT delayed ServerSetPlayerDPoints() in AddPoint() | new points : %d for name: %s"), (int)PS->GetPoint(), *Name);
 					//	AddPoint(0.f);
 						Server_SetPlayerDPoints((int)PS->GetPoint());
 					}
@@ -1703,16 +1696,6 @@ void AFishingBattleCharacter::AddPoint(float Point)
 			DelayTime,
 			false // don't loop
 		);
-
-
-		/*if (HasAuthority()) {
-			UE_LOG(LogTemp, Warning, TEXT("SERVER Multi_SetPlayerDPoints() in AddPoint() - +points=%d | new points : %d for name: %s"), (int)Point, DPoints, *Name);
-			Multi_SetPlayerDPoints((int)PS->GetPoint());
-		}
-		else {
-			UE_LOG(LogTemp, Warning, TEXT("CLIENT Server_SetPlayerDPoints() in AddPoint() - +points=%d | new points : %d for name: %s"), (int)Point, DPoints, *Name);
-			Server_SetPlayerDPoints((int)PS->GetPoint());
-		}*/
 		//プリンス END 2025/10/28
 	}
 }
@@ -1823,7 +1806,7 @@ void AFishingBattleCharacter::UpdateDisplayPointsWidget()
 					// Access the TextBlock using the meta=(BindWidget) name
 					if (UTextBlock* DisplayPointsText = Cast<UTextBlock>(PWidget->GetWidgetFromName(TEXT("TXT_DisplayPoints")))) {
 						// Set the text
-						DisplayPointsText->SetText(FText::AsNumber(DPoints/*GetPoint()*/));
+						DisplayPointsText->SetText(FText::AsNumber(DPoints));
 						UE_LOG(LogTemp, Warning, TEXT("%s(%s) has updated display points"), *Name, *this->GetActorNameOrLabel());
 					}
 				}
@@ -1884,12 +1867,24 @@ void AFishingBattleCharacter::ServerSetPlayerName_Implementation(const FString& 
 void AFishingBattleCharacter::Server_SetPlayerDPoints_Implementation(const int32& NewPoints)
 {
 	Multi_SetPlayerDPoints(NewPoints);
+	if (HasAuthority()) {
+		UE_LOG(LogTemp, Warning, TEXT("SERVER Server_SetPlayerDPoints() - new points : %d for name: %s"), DPoints, *Name);
+	}
+	else {
+		UE_LOG(LogTemp, Warning, TEXT("CLIENT Server_SetPlayerDPoints() - new points : %d for name: %s"), DPoints, *Name);
+	}
 //	SetDPoints(NewPoints);
 }
 
 void AFishingBattleCharacter::Multi_SetPlayerDPoints_Implementation(const int32& NewPoints)
 {
 	SetDPoints(NewPoints);
+	if (HasAuthority()) {
+		UE_LOG(LogTemp, Warning, TEXT("SERVER Multi_SetPlayerDPoints() - new points : %d for name: %s"), DPoints, *Name);
+	}
+	else {
+		UE_LOG(LogTemp, Warning, TEXT("CLIENT Multi_SetPlayerDPoints() - new points : %d for name: %s"), DPoints, *Name);
+	}
 }
 
 //プリンス END 2025/10/21
