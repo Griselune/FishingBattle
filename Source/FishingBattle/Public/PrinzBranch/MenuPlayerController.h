@@ -21,7 +21,7 @@ public:
 	UFUNCTION(BlueprintCallable, Server, Reliable)
 	void Server_SetPlayerReady(bool IsPlayerReady);
 
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void SessionDataInitialize();
 
 protected:

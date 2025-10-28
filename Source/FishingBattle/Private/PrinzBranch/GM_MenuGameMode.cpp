@@ -14,6 +14,27 @@ void AGM_MenuGameMode::BeginPlay()
 {
     Super::BeginPlay();
 
+    //ビルドバグ対策
+    ULANGameInstance* GI = Cast<ULANGameInstance>(GetGameInstance());
+    AGS_MenuGameState* GS = GetGameState<AGS_MenuGameState>();
+    if (GI && GS)
+    {
+        GS->GSSessionName = GI->GISessionName;
+        GS->GSSessionPlayerLimit = GI->GISessionPlayerLimit;
+        GS->GSSessionTimeLimit = GI->GISessionTimeLimit;
+        GS->GSisDeathMatch = GI->GIisDeathMatch;
+        GS->GSisBattleRoyale = GI->GIisBattleRoyale;
+    }
+    // ---- Force update for listen server’s local player ----
+    for (FConstPlayerControllerIterator It = GetWorld()->GetPlayerControllerIterator(); It; ++It)
+    {
+        AMenuPlayerController* PC = Cast<AMenuPlayerController>(It->Get());
+        if (PC && PC->IsLocalController())  // This is the host’s client side
+        {
+            PC->SessionDataInitialize();  // Manually refresh UI now that data is valid
+        }
+    }
+
    /* if (HasAuthority())
     {
         for (APlayerState* PS : GameState->PlayerArray)

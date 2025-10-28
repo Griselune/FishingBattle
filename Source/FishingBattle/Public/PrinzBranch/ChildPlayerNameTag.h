@@ -19,9 +19,17 @@ public:
 	// Getter for the widget component
 	UWidgetComponent* GetNameTagWidgetComp() const;
 
+	UWidgetComponent* GetDisplayPointsWidgetComp() const;
+
 protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Text Root Comp")
+	UWidgetComponent* TextRootComp;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Name Tag")
 	UWidgetComponent* NameTagWidgetComp;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Display Points")
+	UWidgetComponent* DisplayPointsWidgetComp;
 
 protected:
 	// Called when the game starts or when spawned

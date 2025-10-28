@@ -689,6 +689,12 @@ public:
 	/// 名前ウィジェットを更新
 	/// </summary>
 	void UpdateNameWidget();
+
+	/// <summary>
+	/// ポイントウィジェットを更新
+	/// </summary>
+//	UFUNCTION(NetMulticast, Reliable)
+	void UpdateDisplayPointsWidget();
 private:
 	/// <summary>
 	/// 名前が更新されたとき
@@ -696,6 +702,11 @@ private:
 	UFUNCTION()
 	void OnRep_UpdatedName();
 
+	/// <summary>
+	/// ポイントが更新されたとき
+	/// </summary>
+	UFUNCTION()
+	void OnRep_UpdatedPoints();
 
 	/// <summary>
 	/// プレイヤ名
@@ -703,6 +714,11 @@ private:
 	UPROPERTY(Replicated, ReplicatedUsing = OnRep_UpdatedName)
 	FString Name;
 
+	/// <summary>
+	/// プレイヤのポイント（スコア）
+	/// </summary>
+	UPROPERTY(Replicated, ReplicatedUsing = OnRep_UpdatedPoints)
+	int32 DPoints;
 	//UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	//UWidgetComponent* NameTagWidgetComp;
 
@@ -716,6 +732,12 @@ public:
 
 	UFUNCTION(Server, Reliable)
 	void ServerSetPlayerName(const FString& NewName);
+
+	UFUNCTION(Server, Reliable)
+	void Server_SetPlayerDPoints(const int32& NewPoints);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multi_SetPlayerDPoints(const int32& NewPoints);
 	//プリンス END 2025/10/21
 
 public:
@@ -731,6 +753,19 @@ public:
 	/// </summary>
 	/// <returns></returns>
 	FString GetName() const;
+
+	/// <summary>
+	/// ポイントの設定
+	/// </summary>
+	/// <param name="NewPoints"></param>
+	void SetDPoints(const int32& NewPoints);
+
+	/// <summary>
+	/// ポイントのゲット
+	/// </summary>
+	/// <returns></returns>
+	int32 GetDPoints() const;
+
 #pragma endregion
 
 // 2025.10.24 ウー start
