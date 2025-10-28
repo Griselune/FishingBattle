@@ -425,14 +425,40 @@ void AFishingBattleCharacter::Server_Fishing_Implementation()
 }
 
 void  AFishingBattleCharacter::Multi_AddWeaponInPlayer_Implementation(TSubclassOf<AActor> WeaponID) {
-	APlayerState_T* ps = GetPlayerState<APlayerState_T>();
+	APlayerState_T* PS = GetPlayerState<APlayerState_T>();
 	//TSubclassOf<AActor> weaponActorSubclass = Cast<AFishingGround>(fishingSpot)->GetFish();
-	if (ps)
+	if (PS)
 	{
 		if (WeaponID) {
 			UE_LOG(LogTemp, Error, TEXT("addweaponInPlayer!!!!!!!!!!!!!!!!!!!!!!!"));
-			ps->Server_AddWeapon(WeaponID);
+			PS->Server_AddWeapon(WeaponID);
 		}
+		//プリンス START 2025/10/28 test
+		 // Delay duration (in seconds)
+		//const float DelayTime = 3.0f;
+
+		//FTimerHandle DelayHandle;
+		//GetWorldTimerManager().SetTimer(
+		//	DelayHandle,
+		//	FTimerDelegate::CreateLambda([this, PS]()
+		//		{
+		//			if (HasAuthority())
+		//			{
+		//				UE_LOG(LogTemp, Warning, TEXT("SERVER delayed ServerSetPlayerDPoints() | new points : %d for name: %s"), DPoints, *Name);
+		//				AddPoint(0.f);
+		//				Multi_SetPlayerDPoints((int)PS->GetPoint());
+		//			}
+		//			else
+		//			{
+		//				UE_LOG(LogTemp, Warning, TEXT("CLIENT delayed ServerSetPlayerDPoints() | new points : %d for name: %s"), DPoints, *Name);
+		//				AddPoint(0.f);
+		//				Server_SetPlayerDPoints((int)PS->GetPoint());
+		//			}
+		//		}),
+		//	DelayTime,
+		//	false // don't loop
+		//);
+		//プリンス END 2025/10/28
 	}
 	else {
 		UE_LOG(LogTemp, Error, TEXT("プレイヤーステートないけどどうする？"));
@@ -527,7 +553,6 @@ void AFishingBattleCharacter::Multi_GetFishByGauge_Implementation(bool Result)
 	//mAnim->IsFishing = false;
 	//animInstance->Montage_Play(UpLot);
 	OnFishingEnded(Result);
-
 }
 //10月15日　滝本海大　終了
 
@@ -975,7 +1000,10 @@ void AFishingBattleCharacter::PossessedBy(AController* NewController)
 		//プリンス START 2025/10/25 test
 		ULANGameInstance* GI = GetGameInstance<ULANGameInstance>();
 		ServerSetPlayerName(GI->GIPlayerName);
-		
+		//プリンス START 2025/10/28 test
+		Multi_SetPlayerDPoints((int)GetPoint());
+		OnRep_UpdatedPoints();
+		//プリンス END 2025/10/28
 		//プリンス END 2025/10/25 test
 	}
 
@@ -1068,6 +1096,12 @@ void AFishingBattleCharacter::ChangeMappingContext(UInputMappingContext* context
 			Subsystem->AddMappingContext(context_, 0);
 			nowMappingContext = context_;
 		}
+	}
+
+	//prinz test
+	if (HasAuthority()) {
+		Multi_SetPlayerDPoints((int)GetPoint());
+		UE_LOG(LogTemp, Warning, TEXT("SERVER calls Multi_SetPlayerDPoints((int)GetPoint()) with %d pts for : %s"), (int)GetPoint(), *Name);
 	}
 }
 #pragma endregion
@@ -1557,6 +1591,13 @@ void AFishingBattleCharacter::OnFishingEnded(bool Result)
 		//マッピングコンテクストの入れ替えで操作を制限
 		ChangeMappingContext(HasFishrotMappingContext);
 	}
+
+	//prinz test 2025/10/28
+	//if (IsLocallyControlled()) {
+	//	Server_SetPlayerDPoints((int)GetPoint());
+	//	UE_LOG(LogTemp, Warning, TEXT("LocallyControlled calls Server_SetPlayerDPoints(GetPoint()) in OnFishingEnded() with %d pts for : %s"), (int)GetPoint(), *Name);
+	//}
+
 	// 2025.10.15 ウー end
 	weaponActorSubclass = nullptr;
 
@@ -1638,8 +1679,41 @@ void AFishingBattleCharacter::AddPoint(float Point)
 	if (PS) {
 		PS->AddPoint(Point);
 
-		//prinz test 2025/10/28
-		ServerSetPlayerDPoints((int)PS->GetPoint());
+		//プリンス START 2025/10/28 test
+		const float DelayTime = 1.0f;
+
+		FTimerHandle DelayHandle;
+		GetWorldTimerManager().SetTimer(
+			DelayHandle,
+			FTimerDelegate::CreateLambda([this, PS]()
+				{
+					if (HasAuthority())
+					{
+						UE_LOG(LogTemp, Warning, TEXT("SERVER delayed ServerSetPlayerDPoints() | new points : %d for name: %s"), DPoints, *Name);
+					//	AddPoint(0.f);
+						Multi_SetPlayerDPoints((int)PS->GetPoint());
+					}
+					else
+					{
+						UE_LOG(LogTemp, Warning, TEXT("CLIENT delayed ServerSetPlayerDPoints() | new points : %d for name: %s"), DPoints, *Name);
+					//	AddPoint(0.f);
+						Server_SetPlayerDPoints((int)PS->GetPoint());
+					}
+				}),
+			DelayTime,
+			false // don't loop
+		);
+
+
+		/*if (HasAuthority()) {
+			UE_LOG(LogTemp, Warning, TEXT("SERVER Multi_SetPlayerDPoints() in AddPoint() - +points=%d | new points : %d for name: %s"), (int)Point, DPoints, *Name);
+			Multi_SetPlayerDPoints((int)PS->GetPoint());
+		}
+		else {
+			UE_LOG(LogTemp, Warning, TEXT("CLIENT Server_SetPlayerDPoints() in AddPoint() - +points=%d | new points : %d for name: %s"), (int)Point, DPoints, *Name);
+			Server_SetPlayerDPoints((int)PS->GetPoint());
+		}*/
+		//プリンス END 2025/10/28
 	}
 }
 
@@ -1689,7 +1763,7 @@ FString AFishingBattleCharacter::GetName() const
 	return Name;
 }
 
-int32 AFishingBattleCharacter::GetPoints() const
+int32 AFishingBattleCharacter::GetDPoints() const
 {
 	return DPoints;
 }
@@ -1732,10 +1806,10 @@ void AFishingBattleCharacter::UpdateNameWidget()
 void AFishingBattleCharacter::UpdateDisplayPointsWidget()
 {
 	if (HasAuthority()) {
-		UE_LOG(LogTemp, Warning, TEXT("SERVER UpdateNameWidget() - new points : %d for name: %s"), DPoints, *Name);
+		UE_LOG(LogTemp, Warning, TEXT("SERVER UpdateDisplayPointsWidget() - new points : %d for name: %s"), DPoints, *Name);
 	}
 	else {
-		UE_LOG(LogTemp, Warning, TEXT("CLIENT UpdateNameWidget() - new points : %d for name: %s"), DPoints, *Name);
+		UE_LOG(LogTemp, Warning, TEXT("CLIENT UpdateDisplayPointsWidget() - new points : %d for name: %s"), DPoints, *Name);
 	}
 
 	if (ChildActorComp && ChildActorComp->GetChildActor()) {
@@ -1743,7 +1817,7 @@ void AFishingBattleCharacter::UpdateDisplayPointsWidget()
 		AChildPlayerNameTag* ChildNameTagActor = Cast<AChildPlayerNameTag>(ChildActorComp->GetChildActor());
 		if (ChildNameTagActor) {
 			// Access the widget component through the getter ポイント更新
-			if (UWidgetComponent* PWidgetComp = ChildNameTagActor->GetDisplayPointsWidgetComp()) {
+			if (UWidgetComponent* PWidgetComp = ChildNameTagActor->GetNameTagWidgetComp()/*GetDisplayPointsWidgetComp()*/) {
 				// Get the UserWidget object
 				if (UUserWidget* PWidget = PWidgetComp->GetUserWidgetObject()) {
 					// Access the TextBlock using the meta=(BindWidget) name
@@ -1798,6 +1872,7 @@ void AFishingBattleCharacter::PostNetInit()
 {
 	Super::PostNetInit();
 	UpdateNameWidget();
+	UpdateDisplayPointsWidget();
 	//OnRep_UpdatedName(); // ensure name widget updates after replication
 }
 
@@ -1806,7 +1881,13 @@ void AFishingBattleCharacter::ServerSetPlayerName_Implementation(const FString& 
 	SetName(NewName); // sets and replicates to everyone
 }
 
-void AFishingBattleCharacter::ServerSetPlayerDPoints_Implementation(const int32& NewPoints)
+void AFishingBattleCharacter::Server_SetPlayerDPoints_Implementation(const int32& NewPoints)
+{
+	Multi_SetPlayerDPoints(NewPoints);
+//	SetDPoints(NewPoints);
+}
+
+void AFishingBattleCharacter::Multi_SetPlayerDPoints_Implementation(const int32& NewPoints)
 {
 	SetDPoints(NewPoints);
 }

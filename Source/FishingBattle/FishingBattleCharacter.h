@@ -734,7 +734,10 @@ public:
 	void ServerSetPlayerName(const FString& NewName);
 
 	UFUNCTION(Server, Reliable)
-	void ServerSetPlayerDPoints(const int32& NewPoints);
+	void Server_SetPlayerDPoints(const int32& NewPoints);
+
+	UFUNCTION(NetMulticast, Reliable)
+	void Multi_SetPlayerDPoints(const int32& NewPoints);
 	//プリンス END 2025/10/21
 
 public:
@@ -761,7 +764,7 @@ public:
 	/// ポイントのゲット
 	/// </summary>
 	/// <returns></returns>
-	int32 GetPoints() const;
+	int32 GetDPoints() const;
 
 #pragma endregion
 
