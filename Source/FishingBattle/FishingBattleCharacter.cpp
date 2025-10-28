@@ -958,6 +958,7 @@ void AFishingBattleCharacter::GetLifetimeReplicatedProps(TArray<FLifetimePropert
 	// 
 	//プリンス START 2025/10/21
 	DOREPLIFETIME(AFishingBattleCharacter, Name);
+	DOREPLIFETIME(AFishingBattleCharacter, DPoints);
 //	DOREPLIFETIME_CONDITION_NOTIFY(AFishingBattleCharacter, Name, COND_None, REPNOTIFY_Always);
 	//プリンス END 2025/10/21
 }
@@ -1636,6 +1637,9 @@ void AFishingBattleCharacter::AddPoint(float Point)
 	APlayerState_T* PS = GetPlayerState<APlayerState_T>();
 	if (PS) {
 		PS->AddPoint(Point);
+
+		//prinz test 2025/10/28
+		ServerSetPlayerDPoints((int)PS->GetPoint());
 	}
 }
 
@@ -1673,9 +1677,21 @@ void AFishingBattleCharacter::SetName(const FString& NewName)
 	UpdateNameWidget();
 }
 
+void AFishingBattleCharacter::SetDPoints(const int32& NewPoints)
+{
+	DPoints = NewPoints;
+	UpdateDisplayPointsWidget();
+}
+
+
 FString AFishingBattleCharacter::GetName() const
 {
 	return Name;
+}
+
+int32 AFishingBattleCharacter::GetPoints() const
+{
+	return DPoints;
 }
 
 void AFishingBattleCharacter::OnRep_UpdatedName()
@@ -1684,56 +1700,98 @@ void AFishingBattleCharacter::OnRep_UpdatedName()
 	UpdateNameWidget();
 }
 
+void AFishingBattleCharacter::OnRep_UpdatedPoints()
+{
+	UE_LOG(LogTemp, Warning, TEXT("OnRep_UpdatedPoints fired - new points : %d for name: %s"), DPoints, *Name);
+	UpdateDisplayPointsWidget();
+}
+
 void AFishingBattleCharacter::UpdateNameWidget()
 {
-	if (ChildActorComp && ChildActorComp->GetChildActor())
-	{
+
+	if (ChildActorComp && ChildActorComp->GetChildActor()){
 		// Get the specific child actor instance and cast to your C++ class
 		AChildPlayerNameTag* ChildNameTagActor = Cast<AChildPlayerNameTag>(ChildActorComp->GetChildActor());
-		if (ChildNameTagActor)
-		{
-			// Access the widget component through the getter
-			if (UWidgetComponent* WidgetComp = ChildNameTagActor->GetNameTagWidgetComp())
-			{
+		if (ChildNameTagActor){
+			// Access the widget component through the getter 名前更新
+			if (UWidgetComponent* WidgetComp = ChildNameTagActor->GetNameTagWidgetComp()){
 				// Get the UserWidget object
-				if (UUserWidget* Widget = WidgetComp->GetUserWidgetObject())
-				{
+				if (UUserWidget* Widget = WidgetComp->GetUserWidgetObject()){
 					// Access the TextBlock using the meta=(BindWidget) name
-					if (UTextBlock* NameTagText = Cast<UTextBlock>(Widget->GetWidgetFromName(TEXT("TXT_NameTag"))))
-					{
+					if (UTextBlock* NameTagText = Cast<UTextBlock>(Widget->GetWidgetFromName(TEXT("TXT_NameTag")))){
 						// Set the text
 						NameTagText->SetText(FText::FromString(Name));
+						//add points here
 					}
 				}
 			}
 		}
 	}
+}
 
+void AFishingBattleCharacter::UpdateDisplayPointsWidget()
+{
+	if (HasAuthority()) {
+		UE_LOG(LogTemp, Warning, TEXT("SERVER UpdateNameWidget() - new points : %d for name: %s"), DPoints, *Name);
+	}
+	else {
+		UE_LOG(LogTemp, Warning, TEXT("CLIENT UpdateNameWidget() - new points : %d for name: %s"), DPoints, *Name);
+	}
 
+	if (ChildActorComp && ChildActorComp->GetChildActor()) {
+		// Get the specific child actor instance and cast to your C++ class
+		AChildPlayerNameTag* ChildNameTagActor = Cast<AChildPlayerNameTag>(ChildActorComp->GetChildActor());
+		if (ChildNameTagActor) {
+			// Access the widget component through the getter ポイント更新
+			if (UWidgetComponent* PWidgetComp = ChildNameTagActor->GetDisplayPointsWidgetComp()) {
+				// Get the UserWidget object
+				if (UUserWidget* PWidget = PWidgetComp->GetUserWidgetObject()) {
+					// Access the TextBlock using the meta=(BindWidget) name
+					if (UTextBlock* DisplayPointsText = Cast<UTextBlock>(PWidget->GetWidgetFromName(TEXT("TXT_DisplayPoints")))) {
+						// Set the text
+						DisplayPointsText->SetText(FText::AsNumber(DPoints/*GetPoint()*/));
+						UE_LOG(LogTemp, Warning, TEXT("%s(%s) has updated display points"), *Name, *this->GetActorNameOrLabel());
+					}
+				}
+			}
+		}
+	}
+	else UE_LOG(LogTemp, Warning, TEXT("no ChildActorComp name: %s"), *Name);
+		
+	
 
-	// 名前ウィジェットを更新
-	//if (UUserWidget* Widget = NameTagWidgetComp->GetWidget()) {
-	//	//		NameTagWidgetComp->SetDrawAtDesiredSize(true);
-	//	NameTagWidgetComp->SetVisibility(true);
-	//	//		NameTagWidgetComp->InitWidget();
-	//	if (Widget->Implements<UNameUI>()) {
-	//		INameUI::Execute_SetName(Widget, GetName());
-	//		INameUI::Execute_ShowName(Widget);
-	//		if (HasAuthority()) {
-	//			UE_LOG(LogTemp, Warning, TEXT("Server NameTag Set OK - %s"), *Name);
-	//		}
-	//		else {
-	//			UE_LOG(LogTemp, Warning, TEXT("Server NameTag Set OK - %s"), *Name);
-	//		}
-	//	}
-	//	else {
-	//		UE_LOG(LogTemp, Warning, TEXT("Widget->Implements<UNameUI>() nullptr"));
-	//	}
-
+	//// Ensure you have a valid world context
+	//UWorld* World = GetWorld();
+	//if (!World)
+	//{
+	//	return;
 	//}
-	//else {
-	//	UE_LOG(LogTemp, Warning, TEXT("UUserWidget* Widget = NameTagWidgetComp->GetWidget()  nullptr"));
+	//for (TActorIterator<AFishingBattleCharacter> It(World); It; ++It)
+	//{
+	//	AFishingBattleCharacter* MyChar = *It;
+	//	if (MyChar)
+	//	{
+	//		if (MyChar->ChildActorComp && MyChar->ChildActorComp->GetChildActor()) {
+	//			// Get the specific child actor instance and cast to your C++ class
+	//			AChildPlayerNameTag* ChildNameTagActor = Cast<AChildPlayerNameTag>(MyChar->ChildActorComp->GetChildActor());
+	//			if (ChildNameTagActor) {
+	//				// Access the widget component through the getter ポイント更新
+	//				if (UWidgetComponent* PWidgetComp = ChildNameTagActor->GetDisplayPointsWidgetComp()) {
+	//					// Get the UserWidget object
+	//					if (UUserWidget* PWidget = PWidgetComp->GetUserWidgetObject()) {
+	//						// Access the TextBlock using the meta=(BindWidget) name
+	//						if (UTextBlock* DisplayPointsText = Cast<UTextBlock>(PWidget->GetWidgetFromName(TEXT("TXT_DisplayPoints")))) {
+	//							// Set the text
+	//							DisplayPointsText->SetText(FText::AsNumber(MyChar->GetPoint()));
+	//						}
+	//					}
+	//				}
+	//			}
+	//		}
+	//		UE_LOG(LogTemp, Warning, TEXT("Found character: %s"), *MyChar->Name);
+	//	}
 	//}
+
 }
 
 void AFishingBattleCharacter::PostNetInit()
@@ -1746,6 +1804,11 @@ void AFishingBattleCharacter::PostNetInit()
 void AFishingBattleCharacter::ServerSetPlayerName_Implementation(const FString& NewName)
 {
 	SetName(NewName); // sets and replicates to everyone
+}
+
+void AFishingBattleCharacter::ServerSetPlayerDPoints_Implementation(const int32& NewPoints)
+{
+	SetDPoints(NewPoints);
 }
 
 //プリンス END 2025/10/21
