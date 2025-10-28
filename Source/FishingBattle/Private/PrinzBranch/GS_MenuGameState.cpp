@@ -116,6 +116,13 @@ void AGS_MenuGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Ou
 void AGS_MenuGameState::OnRep_SessionData()
 {
 	UE_LOG(LogTemp, Warning, TEXT("OnRep trigger - Name: %s"), *GSSessionName);
+	////ホストのデータを更新する
+	//AMenuPlayerController* PC = Cast<AMenuPlayerController>(UGameplayStatics::GetPlayerController(this, 0));
+	//if (PC)
+	//{
+	//	PC->SessionDataInitialize();
+	//}
+
 	Server_UpdateAllCurrentPlayers();
 }
 
