@@ -45,8 +45,8 @@ void AGameMode_T::RespawnPlayerT(AController* Controller)
 
         FRandomStream Stream;
         Stream.GenerateNewSeed(); //種値更新
-        float randomX = Stream.RandRange(-75.0f, 75.0f);
-        float randomY = Stream.RandRange(-75.0f, 75.0f);
+        float randomX = Stream.RandRange(-800.0f, 800.0f);
+        float randomY = Stream.RandRange(-800.0f, 800.0f);
 
         Location.X += randomX;
         Location.Y += randomY;
