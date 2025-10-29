@@ -983,7 +983,9 @@ void AFishingBattleCharacter::GetLifetimeReplicatedProps(TArray<FLifetimePropert
 	// 
 	//プリンス START 2025/10/21
 	DOREPLIFETIME(AFishingBattleCharacter, Name);
-	DOREPLIFETIME(AFishingBattleCharacter, DPoints);
+	// 2025.10.29 ウー start
+	// DOREPLIFETIME(AFishingBattleCharacter, DPoints);
+	// 2025.10.29 ウー end
 //	DOREPLIFETIME_CONDITION_NOTIFY(AFishingBattleCharacter, Name, COND_None, REPNOTIFY_Always);
 	//プリンス END 2025/10/21
 }
@@ -1000,10 +1002,12 @@ void AFishingBattleCharacter::PossessedBy(AController* NewController)
 		//プリンス START 2025/10/25 
 		ULANGameInstance* GI = GetGameInstance<ULANGameInstance>();
 		ServerSetPlayerName(GI->GIPlayerName);
+		// 2025.10.29 ウー start
 		//2025/10/28 
-		Multi_SetPlayerDPoints((int)GetPoint());
+		//Multi_SetPlayerDPoints((int)GetPoint());
 		OnRep_UpdatedPoints();
 		//2025/10/28
+		// 2025.10.29 ウー end
 		//プリンス END 2025/10/25
 	}
 
@@ -1570,7 +1574,9 @@ void AFishingBattleCharacter::OnFishingEnded(bool Result)
 					if (ACPPBaseWeapon* BW = Cast<ACPPBaseWeapon>(WeaponClass->GetDefaultObject()))
 					{
 						AddPoint(BW->GetPoint());
-						Server_SetPlayerDPoints((int)GetPoint());
+						// 2025.10.29 ウー start
+						//Server_SetPlayerDPoints((int)GetPoint());
+						// 2025.10.29 ウー end
 					}
 				}
 				else
@@ -1671,32 +1677,34 @@ void AFishingBattleCharacter::AddPoint(float Point)
 	APlayerState_T* PS = GetPlayerState<APlayerState_T>();
 	if (PS) {
 		PS->AddPoint(Point);
-
+		
+		// 2025.10.29 ウー start
 		//プリンス START 2025/10/28 test
-		const float DelayTime = 0.2f;
+		//const float DelayTime = 0.2f;
 
-		FTimerHandle DelayHandle;
-		GetWorldTimerManager().SetTimer(
-			DelayHandle,
-			FTimerDelegate::CreateLambda([this, PS]()
-				{
-					if (HasAuthority())
-					{
-						UE_LOG(LogTemp, Warning, TEXT("SERVER delayed ServerSetPlayerDPoints() in AddPoint()| new points : %d for name: %s"), (int)PS->GetPoint(), *Name);
-					//	AddPoint(0.f);
-						Multi_SetPlayerDPoints((int)PS->GetPoint());
-					}
-					else
-					{
-						UE_LOG(LogTemp, Warning, TEXT("CLIENT delayed ServerSetPlayerDPoints() in AddPoint() | new points : %d for name: %s"), (int)PS->GetPoint(), *Name);
-					//	AddPoint(0.f);
-						Server_SetPlayerDPoints((int)PS->GetPoint());
-					}
-				}),
-			DelayTime,
-			false // don't loop
-		);
+		//FTimerHandle DelayHandle;
+		//GetWorldTimerManager().SetTimer(
+		//	DelayHandle,
+		//	FTimerDelegate::CreateLambda([this, PS]()
+		//		{
+		//			if (HasAuthority())
+		//			{
+		//				UE_LOG(LogTemp, Warning, TEXT("SERVER delayed ServerSetPlayerDPoints() in AddPoint()| new points : %d for name: %s"), (int)PS->GetPoint(), *Name);
+		//			//	AddPoint(0.f);
+		//				Multi_SetPlayerDPoints((int)PS->GetPoint());
+		//			}
+		//			else
+		//			{
+		//				UE_LOG(LogTemp, Warning, TEXT("CLIENT delayed ServerSetPlayerDPoints() in AddPoint() | new points : %d for name: %s"), (int)PS->GetPoint(), *Name);
+		//			//	AddPoint(0.f);
+		//				Server_SetPlayerDPoints((int)PS->GetPoint());
+		//			}
+		//		}),
+		//	DelayTime,
+		//	false // don't loop
+		//);
 		//プリンス END 2025/10/28
+		// 2025.10.29 ウー end
 	}
 }
 
@@ -1806,7 +1814,10 @@ void AFishingBattleCharacter::UpdateDisplayPointsWidget()
 					// Access the TextBlock using the meta=(BindWidget) name
 					if (UTextBlock* DisplayPointsText = Cast<UTextBlock>(PWidget->GetWidgetFromName(TEXT("TXT_DisplayPoints")))) {
 						// Set the text
-						DisplayPointsText->SetText(FText::AsNumber(DPoints));
+						// 2025.10.29 ウー start
+						DisplayPointsText->SetText(FText::AsNumber(GetPoint()));
+						//DisplayPointsText->SetText(FText::AsNumber(DPoints));
+						// 2025.10.29 ウー end
 						UE_LOG(LogTemp, Warning, TEXT("%s(%s) has updated display points"), *Name, *this->GetActorNameOrLabel());
 					}
 				}
@@ -1878,7 +1889,10 @@ void AFishingBattleCharacter::Server_SetPlayerDPoints_Implementation(const int32
 
 void AFishingBattleCharacter::Multi_SetPlayerDPoints_Implementation(const int32& NewPoints)
 {
-	SetDPoints(NewPoints);
+	// 2025.10.29 ウー start
+	//SetDPoints(NewPoints);
+	UpdateDisplayPointsWidget();
+	// 2025.10.29 ウー end
 	if (HasAuthority()) {
 		UE_LOG(LogTemp, Warning, TEXT("SERVER Multi_SetPlayerDPoints() - new points : %d for name: %s"), DPoints, *Name);
 	}

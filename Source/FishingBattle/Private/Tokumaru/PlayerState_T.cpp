@@ -4,6 +4,7 @@
 #include "Tokumaru/PlayerState_T.h"
 #include "Net/UnrealNetwork.h"
 #include <Tokumaru/GameMode_T.h>
+#include "FishingBattle/FishingBattleCharacter.h"
 
 void APlayerState_T::Server_AddWeapon(TSubclassOf<AActor> WeaponID)
 {
@@ -52,7 +53,9 @@ void APlayerState_T::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 	DOREPLIFETIME(APlayerState_T, inventory);
 	DOREPLIFETIME(APlayerState_T, InGamePlay);
 	DOREPLIFETIME(APlayerState_T, DeadCounter);
-
+	// 2025.10.29 ウー start
+	DOREPLIFETIME(APlayerState_T, Point);
+	// 2025.10.29 ウー end
 }
 
 void APlayerState_T::Server_DestructionWeaponPS(int index)
@@ -82,7 +85,6 @@ void APlayerState_T::OnRep_InGamePlay()
 	UE_LOG(LogTemp, Log, TEXT("スタンバイok"));
 }
 
-
 void APlayerState_T::OnRep_DeadCounter()
 {
 	UE_LOG(LogTemp, Error, TEXT("AddDeadCounter"));
@@ -98,6 +100,14 @@ FString APlayerState_T::GetName() const
 	return Name;
 }
 
+void APlayerState_T::OnRep_UpdatePoint()
+{
+	if (AFishingBattleCharacter* Character = GetPawn<AFishingBattleCharacter>())
+	{
+		Character->UpdateDisplayPointsWidget();
+	}
+}
+
 void APlayerState_T::AddPoint_Implementation(float AddPoint)
 {
 	Point += AddPoint;
@@ -106,6 +116,10 @@ void APlayerState_T::AddPoint_Implementation(float AddPoint)
 	{
 		CurrentGameMode->UpdateWinner();
 	}
+	// 2025.10.29 ウー start
+	// 更新ポイント
+	OnRep_UpdatePoint();
+	// 2025.10.29 ウー end
 }
 
 float APlayerState_T::GetPoint() const

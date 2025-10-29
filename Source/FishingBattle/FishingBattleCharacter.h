@@ -717,7 +717,7 @@ private:
 	/// <summary>
 	/// プレイヤのポイント（スコア）
 	/// </summary>
-	UPROPERTY(Replicated, ReplicatedUsing = OnRep_UpdatedPoints)
+	//UPROPERTY(Replicated, ReplicatedUsing = OnRep_UpdatedPoints)
 	int32 DPoints;
 	//UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 	//UWidgetComponent* NameTagWidgetComp;
