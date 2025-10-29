@@ -117,8 +117,15 @@ private:
 
 	// 2025.10.22 ウー start
 	/// <summary>
+	/// ポイント同期
+	/// </summary>
+	UFUNCTION()
+	void OnRep_UpdatePoint();
+
+	/// <summary>
 	/// ポイント
 	/// </summary>
+	UPROPERTY(Replicated, ReplicatedUsing = OnRep_UpdatePoint)
 	float Point;
 	// 2025.10.22 ウー start
 };
